@@ -407,7 +407,7 @@ Do not move old elements: a fixed position is what lets the reader see what is n
 
 - `python3 scripts/ve.py --icons` lists the 188 icons available in `assets/icons.json`.
 - Set `h` or `w`, the other follows the aspect ratio. `text` is the label below the icon, each line centred under it (`\n` for a second line).
-- The size is measured on the drawn strokes. Before the AWS 1 run the tool added a line's `width` to its `x` even when its points ran leftward, so 63 of the 130 icons came out up to half the requested size with the label off-centre or far below.
+- The size is measured on the drawn strokes. Before this fix the tool added a line's `width` to its `x` even when its points ran leftward, so 63 of the 130 icons came out up to half the requested size with the label off-centre or far below.
 - `--lib path/to/file.excalidrawlib` loads any extra library, the icon name is the item name in that library.
 - Icons are recolored to `color`, so they always match the theme.
 
@@ -460,7 +460,7 @@ The tool cannot check: whether the figure says the right thing, whether the layo
 Those three must be checked by eye.
 
 An arrow `text` label cuts a gap in its line with an SVG `<mask>`.
-The tool writes the shapes inside that mask as `<path>`, not `<rect>`: `precheck.py` reads every `<rect>` as a possible background, mask content included, and failed every dark-mode text under a labelled arrow's box at about 1.2:1 (A3 run, `ba3-hai-thang-nhat-quan`).
+The tool writes the shapes inside that mask as `<path>`, not `<rect>`: `precheck.py` reads every `<rect>` as a possible background, mask content included, and failed every dark-mode text under a labelled arrow's box at about 1.2:1.
 Do not turn them back into `<rect>`.
 
 That same gate compares `getBBox()` boxes, which are in each element's local space, and Excalidraw wraps every text in a `<g transform="translate(..)">`.

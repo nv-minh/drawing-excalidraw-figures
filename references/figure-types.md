@@ -40,7 +40,7 @@ Give each owner one accent and repeat it on the cells it owns: the eye then coun
 Number the owner's writes `1 ·` `2 ·` when their order is the point (data before index), and put the "what if swapped" note in `err` right beside them.
 Arrows entering cells from above and below collide with `index` numbers, so write the slot numbers as the cell `labels`.
 A frame title would sit in the path of the vertical arrows: leave the `frame` untitled and write the name as free text in a gap between arrows.
-Run that taught it: FE25 SPSC ring buffer.
+Run that taught it: a SPSC ring buffer figure.
 
 **Paged tree variant** (B-Tree against B+Tree, any tree whose node is a fixed-size page).
 Draw every node as one `cells` strip of the SAME width: the page size is fixed, so how many keys fit in it is the fanout, and the reader counts it.
@@ -51,7 +51,7 @@ Two trees go one above the other with the roots at the same `x`, so the equal pa
 Sibling links between leaves: two single-head arrows in the gap, forward at a third of the leaf height and back at two thirds; a 35-unit gap is the minimum for the pair (one `both: true` arrow needs 64).
 A range scan is `hot` on the key cells it returns plus the descent arrow; when the visit order matters (in-order walk up and down a B-Tree) number it with `badge`s under the leaf cells and above the root cell, not with return arrows that would lie on the pointer arrows.
 A two-digit key at size 16 needs `cw` 32: at 28 Excalidraw wraps it and every cell grows taller.
-Run that taught it: DBI2 B-Tree against B+Tree.
+Run that taught it: a B-Tree against B+Tree figure.
 
 **Slot variant** (a cluster that hands out fixed resource units: Flink task slots, YARN containers, Kubernetes pods per node, worker threads per pool).
 The coordinator goes on top as one frame holding the logical plan (operators as `stack` `n: 2` when the parallelism is 2), the workers below as frames side by side, each holding its units as a 2 × 2 grid of sharp boxes.
@@ -237,7 +237,7 @@ One color per pair spends the whole three-accent cap on decoration, so keep the 
 Put each pair on one row and join it with a dashed two-headed `l4` arrow that names what the two rungs share.
 The direction the whole ladder runs (faster, weaker, harder to reason about) goes on one vertical `muted` arrow beside the columns, not repeated on every rung.
 Box with the rung name at `valign: "top"` plus a centered `muted` text inside for the one-line meaning keeps the name readable at a glance.
-Run that taught it: A3 memory model ladder.
+Run that taught it: a memory-model ladder figure.
 
 **Same items, two engines variant** (one version chain stored two ways: PostgreSQL O2N against InnoDB N2O, copy against delta, heap against log).
 Stack the two engines as two dashed `frame`s, one above the other, and give each item its own column in BOTH frames, named once above the top frame ("bản của txn 205").
@@ -246,7 +246,7 @@ Draw each stored record as a vertical `cells` strip with its real fields (`xmin=
 The entry point (index, clustered-index lookup) is an `l4` box above the strip it enters: it shows which end of the chain a reader starts from.
 Show the cost per reader: a short `muted` `span` for the reader that stops at the entry, and a long `hot` `points` arrow in the walking direction for the reader that walks the whole chain, with its count as text ("xét cả 3 bản, đi 2 lần roll_ptr"); fill `hot` the cell that reader finally returns.
 A nested frame (undo log) whose border sits near a pointer's head cuts the head: keep its border 25+ units clear of the strip the pointer lands on.
-Run that taught it: DBI3 O2N against N2O.
+Run that taught it: an O2N against N2O figure.
 
 **One list, several numberings variant** (0-based index against displayed position, forward against reverse rank, offset against line number).
 Draw the list once as a `table`, one column per numbering, with the direction in the header (`ZRANK ↑`, `ZREVRANK ↓`), so every row shows all numbers side by side and no arrow is needed.
@@ -321,7 +321,7 @@ Set `nh` to the diamond height, and give leaves their own smaller `h`.
 Increase `gap`.
 With four actors the column fits only about `gap` 215: write long actor names on two lines (`"Role app-admin\naccount 456"`), and move a long identifier off the message into a one-line `note` right under the call (`đích: arn:aws:iam::456:role/app-admin` under the label `assume-role`).
 A Mermaid `Note over S` with several `<br/>` lines becomes one multi-line `note` whose `over` spans S and its neighbour, since a note over one lifeline is only 80 wide.
-Run that taught it: AWS 1 role chain.
+Run that taught it: an IAM role chain figure.
 Six actors on a hot read path (browser, edge, service, cache, store, queue) do not fit any `gap`: draw a request flow instead, number the steps for order, put key names in the store labels (`Redis\nlink:aB3xK9p`) so arrow labels stay short (`3. GET → nil`), and give the async step a dashed arrow numbered after the reply.
 Run: ds-3 hot path (`ds3-duong-nong-redirect`, was a 6-actor Mermaid at 7.3px).
 
@@ -425,7 +425,7 @@ Long code belongs in the lesson.
 The lane where each column changes form (cut, merge, encode, decrypt) is the point of the figure: put the two change boxes in different lanes when the source does, and keep one accent for the form the upper layers see.
 Many small units next to one big unit: generate a comb of thin vertical `line` strokes with a script, exactly as wide as the single block it becomes, so equal width reads as equal bytes.
 A comb has no id, so aim arrows at it with `points`.
-Run that taught it: A2 offload figure, TSO cuts 45 segments at the NIC while GRO merges them in the NAPI poll.
+Run that taught it: an offload figure, TSO cuts 45 segments at the NIC while GRO merges them in the NAPI poll.
 
 **Columns variant** (one operation through the subsystems of one engine, five or more steps: an UPDATE through buffer manager, concurrency control and recovery manager).
 Horizontal lanes with steps left to right run out of width after four steps, so turn the lanes into columns with the `swimlane` macro (`laneW` about 250, nodes 236 wide at size 16) and let time read downward.
@@ -433,7 +433,7 @@ Number the steps `①` `②` in the node text and give each step the real value 
 The main path is `hot`; the edges that hand a value to another column carry that value as their label (`LSN A7B3`, `dirty`), which is the point of the figure.
 A concurrent actor (a reader in another transaction) is a node in the column it touches, reached by a dashed edge, not a step of the main path.
 Two steps that are deliberately unordered (commit and page flush under NO-FORCE) get no edge between them; one line under the figure says why.
-Run that taught it: DBI3 hero.
+Run that taught it: a database-internals hero figure.
 
 ## 17 Progressive build
 
@@ -490,7 +490,7 @@ Hand-drawn figures are for the SHAPE of the curve.
   Icons are hollow, so a frame border drawn through one shows inside it: put the Internet Gateway just outside the VPC frame, not on its border.
   When arrows enter subnets from above, leave the frames untitled and write the names as free text where no arrow runs (VPC top-right, subnet bottom-left), or the vertical arrows cut the titles.
   A route table is a `table` (Destination, Target) under its subnet, joined by a dashed `line`; color its `0.0.0.0/0` row like the arrows that row sends, so the reader matches the row to the path.
-  Run that taught it: AWS 1 public and private route tables.
+  Run that taught it: public and private route tables.
 
 ## 21 Sequence with fragments
 
