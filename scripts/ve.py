@@ -55,7 +55,7 @@ def _tuong_phan(a, b):
 
 # (light tint hex, light text hex) of every token whose text is under 3.5:1 on its own tint in either theme.
 # 3.5, not the site's 3:1 gate: node on fill-node passes at 3.27 in dark but the thin hand-drawn
-# glyphs read dim (hang-doi-tay and hang-doi 7.2 runs), and l3 at 3.13 in light is the same case.
+# glyphs read dim , and l3 at 3.13 in light is the same case.
 TINT_TEXT_MIN = 3.5
 TINT_TEXT_FAILS = {
     (T.FILL_TOKENS[f'fill-{k}'][0].lower(), T.TOKENS[k][0].lower()): k
@@ -145,7 +145,7 @@ def cao_chu(s, size):
 def _mau_nhan(e, mac_dinh='soft'):
     """Label color for a macro whose label sits in a ghost box over the macro's own fill (db, pipe,
     cloud, doc). The ghost box has no background, so the TINT_TEXT_FAILS pass never sees the tint:
-    an l4 `db` filled l4 kept l4 text at 2.58:1 in dark (thiet-ke-mau-thiet-ke 1.2 run)."""
+    an l4 `db` filled l4 kept l4 text at 2.58:1 in dark ."""
     c = e.get('color', 'ink')
     f = e.get('fill', mac_dinh)
     if f and e.get('fillStyle', 'solid') == 'solid' and c in MAU and \
@@ -488,7 +488,7 @@ def m_sequence(e):
             # A self-message has no label above its line, so right after a frame opens the 24 units kept for
             # that label stood empty under the frame header (ds3 queue 2: `break` + one self-message).
             # Elsewhere the same empty band sat between a call and the self-loop it triggers: 44 units above the
-            # loop against 26 below it (he-phan-tan 1.3 run), so the loop now moves up 12 there too.
+            # loop against 26 below it , so the loop now moves up 12 there too.
             y -= 20 if open_before in FRAGS else 12
             x = pos[m['from']]
             out.append({'t': 'arrow', 'points': [[x, y], [x + 46, y], [x + 46, y + 26], [x + 4, y + 26]],
@@ -506,7 +506,7 @@ def m_sequence(e):
                     'weight': m.get('weight', 2), 'head': m.get('head', 'arrow')})
         # Centred label, anchored at its centre: Excalidraw measures Nunito and the SVG swaps in the narrower
         # Patrick Hand, so a left-anchored label placed with rong_chu drifted ~40 units toward the left lifeline
-        # (hang-doi 0.1 run). A message that crosses lifelines gets its label over the first gap (lessons rule 17).
+        # . A message that crosses lifelines gets its label over the first gap (lessons rule 17).
         giua = sorted((p for p in pos.values() if min(x1, x2) < p < max(x1, x2)), key=lambda p: abs(p - x1))
         cx = (x1 + giua[0]) / 2 if giua else (x1 + x2) / 2
         if nhan:
@@ -519,7 +519,7 @@ def m_sequence(e):
     if stack:
         chet(f"sequence: frame '{stack[-1]['kind']}' is not closed with {{\"end\":true}}")
     # A self-message label widens only the frame that holds it, so an `alt` with self-messages ended
-    # ~280 units right of the `opt` under it (he-phan-tan 1.3 run). Sibling frames share the widest right edge.
+    # ~280 units right of the `opt` under it . Sibling frames share the widest right edge.
     if len(ngoai) > 1:
         phai = max(out[i]['x'] + out[i]['w'] for i, _, _ in ngoai)
         for i, s0, n in ngoai:
@@ -606,7 +606,7 @@ def m_ring(e):
         p, q = pt(k['angle'], r - 6), pt(k['angle'], r + 6)
         out.append({'t': 'line', 'points': [list(p), list(q)], 'color': 'muted'})
         # a tick at a node's angle (node "at position 25"): push the label inward past the node disc,
-        # or it touches the node (sd09 run: "75" sat on the DB4 node)
+        # or it touches the node ("75" sat on the DB4 node)
         near = [n.get('d', 26) for n in e.get('nodes', [])
                 if abs((n['angle'] - k['angle'] + 180) % 360 - 180) < 12]
         lx, ly = pt(k['angle'], r - 22 - (max(near) / 2 + 2 if near else 0))
@@ -767,9 +767,9 @@ def m_badge(e):
     d, c = e.get('d', 30), e.get('color', 'l4')
     # Text sits in a ghost box, not bound to the ellipse: an ellipse with bound text grows into an egg.
     # An auto id puts the disc in the arrow-crossing lint: without one it was skipped, and a badge placed on the
-    # strip -> box arrow of the thiet-ke-cong-nghe 0.1 map sat on the line with the tool silent.
+    # strip -> box arrow of a figure's map sat on the line with the tool silent.
     # `muted` and `ink` have no fill tint: a muted badge (step numbers that must not compete with the accents)
-    # stopped the render with "fill 'muted' does not exist" (thiet-ke-mau-thiet-ke 2.3 run), so those take `soft`.
+    # stopped the render with "fill 'muted' does not exist" ), so those take `soft`.
     f = c if f'fill-{c}' in NEN else 'soft'
     return [{'t': 'ellipse', 'id': e.get('id') or f"badge@{e['x']},{e['y']}", 'x': e['x'], 'y': e['y'], 'w': d, 'h': d, 'color': c, 'fill': f},
             _khung({'x': e['x'] - 6, 'y': e['y'], 'w': d + 12, 'h': d, 'text': str(e['n']), 'size': e.get('size', 16),
@@ -797,7 +797,7 @@ def m_legend(e):
             out.append({'t': 'arrow', 'points': [[x, y + 10], [x + 34, y + 10]], 'color': c,
                         'dashed': it.get('dashed'), 'dotted': it.get('dotted'), 'weight': it.get('weight', 2),
                         'head': it.get('head', 'arrow')})
-        else:   # `weight` keys a thick border (leader, the row under discussion); dropped before raft-nhan-ban-ghi
+        else:   # `weight` keys a thick border (leader, the row under discussion); dropped before this rule
             out.append({'t': it.get('shape', 'box'), 'x': x + 6, 'y': y, 'w': 22, 'h': 20, 'color': c,
                         'fill': it.get('fill'), 'fillStyle': it.get('fillStyle', 'solid'), 'dashed': it.get('dashed'),
                         'dotted': it.get('dotted'), 'weight': it.get('weight', 2)})
@@ -1182,7 +1182,7 @@ def _hachure_ro(e, o):
     Excalidraw draws hachure lines in the backgroundColor (a pale `fill-*` tint), 1 unit thick, 8 apart
     (hachureGap = 4 × strokeWidth, not settable per element). `soft` is so close to the page that its lines vanish
     at any width, and a narrow empty cell (cw 13-24) gets two or three tint lines and reads as an empty cell
-    (sd01 run: 27 cells at cw 13; hang-doi 2.1: cw 18 queue cells; hang-doi 3.3 run).
+    (measured on real figures: 27 cells at cw 13, cw 18 queue cells).
     Fix: `soft` hachure lines use the `line` token; a narrow shape with no text gets its lines from an under-layer
     (id `<id>~hach`, no stroke, strokeWidth 1.5 so the gap is 6) in the saturated token of its fill at 55% opacity, and the shape itself keeps only
     its outline, so the outline stays at full strength. Text-bearing cells keep the tint: their glyphs already fill
@@ -1256,7 +1256,7 @@ def dung(spec_els):
                 else:
                     ca, cb = tam(a), tam(b)
                     # a pinned end (side + At) is what the free end aims at, not the other shape's centre:
-                    # aiming at the centre turned a row-level arrow into a slope toward a tall target (td5 run)
+                    # aiming at the centre turned a row-level arrow into a slope toward a tall target
                     p = mep(a, e['fromSide'], e.get('fromAt', .5)) if e.get('fromSide') else None
                     q = mep(b, e['toSide'], e.get('toAt', .5)) if e.get('toSide') else None
                     if p is None:
@@ -1309,7 +1309,7 @@ def dung(spec_els):
                     o['label'] = {'text': str(e['text']), 'fontSize': e.get('size', 16), 'strokeColor': c}
             out.append(o)
             # Excalidraw dashes the arrowheads of a dashed arrow too, which cuts an ER bar or crow into stubs
-            # (`td5-quan-sat-hai-duong-ve-benh-nhan`, a FK-less column drawn dashed). Keep the line dashed but
+            # (a FK-less column drawn dashed). Keep the line dashed but
             # draw each ER end on its own short solid segment laid over the last 40 units.
             ER_ENDS = ('one', 'many', 'one-many', 'zero-one', 'zero-many')
             ve_lien = t == 'arrow' and chung['strokeStyle'] != 'solid'
@@ -1350,7 +1350,7 @@ def dung(spec_els):
                     con -= L
                 sz = e.get('size', 16)
                 # Excalidraw lays Nunito at 1.35 per line, not cao_chu's 1.25: centring on the 1.25 height let a
-                # two-line label at labelDy -22 hang 1.2 units over its own line (hang-doi 6.3 run). Use the real height.
+                # two-line label at labelDy -22 hang 1.2 units over its own line . Use the real height.
                 tw, th = rong_chu(e['text'], sz), (str(e['text']).count('\n') + 1) * sz * 1.35
                 dx = e.get('labelDx', 0 if ngang else tw / 2 + 8)
                 dy = e.get('labelDy', -(th / 2 + 4) if ngang else 0)
@@ -1406,14 +1406,14 @@ def _cat_doan_hcn(p, q, r, co=6):
 def _dau(e):
     """Number of drawn arrowheads (0-2) on an arrow spec. A `dot` tail is a pointer's origin, a small disc
     meant to sit inside the cell that holds the pointer: it hides no shaft and no border cuts it, so it is
-    not counted (redis 2.2 run: a ptr arrow starting in its cell was flagged as a head cut by that cell)."""
+    not counted (a ptr arrow starting in its cell was once flagged as a head cut by that cell)."""
     return int(e.get('head', 'arrow') != 'none') + int(e.get('tail', 'arrow' if e.get('both') else 'none') not in ('none', 'dot'))
 
 
 def _mono_that(e):
     """Free `mono` text as the SVG draws it. Excalidraw measures it in Cascadia at ~0.50em per glyph,
     but the SVG swaps in IBM Plex Mono at 0.60em, so a 47-char line drew 68 units wider than every
-    check below believed and ran into a table title the tool never flagged (hang-doi 3.1 run)."""
+    check below believed and ran into a table title the tool never flagged ."""
     if e['type'] != 'text' or e.get('containerId') or e.get('fontFamily') != 3:
         return e
     w = max((len(l) for l in str(e['text']).split('\n')), default=0) * e['fontSize'] * 0.6
@@ -1437,12 +1437,12 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
                 t, fs = s['label']['text'], s['label'].get('fontSize', 20)
                 # Wrapped = Excalidraw's bound text has MORE lines than the spec text. The old test guessed it from
                 # cao_chu (1.25 line height) while Excalidraw lays Nunito out at 1.35, so two lines at size 15 in h 48
-                # were called "wrapped" and told to widen a box that only needed 3 more units of height (sd53 run).
+                # were called "wrapped" and told to widen a box that only needed 3 more units of height .
                 bt = next((e for e in conv if e['type'] == 'text' and e.get('containerId') == c['id']), None)
                 quan = bt is not None and bt['text'].count('\n') > t.count('\n')
                 if c['width'] <= s['width'] + 2 and quan:
                     # Capitals are wider than the 0.52 rule: XREADGROUP at size 14 wrapped in w 106 and needed 107,
-                    # while the old hint said 89, below the width that had already failed (hang-doi 9.1 run)
+                    # while the old hint said 89, below the width that had already failed 
                     can = max((sum(0.65 if ch.isupper() else 0.52 for ch in l) for l in t.split('\n')), default=0)
                     can = max(can * fs + 16, s['width'] + 6)
                     fix = (f"the text wrapped, so widen it, not heighten it: `w` (`cw` in a cells strip) at least "
@@ -1456,7 +1456,7 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
                             f"because text “{s['label']['text'][:20]}” does not fit: {fix}")
             else:
                 # The text wrapped but the box was tall enough, so it did not grow and the check above stayed silent.
-                # `→16` in a 38-wide cell 56 tall drew as `→1` over `6` (thiet-ke-cong-nghe 1.9 run).
+                # `→16` in a 38-wide cell 56 tall drew as `→1` over `6` .
                 t, fs = s['label']['text'], s['label'].get('fontSize', 20)
                 bt = next((e for e in conv if e['type'] == 'text' and e.get('containerId') == c['id']), None)
                 if bt is not None and bt['text'].count('\n') > t.count('\n'):
@@ -1501,7 +1501,7 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
     # 2a · one arrow's head lands where another arrow starts: in and out share a spot and read as one line crossing
     #      the shape (A6 roadmap, `ba6-duong-mac-dinh-14-chang`). Axes sharing an origin and a pair a→b, b→a are fine.
     #      So is a chain of two `points` arrows that turns at a joint off every shape border: a timeline V where a
-    #      request reaches the DB lane and the reply leaves at that instant (thiet-ke-mau-thiet-ke 2.1 run, 22 nudges).
+    #      request reaches the DB lane and the reply leaves at that instant (22 nudges).
     def _tren_vien(p):
         return any(h['x'] - 4 <= p[0] <= h['x'] + h['w'] + 4 and h['y'] - 4 <= p[1] <= h['y'] + h['h'] + 4
                    and not (h['x'] + 4 < p[0] < h['x'] + h['w'] - 4 and h['y'] + 4 < p[1] < h['y'] + h['h'] - 4)
@@ -1593,7 +1593,7 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
     def dung_chu(p, q):
         """Glyphs collide: drawn x spans (ngang_ve) and boxes trimmed by 15% of their height top and bottom
         (the line gap) overlap 6+ units BOTH ways. The 18% area test alone missed the end of a long mono
-        line running 13 units into a short title: 11% of the title's box (hang-doi 3.1 run)."""
+        line running 13 units into a short title: 11% of the title's box ."""
         (p0, p1), (q0, q1) = ngang_ve(p), ngang_ve(q)
         tp, tq = p['height'] * 0.15, q['height'] * 0.15
         w = min(p1, q1) - max(p0, q0)
@@ -1621,7 +1621,7 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
             elif g >= 0.88 * dt and s['width'] >= 3 * f['width'] and s['height'] >= 3 * f['height'] \
                     and not str(f['id']).startswith(f"{s['id']}."):
                 # inside a frame-sized shape but touching its edge: a two-line note ended 2.5 units above a frame's
-                # bottom, so the rough stroke ran through its descenders and the straddle test stayed silent (sd03 run).
+                # bottom, so the rough stroke ran through its descenders and the straddle test stayed silent .
                 # A shape's own parts (a window's title bar text, id `<window>.title`) and shapes under 3x the
                 # text (a label in a small box) are placed by design.
                 ke = min(f['x'] - s['x'], f['y'] - s['y'], s['x'] + s['width'] - f['x'] - f['width'],
@@ -1639,7 +1639,7 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
                 nhac.append(f"label “{f['text'][:22]}” touches the ring of a zero-one/zero-many end: "
                             f"raise it with labelDy, slide it with labelAt, or lengthen the edge")
     # 3b · a free label touching the bar or crow of an ER end: on a 48-unit stub from the parent, a verb label at
-    #      labelDy -16 sat on the `one` bar and the tool was silent (sd52 run, `nhắn` on users → dms).
+    #      labelDy -16 sat on the `one` bar and the tool was silent (`nhắn` on users → dms).
     #      The bar or crow lies within ~24 units of the tip and ~8 units either side of the line (measured on the PNG).
     da_bao = set()
     for ar in (e for e in conv if e['type'] == 'arrow' and len(e.get('points', [])) >= 2):
@@ -1660,7 +1660,7 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
                                 f"slide it with labelAt toward the middle of the edge, or raise it with labelDy")
     # 3c · a sequence message label runs across a lifeline (lessons rule 16: the most common leftover flaw).
     #      Measured on Excalidraw's Nunito box, which is ~20% wider than the Patrick Hand glyphs the SVG shows,
-    #      so the box itself is the clearance (hang-doi 0.1 run: two labels and a self-message label crossed
+    #      so the box itself is the clearance (two labels and a self-message label crossed
     #      the next lifeline and the tool was silent).
     #      Fragment guard labels (`[condition]` of alt/else/opt/loop...) carry `~lab~g` ids and are measured too:
     #      an `else` guard drawn at the frame's left edge sat on the first lifeline (template 21) and 3c was silent.
@@ -1679,20 +1679,20 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
                     nhac.append(f"sequence label “{t['text'][:26]}” runs across the lifeline of '{ai}': shorten it, "
                                 f"or raise `gap` (this label needs about {t['width'] + 30:.0f})")
     # 3d · an arrow's stroke runs through free text: a `vh` arrow leaving the bottom of a cells strip ran straight
-    #      down through the strip's caption under it ("PEL: chưa XACK") and the tool was silent (hang-doi 2.3 run).
+    #      down through the strip's caption under it ("PEL: chưa XACK") and the tool was silent .
     #      Measured on the Excalidraw text box shrunk by 2 units, so a label resting beside its own line is skipped.
     #      A detached arrow label (`_lab*`) is measured on its box grown by 1 unit instead: a two-line label at
     #      labelDy -22 hung 1.2 units over its own line, the glyphs sat on the stroke, and the 2-unit shrink hid it
-    #      (hang-doi 6.3 run). The default placement leaves 4 units, so only a hand-set labelDy/labelDx can trip this.
+    #      . The default placement leaves 4 units, so only a hand-set labelDy/labelDx can trip this.
     #      A plain `line` counts too: a dashed vertical time guide (the moment one message is published) crossing
     #      every block of a timeline ran through any outcome text placed past its x, and the tool was silent
-    #      (thiet-ke-mau-thiet-ke 1.3 run). Detached-label resting is an arrow notion, so lines use the shrunk box.
+    #      . Detached-label resting is an arrow notion, so lines use the shrunk box.
     #      Sequence lifelines (`~life~`) are left to 3c, which already measures message labels against them.
     #      Lines inside a 30-unit square are `cross`/`check` marks: the sequence `fail` X sits inside the label's
     #      Nunito box on purpose (the drawn Patrick Hand glyphs end before it), so they are skipped.
     #      A plain `line` is also measured against text inside a shape (a `cells` label, a box label): a dashed
     #      deadline guide ran down through the label of a `cells` strip under it and the tool was silent
-    #      (thiet-ke-mau-thiet-ke 2.4 run). Arrows are not, since their ends are clipped at the shapes they join.
+    #      . Arrows are not, since their ends are clipped at the shapes they join.
     #      A filled shape drawn after the line hides it, so its label is skipped: a lane baseline drawn first and
     #      covered by a filled hold box is the normal timeline build (thoi-gian-thuc-ba-cach-cho-mot-tin).
     _thu_tu = {id(e): i for i, e in enumerate(conv)}
@@ -1721,7 +1721,7 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
                              f"a `line` runs through text “{f['text'][:22]}”: move the text, or end the line before it"))
     # 3e · a hand-placed `cross`/`check` lies on free text. 3d skips 30-unit lines, so a cross at a box's top-right
     #      corner sat on the end of a section title right above the box and the tool was silent
-    #      (thiet-ke-mau-thiet-ke 7.5 run, viec-dai-vong-chong-trung-chan-sua).
+    #      .
     _bao = set()
     for mk in (e for e in conv if e['type'] == 'line' and '~mark~' in str(e.get('id', ''))):
         P = [(mk['x'] + p[0], mk['y'] + p[1]) for p in mk['points']]
@@ -1885,7 +1885,7 @@ def ve(pg, base, src, ra):
     svg = digits_to_tspans(code_bg_rects(mask_rects_to_paths(svg)))
     sot = T.audit(svg)
     (ra / f'{ten}.excalidraw').write_text(json.dumps(
-        {'type': 'excalidraw', 'version': 2, 'source': 'migrationKl', 'elements': r['els'],
+        {'type': 'excalidraw', 'version': 2, 'source': 'drawing-excalidraw-figures', 'elements': r['els'],
          'appState': {'viewBackgroundColor': '#ffffff', 'gridSize': None}, 'files': {}},
         ensure_ascii=False, indent=1).replace(CANH_NEN, MAU['ink']).replace(CANH_CHU, '#DCE6F5'), encoding='utf-8')
     (ra / f'{ten}.svg').write_text(svg, encoding='utf-8')

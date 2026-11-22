@@ -24,9 +24,9 @@ Contents: [File skeleton](#file-skeleton) · [Common properties](#common-propert
 | Property | Value | Notes |
 |---|---|---|
 | `color` | `ink` `muted` `line` `l2` `l3` `l4` `l6` `l7` `err` `warn` `node` `heap` `hot` | Stroke and text color. Default `ink`. Accepts token names only, no hex codes. Text never renders in `warn`: amber text is 2.44:1 on the light page, under the site's 3:1 gate, so the tool draws it in `ink` and keeps `warn` for strokes and fills |
-| `fill` | `soft` or `l2` `l3` `l4` `l6` `l7` `err` `warn` `node` `heap` `hot` | Light background color of that token. Empty means no fill. A label in the same token on its own solid tint is drawn in `ink` when that pair is under 3.5:1 in either theme (`TINT_TEXT_MIN`, a margin over the site's 3:1 gate): `l4` on `fill-l4` is 2.58:1 in dark, and `l2` `l6` `l7` `err` `warn` fail too (hang-doi 7.3 run); `node` at 3.27 in dark and `l3` at 3.13 in light passed 3:1 but read dim, so they turn `ink` too (hang-doi 7.2 run). The same holds for the label inside a `db` `pipe` `cloud` `doc`, which sits in a ghost box over the fill (an `l4` `db` filled `l4` kept `l4` text until the thiet-ke-mau-thiet-ke 1.2 run). The stroke keeps the token |
+| `fill` | `soft` or `l2` `l3` `l4` `l6` `l7` `err` `warn` `node` `heap` `hot` | Light background color of that token. Empty means no fill. A label in the same token on its own solid tint is drawn in `ink` when that pair is under 3.5:1 in either theme (`TINT_TEXT_MIN`, a margin over the site's 3:1 gate): `l4` on `fill-l4` is 2.58:1 in dark, and `l2` `l6` `l7` `err` `warn` fail too; `node` at 3.27 in dark and `l3` at 3.13 in light passed 3:1 but read dim, so they turn `ink` too. The same holds for the label inside a `db` `pipe` `cloud` `doc`, which sits in a ghost box over the fill (an `l4` `db` filled `l4` kept `l4` text until this rule existed). The stroke keeps the token |
 | `lit-dark` / `lit-light` | as `color` or `fill` | A literal object color that stays the same in both themes: a dark moth, a soot-black trunk, white paper, a dark night sky. Every other token flips in the dark theme, so a "dark" thing drawn in `ink` turns light there (both moth eval runs hit this). Never put text inside a `lit-*` fill: `ink` text flips and vanishes in one of the two themes. Label it beside or below |
-| `fillStyle` | `solid` (default) `hachure` `cross-hatch` | `hachure` for countable things and the "lost" part, `solid` for regions. Excalidraw draws hachure lines in the pale fill tint, 8 units apart, so the tool helps two cases: `soft` hachure lines use the `line` token (in `fill-soft` they vanished at any width), and a shape with no text whose short side is under 30 units gets its lines from an under-layer in the saturated fill token at 55% opacity, 6 apart (cw 13 and cw 18 hachure cells read as empty, sd01 and hang-doi 3.3 runs). Cells with text keep the tint |
+| `fillStyle` | `solid` (default) `hachure` `cross-hatch` | `hachure` for countable things and the "lost" part, `solid` for regions. Excalidraw draws hachure lines in the pale fill tint, 8 units apart, so the tool helps two cases: `soft` hachure lines use the `line` token (in `fill-soft` they vanished at any width), and a shape with no text whose short side is under 30 units gets its lines from an under-layer in the saturated fill token at 55% opacity, 6 apart (cw 13 and cw 18 hachure cells read as empty). Cells with text keep the tint |
 | `dashed` / `dotted` | `true` | Dashed / dotted stroke |
 | `weight` | number | Stroke weight, default 2. Use 4 to emphasize one line |
 | `size` | number | Font size. Default 20 for text in shapes, 16 for arrow labels |
@@ -46,7 +46,7 @@ Optional: `text` (line break with `\n`), `sharp` (square corners, `box` only), `
 
 Excalidraw auto-expands a shape when its text does not fit, which shifts the whole layout, and the tool reports `✗`.
 A diamond or ellipse needs about twice the text width and twice the text height.
-An all-caps label such as a Redis command is wider than the 0.52 rule: count capitals at 0.65 × size (`XREADGROUP` at size 14 needs `w` 107, not 89; hang-doi 9.1 run).
+An all-caps label such as a Redis command is wider than the 0.52 rule: count capitals at 0.65 × size (`XREADGROUP` at size 14 needs `w` 107, not 89).
 
 ### `arrow`
 
@@ -59,7 +59,7 @@ An all-caps label such as a Redis command is wider than the 0.52 rule: count cap
 |---|---|
 | `from` `to` | ids of the two ends. Endpoints are clipped at the shape edge. `from` equal to `to` gives a self-loop at the top-right corner |
 | `fromSide` `toSide` | Force an edge: `top` `right` `bottom` `left` |
-| `fromAt` `toAt` | Position along the edge, 0 to 1, default 0.5. Always name the side too (`fromSide`/`toSide`) when you pin a position: with `fromAt` alone the tool picks the side itself and the arrow can leave from a different edge than planned (three arrows left a container frame from mid-bottom at wrong x and one crossed a neighbouring label, app-nhin-thay-gi 5.1 run) Use when several arrows share one edge. When only one end is pinned, the free end aims at that pinned point, so `toSide: "left"` + `toAt` on a tall target gives a level arrow from a box at that height (before the td5 run the free end aimed at the target's centre and the arrow sloped) |
+| `fromAt` `toAt` | Position along the edge, 0 to 1, default 0.5. Always name the side too (`fromSide`/`toSide`) when you pin a position: with `fromAt` alone the tool picks the side itself and the arrow can leave from a different edge than planned (three arrows left a container frame from mid-bottom at wrong x and one crossed a neighbouring label) Use when several arrows share one edge. When only one end is pinned, the free end aims at that pinned point, so `toSide: "left"` + `toAt` on a tall target gives a level arrow from a box at that height (before this rule the free end aimed at the target's centre and the arrow sloped) |
 | `bend` | Offset in units to curve the arrow, negative curves the other way. Two opposite arrows between two shapes: give both the same `bend` |
 | `route` | Orthogonal routing: `hv` `vh` `hvh` `vhv`. Add `shift` to move the middle segment |
 | `points` | Replaces `from`/`to`: a list of absolute coordinates. Three or more points make a curve, add `sharp` to keep sharp corners |
@@ -78,7 +78,7 @@ A stroke without arrowheads.
 `closed: true` makes a closed, fillable polygon: a bucket, a funnel, a trapezoid, a block arrow.
 `smooth: true` rounds it into a curve.
 An open line of three or more points is ALREADY smoothed by default (`ve.py` sets `smooth` unless `sharp` or `closed`), so add `sharp: true` for straight segments.
-A `[` bracket drawn as four points without it came out as a parenthesis that bulged into the table beside it (hang-doi 10.2 run).
+A `[` bracket drawn as four points without it came out as a parenthesis that bulged into the table beside it.
 
 ### `text`
 
@@ -91,7 +91,7 @@ Free text.
 Plan its width as characters × size × 0.6: the SVG draws it in IBM Plex Mono, wider than the 0.52 rule for Nunito text.
 `align` also changes the meaning of `x`: with `left` (default) `x` is the left edge, with `center` `x` is the **center** of the text block, with `right` `x` is the right edge.
 Use `center` to put text exactly at the middle of a column or a tick without measuring the text width.
-A `text` cannot be the `from` or `to` of an arrow (the tool says so and stops); for an arrow ending at a bare label such as a plan tree's "kết quả", use `points` and stop about 6 units short of the text (dbi4 run).
+A `text` cannot be the `from` or `to` of an arrow (the tool says so and stops); for an arrow ending at a bare label such as a plan tree's "kết quả", use `points` and stop about 6 units short of the text.
 
 ## System components
 
@@ -131,7 +131,7 @@ Every component below accepts `id x y w h text color fill` and can be an arrow t
 - `cw` `ch`: size of one cell. `dir`: `row` (default) or `col`.
 - `widths`: per-cell width when cells differ in size (bytes, durations). With `dir: "col"` this is the height.
 - `index`: `true` to number from 0, or a list of labels. Numbers sit ABOVE the cell (horizontal strip) or LEFT of the cell (vertical strip), size 15, color `muted`: leave 24 units on that side.
-  A `""` in the list draws nothing, so a long strip can number only the cells the text names (a 32-bit Bloom filter labelled at 3, 5, 14, ...); before the thiet-ke-cong-nghe 6.1 run each `""` still made an empty text element, 48 of them on two 32-cell strips.
+  A `""` in the list draws nothing, so a long strip can number only the cells the text names (a 32-bit Bloom filter labelled at 3, 5, 14, ...); each `""` used to make an empty text element, 48 of them on two 32-cell strips.
 - Estimate text width to pick `cw`: character count × font size × 0.52, plus 16 units of padding. `order-1001` at size 16 needs `cw` around 100.
 - `marks`: style individual cells by index. Each mark accepts `color`, `fill`, `fillStyle`, `dashed`.
 - `size`: font size in cells (default 18 for a strip, 16 for `grid`).
@@ -155,7 +155,7 @@ A cell has id `<id>.<row>.<col>`.
 
 `cols` is the width of each column, `rh` is the row height (default 38).
 `marks` accepts `"row"` or `"row,col"`, each with `color`, `fill`, `fillStyle`, `dashed`.
-A `dashed` `muted` row with empty cells is a row that never got written, for the "after" half of a figure where a constraint stopped the insert (td5 run).
+A `dashed` `muted` row with empty cells is a row that never got written, for the "after" half of a figure where a constraint stopped the insert.
 Row i has id `<id>.<i>`, a cell has id `<id>.<i>.<col>`.
 A header cell has id `<id>.h.<col>`: aim an edge at it with `toSide: "top"` when the edge stands for a whole column, not one row.
 The `title` sits 28 units above the top-left corner, so an edge entering the top of the first column runs through it: move that edge with `toAt`.
@@ -174,8 +174,8 @@ The `title` sits 28 units above the top-left corner, so an edge entering the top
 
 Dark background in both themes, monospace text.
 Width is computed from the longest line, or set `w` (equal `w` lines up several blocks so arrows leave them at one x).
-The `title` counts as a line: a `w` narrower than the longest line or title stops the tool, since text over the box is free text and no overflow check sees it leave the box (ds3 run).
-`color` (`err` `node` `l4`) draws the border in that accent at weight 2; the text stays light on dark, so the border is the only way to mark one block as the failing run, the silent run or the diff under discussion (infra2 run).
+The `title` counts as a line: a `w` narrower than the longest line or title stops the tool, since text over the box is free text and no overflow check sees it leave the box.
+`color` (`err` `node` `l4`) draws the border in that accent at weight 2; the text stays light on dark, so the border is the only way to mark one block as the failing run, the silent run or the diff under discussion.
 `size` sets the code font; the `title` follows it down (never above 15), so a size-12 block does not sit under a bigger heading.
 Line i (from 0) of `text` is centred at `y + 38 + 18.75 i + 9.4` with a `title` (`y + 12 + ...` without), at the default size 15: use it with `fromAt` = that offset / block height to start an arrow level with one line.
 
@@ -210,7 +210,7 @@ Line i (from 0) of `text` is centred at `y + 38 + 18.75 i + 9.4` with a `title` 
 - `bars`: `label` below the bar, `text` above the bar. Bars are filled `hachure` with the `fill` color by default (no `fill` means the bar's own `color`); set `"fillStyle":"solid"` per bar for a solid fill.
 - `lines`: `[{"points":[[x,y],...],"color":..,"label":..}]`, coordinates in data units. Set `xmax` and `max` to fix the scale.
 - `thresholds`: dashed horizontal lines. The label is drawn to the RIGHT of the plot area, outside `w`: leave room for it. Bar labels and `ylabel` also fall outside the `x`/`w` box.
-- `{"gap": true}` in `bars` leaves one empty slot: put it before a total bar so it does not read as one more part (a `value` 0 bar still draws a 2-unit stub that looks like an unlabelled part, hang-doi 8.2 run).
+- `{"gap": true}` in `bars` leaves one empty slot: put it before a total bar so it does not read as one more part (a `value` 0 bar still draws a 2-unit stub that looks like an unlabelled part).
 - Each bar is an arrow target with id `<plot id>.<i>`; the plot id itself is not.
 - Lines are smoothed by default; `"smooth": false` on a line keeps straight segments (use it for a flat-then-ramp shape).
 - `xticks`: `[{"at":0.5,"label":"p50"}]`, `at` from 0 to 1.
@@ -253,18 +253,18 @@ Fragments and separators are entries in the same `messages` list:
   A guard longer than that gap runs across the next lifeline and gets a nudge: shorten the condition or raise `gap`.
 - `divider` draws a full-width titled rule between two scenarios; use it outside frames only. `delay` writes a time gap between two messages.
 - Frames span every lifeline and inset by nesting depth, so sibling frames line up. `"over":["a","b"]` on the opening entry narrows one.
-  A self-message label widens the frame that holds it; top-level sibling frames then all take the widest right edge, so an `opt` under an `alt` with self-messages still lines up (he-phan-tan 1.3 run).
+  A self-message label widens the frame that holds it; top-level sibling frames then all take the widest right edge, so an `opt` under an `alt` with self-messages still lines up.
 - Fragments nest: an `alt` inside a `loop` is the retry pattern. A fragment inside a parent narrowed with `over` stays inside it.
 - Defaults: `gap` 190, `step` 54. The opening entry takes `color` (default `muted`). Messages take `head` and `weight`.
 - The actor box widens to fit its label (`aw` is the minimum, default 130) and `gap` grows with it.
 - An actor label may take `\n` (`"Role admin\naccount 123"`): the column is then as wide as the longest line, and every actor box grows to the tallest label (17 × 1.35 per line + 11).
-  A one-line `Role app-admin · account 456` made the column 277 wide and four actors 1 200 (aws1 run).
+  A one-line `Role app-admin · account 456` made the column 277 wide and four actors 1 200.
 - Message `text` is one line. A header, payload or rule that does not fit goes in a `note` entry or a `code` block beside the diagram.
 - A message label is centred over its arrow, anchored at its centre so the Patrick Hand swap does not shift it.
   A message that crosses other lifelines gets its label over the first gap from the sender (lessons rule 17), so that gap, not the whole arrow, must hold it.
   A self-message label starts 56 units right of its lifeline and must end before the next one.
   A self-message right after a frame opens moves up 20 units, since it has no label above its line (ds3 queue 2: a `break` holding one self-message had an empty band under its header).
-  Anywhere else it moves up 12 units, so the loop sits as close to the call that triggers it as to the reply after it (he-phan-tan 1.3 run).
+  Anywhere else it moves up 12 units, so the loop sits as close to the call that triggers it as to the reply after it.
 - `"lost": true` on a message draws a request that stops short with an X: the call that never gets a reply. Use it for timeouts, then a self-message or a `note` for what the caller does next.
 - A `note` entry takes `over` (default: first to last actor), `color` and `fill`. It is a dashed `muted` box reaching 40 units past the lifelines it covers on each side; inside a fragment it shrinks to stay within the frame.
   Its width comes from `over`, not from the text: over one actor it is only 80 wide, so a longer note needs a second actor in `over`.
@@ -350,7 +350,7 @@ Both are arrow targets.
 | `t` | Use for | Example |
 |---|---|---|
 | `note` | Free note, can point a dashed line at something. `color` colors the pointer too. Keep the note 45 units or more from its target or the pointer is too short | `{"t":"note","x":330,"y":60,"text":"đụng độ","to":"e2","color":"err"}` |
-| `badge` | Numbered step circle. Disc filled with its color's tint; `muted` and `ink` have no tint and get `soft` (a muted badge stopped the render until the thiet-ke-mau-thiet-ke 2.3 run) | `{"t":"badge","x":276,"y":4,"n":1,"color":"node"}` |
+| `badge` | Numbered step circle. Disc filled with its color's tint; `muted` and `ink` have no tint and get `soft` (a muted badge stopped the render until the) | `{"t":"badge","x":276,"y":4,"n":1,"color":"node"}` |
 | `steps` | Numbered step list placed beside the figure | `{"t":"steps","x":400,"y":60,"title":"Khi node C chết","items":["...", {"text":"...","color":"muted"}]}` |
 | `card` | Card with an underlined title: API, requirements, figures | `{"t":"card","x":340,"y":250,"title":"API","text":"POST /orders","mono":true}` |
 | `legend` | Legend for colors and stroke styles | `{"t":"legend","x":560,"y":330,"items":[{"color":"hot","fill":"hot","text":"đường đi"},{"color":"err","line":true,"dashed":true,"text":"lỗi"}]}` |
@@ -358,12 +358,12 @@ Both are arrow targets.
 | `check` | Green check mark | `{"t":"check","x":430,"y":250}` |
 
 `note` accepts `to` (id of a shape or of an arrow), `toSide`, `fromSide`, `bend`.
-A `legend` takes `dir: "x"` to lay its items in one row instead of a column, `gap` units apart (default 28); use it under a wide figure whose key would otherwise add 30 units of height per item (hoi-hay-nghe run).
+A `legend` takes `dir: "x"` to lay its items in one row instead of a column, `gap` units apart (default 28); use it under a wide figure whose key would otherwise add 30 units of height per item.
 A `legend` item with `line: true` draws a short arrow; add `"head":"none"` when the edges it explains have no head (tree `lines`, ER lines), or the key and the figure disagree (td2 closure table run).
-A `legend` item takes `dashed`, `dotted` and `weight`, on a `line` item and on a box swatch alike: `"weight": 4` keys a thick border such as the leader of each step (before the raft-nhan-ban-ghi run `weight` and `dotted` were dropped, so a thick-border key had to be built by hand).
-A `legend` item's swatch is a `box` by default; `shape` takes any element name, so `"shape":"check","color":"node"` or `"shape":"cross","color":"err"` keys the `check`/`cross` marks of the figure (hang-doi 10.1 run built that key by hand because this was not written down).
+A `legend` item takes `dashed`, `dotted` and `weight`, on a `line` item and on a box swatch alike: `"weight": 4` keys a thick border such as the leader of each step (`weight` and `dotted` used to be dropped, so a thick-border key had to be built by hand).
+A `legend` item's swatch is a `box` by default; `shape` takes any element name, so `"shape":"check","color":"node"` or `"shape":"cross","color":"err"` keys the `check`/`cross` marks of the figure (a run built that key by hand because this was not written down).
 Put `cross` and `check` at a shape's **corner**, never on top of text.
-A top-right corner sits right under any title written above the box: the tool reports a mark lying on free text (thiet-ke-mau-thiet-ke 7.5 run, the cross ran over the end of a section title).
+A top-right corner sits right under any title written above the box: the tool reports a mark lying on free text (the cross ran over the end of a section title).
 
 ## Layout and reuse
 
@@ -431,28 +431,28 @@ Exit code 1 when there is at least one `✗` line.
 
 | Mark | Condition | Fix |
 |---|---|---|
-| `✗` | Shape expanded by Excalidraw because text does not fit | Set a larger `w`/`h`. When only the height grew, the message tells two cases apart by counting the lines Excalidraw drew: more lines than the spec text means it wrapped, so widen (minimum `w`/`cw` given; a larger `h`/`ch` does not help); the same line count means the box is just too short, so raise `h` to lines × size × 1.35 + 11 (Excalidraw sets Nunito at 1.35 line height: two lines at size 15 need 52, not 48, sd53 run) |
-| `✗` / `•` | Text wrapped inside a shape that was tall enough, so the shape did not grow: `✗` when the wrap splits a word (`→16` in a 38-wide cell drew as `→1` over `6`, thiet-ke-cong-nghe 1.9 run), `•` when it breaks at a space | Widen `w` (`cw`) to the width given, or write the `\n` in the spec where you want the break |
+| `✗` | Shape expanded by Excalidraw because text does not fit | Set a larger `w`/`h`. When only the height grew, the message tells two cases apart by counting the lines Excalidraw drew: more lines than the spec text means it wrapped, so widen (minimum `w`/`cw` given; a larger `h`/`ch` does not help); the same line count means the box is just too short, so raise `h` to lines × size × 1.35 + 11 (Excalidraw sets Nunito at 1.35 line height: two lines at size 15 need 52, not 48) |
+| `✗` / `•` | Text wrapped inside a shape that was tall enough, so the shape did not grow: `✗` when the wrap splits a word (`→16` in a 38-wide cell drew as `→1` over `6`), `•` when it breaks at a space | Widen `w` (`cw`) to the width given, or write the `\n` in the spec where you want the break |
 | `✗` | Text overflows its containing shape or the frame | Enlarge the shape, shorten the text |
 | `✗` | Smallest text below 8px on screen | Figure too wide: stack vertically or split the figure |
 | `✗` | A `code` block's `w` is narrower than its longest line or title | Raise `w` or shorten the line |
 | `✗` | A non-token color remains | Only happens with unknown icons: report it |
 | `✗` | Spec error: unknown color or fill token, unknown `t`, missing property, duplicate id, arrow end or swimlane node that matches no id, unknown `head`/`tail`, unclosed or stray fragment entry, multi-line message text, unknown icon, circular `extends` | The message names the element and the valid values |
 | `•` | Smallest text below 12px | Compact the figure if possible |
-| `•` | Arrow passes through a shape that is not one of its two ends. A `points` arrow counts too: the shapes its first and last points touch are its ends. A `badge` without an `id` counts too (it gets the auto id `badge@x,y`; before the thiet-ke-cong-nghe 0.1 run an id-less badge sitting on an arrow was skipped) | `bend`, `route`, or move the shape |
-| `•` | One arrow's head lands where another arrow starts (a pair `a → b`, `b → a` is exempt, and so is a chain of two `points` arrows that turns at a joint off every shape border, such as a timeline V where a request reaches the DB lane and the reply leaves at once: 22 such nudges hid the real ones in the thiet-ke-mau-thiet-ke 2.1 run) | `fromAt`/`toAt`, another side, or different `points` so in and out have separate spots |
+| `•` | Arrow passes through a shape that is not one of its two ends. A `points` arrow counts too: the shapes its first and last points touch are its ends. A `badge` without an `id` counts too (it gets the auto id `badge@x,y`; an id-less badge sitting on an arrow used to be skipped) | `bend`, `route`, or move the shape |
+| `•` | One arrow's head lands where another arrow starts (a pair `a → b`, `b → a` is exempt, and so is a chain of two `points` arrows that turns at a joint off every shape border, such as a timeline V where a request reaches the DB lane and the reply leaves at once: 22 such nudges hid the real ones in the) | `fromAt`/`toAt`, another side, or different `points` so in and out have separate spots |
 | `•` | Two arrows leave the same spot, or reach the same spot, in the same direction, so their first or last segments share one stroke for more than 12 units (a swimlane `vhv` edge and a straight edge both leaving the bottom centre of one node, dbi3 hero run) | `fromSide`/`fromAt` on one of them, or `toAt` for two arriving |
 | `•` | An arrowhead is cut by the border of a box it does not land on: its tip is inside an enclosing `frame` and its base outside, or the reverse (an arrow entering a frame to a shape 14 units inside the border). The base is probed 26 units behind the tip, Excalidraw's ~25-unit head plus the rough stroke: a frame bottom 24 units under the tip cut the head of an arrow coming up from below and a 20-unit probe missed it (infra2 hero run) | Move the frame border 30 or more units clear of the tip, or move the target |
-| `•` | Arrow shorter than 22 units, or 64 with `both` or a `tail` (a 50-long two-headed arrow still reads as a diamond): the heads hide the line. A `dot` tail is a pointer's origin and counts as no head, here and in the cut-arrowhead check above, so a `ptr` arrow may start inside its own cell (redis 2.2 run) | Move the two shapes apart |
+| `•` | Arrow shorter than 22 units, or 64 with `both` or a `tail` (a 50-long two-headed arrow still reads as a diamond): the heads hide the line. A `dot` tail is a pointer's origin and counts as no head, here and in the cut-arrowhead check above, so a `ptr` arrow may start inside its own cell | Move the two shapes apart |
 | `•` | Label nearly as long as the arrow carrying it, measured along the arrow (its width on a horizontal arrow, its height on a vertical one) | Move the two shapes apart, shorten the label, or turn it into a `note` |
-| `•` | Free text overlaps other text or straddles a box border. Two texts also count as overlapping when their drawn glyphs collide by 6+ units both ways, even under the 18% area share: a 47-char `mono` line ran 13 units into a short table title and the tool was silent (hang-doi 3.1 run). Free `mono` text is measured at the width the SVG draws (IBM Plex Mono, 0.6 × size per character), about 20% wider than Excalidraw reports | Move the text, or shorten the `mono` line |
-| `•` | Free text sits inside a frame-sized shape (3x the text or larger) less than 4 units from its edge: the rough stroke runs through the glyphs and the straddle test misses it (sd03 run) | Keep 6+ units clear of the edge, or grow the frame |
-| `•` | An arrow's line runs through a free text (a `vh` arrow leaving the bottom of a `cells` strip ran down through the strip's caption, hang-doi 2.3 run). A plain `line` counts too, except sequence lifelines (checked by the lifeline row below) and lines inside a 30-unit square (`cross`, `check`): a dashed time guide across every block of a timeline ran through the outcome text placed past its x (thiet-ke-mau-thiet-ke 1.3 run). A plain `line` is also checked against text inside a shape, such as a `cells` label: a deadline guide ran down through the label of the strip under it (thiet-ke-mau-thiet-ke 2.4 run); a filled shape drawn after the line hides it and is skipped, so a lane baseline under a filled box stays silent | Move the text beside the strip, or leave from another side; for a guide, end the text 6+ units before the guide's x or end the guide above it |
-| `•` | A detached arrow label (`labelAt`/`labelDx`/`labelDy`) rests on an arrow's line, its own or another's, within 1 unit (a two-line label at `labelDy` -22 hung over its own line and the shrunk-box check above hid it, hang-doi 6.3 run) | Raise `labelDy` to the value the message gives (half the label's height + 4) |
+| `•` | Free text overlaps other text or straddles a box border. Two texts also count as overlapping when their drawn glyphs collide by 6+ units both ways, even under the 18% area share: a 47-char `mono` line ran 13 units into a short table title and the tool was silent. Free `mono` text is measured at the width the SVG draws (IBM Plex Mono, 0.6 × size per character), about 20% wider than Excalidraw reports | Move the text, or shorten the `mono` line |
+| `•` | Free text sits inside a frame-sized shape (3x the text or larger) less than 4 units from its edge: the rough stroke runs through the glyphs and the straddle test misses it | Keep 6+ units clear of the edge, or grow the frame |
+| `•` | An arrow's line runs through a free text (a `vh` arrow leaving the bottom of a `cells` strip ran down through the strip's caption). A plain `line` counts too, except sequence lifelines (checked by the lifeline row below) and lines inside a 30-unit square (`cross`, `check`): a dashed time guide across every block of a timeline ran through the outcome text placed past its x. A plain `line` is also checked against text inside a shape, such as a `cells` label: a deadline guide ran down through the label of the strip under it; a filled shape drawn after the line hides it and is skipped, so a lane baseline under a filled box stays silent | Move the text beside the strip, or leave from another side; for a guide, end the text 6+ units before the guide's x or end the guide above it |
+| `•` | A detached arrow label (`labelAt`/`labelDx`/`labelDy`) rests on an arrow's line, its own or another's, within 1 unit (a two-line label at `labelDy` -22 hung over its own line and the shrunk-box check above hid it) | Raise `labelDy` to the value the message gives (half the label's height + 4) |
 | `•` | A hand-placed `cross` or `check` lies on free text (the sequence `fail` X is exempt, it sits in its label's box on purpose) | Move the mark to another corner, or move or shorten the text |
 | `•` | A label lies within 3 units of the hollow ring of a `zero-one`/`zero-many` end | Raise it with `labelDy`, slide it with `labelAt`, or lengthen the edge |
 | `•` | A free label touches the bar or crow of an ER end (the last ~24 units of the edge, ~8 units either side of the line) | Slide it with `labelAt` toward the middle, raise it with `labelDy` (-22 on a horizontal edge under ~130 units), or lengthen the edge |
-| `•` | A `sequence` message or self-message label runs across a lifeline (measured on Excalidraw's Nunito box, ~20% wider than the drawn glyphs, hang-doi 0.1 run). Fragment guard labels count too (an `else` guard sat on the first lifeline of template 21 and this check missed it) | Shorten the label, drop `n` numbers the text does not cite, or raise `gap` to the width the message gives |
+| `•` | A `sequence` message or self-message label runs across a lifeline (measured on Excalidraw's Nunito box, ~20% wider than the drawn glyphs). Fragment guard labels count too (an `else` guard sat on the first lifeline of template 21 and this check missed it) | Shorten the label, drop `n` numbers the text does not cite, or raise `gap` to the width the message gives |
 | `•` | More than three accent colors | Remove some colors |
 | `•` | Only rounded boxes joined by arrows (`code` blocks do not count, and at least one arrow must exist) | Reconsider the figure type |
 
@@ -465,7 +465,7 @@ Do not turn them back into `<rect>`.
 
 That same gate compares `getBBox()` boxes, which are in each element's local space, and Excalidraw wraps every text in a `<g transform="translate(..)">`.
 So the tool moves each unrotated text group's translate into the text's own `x`/`y` (same pixels), and puts a `<rect>` in `--pre-bg`, inset 8 units under the rough outline, beneath each `code` block.
-Without both, the light text of a `code` block was measured against the page and failed at 1.26:1 (ds3 run).
+Without both, the light text of a `code` block was measured against the page and failed at 1.26:1.
 
 Digits are drawn in Nunito, not Patrick Hand.
 Patrick Hand's 9 is a small loop on a short stem: at 8-14px on screen `4096` reads `40%` and `aB3xK9p` is ambiguous (two runs hit it).
