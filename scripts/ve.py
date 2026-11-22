@@ -6,7 +6,7 @@
 
 Each spec produces four files with the same name:
     <name>.excalidraw   source scene; drop it on excalidraw.com to keep editing
-    <name>.svg          static SVG: colors are var(--token), text is Patrick Hand
+    <name>.svg          static SVG: colors are var(--token), text is Patrick Hand, digits Nunito
     <name>-light.png    preview in the 666px column (--col N for another width), light theme   <- you MUST open and look
     <name>-dark.png     same, dark theme                           <- you MUST open and look
 
@@ -41,6 +41,26 @@ CANH_NEN, CANH_CHU = '#0B1021', '#DDE7F7'
 LIT = {'lit-dark': T.UI_TOKENS['lit-dark'][0], 'lit-light': T.UI_TOKENS['lit-light'][0]}
 SHAPES = ('box', 'ellipse', 'diamond')
 ACCENT = {'l3', 'l4', 'l6', 'l7', 'err', 'warn', 'node', 'heap', 'hot'}
+
+
+def _tuong_phan(a, b):
+    """WCAG contrast ratio of two hex colors."""
+    def lum(h):
+        c = [int(h.lstrip('#')[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+        c = [v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4 for v in c]
+        return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+    x, y = sorted((lum(a), lum(b)))
+    return (y + 0.05) / (x + 0.05)
+
+
+# (light tint hex, light text hex) of every token whose text is under 3.5:1 on its own tint in either theme.
+# 3.5, not the site's 3:1 gate: node on fill-node passes at 3.27 in dark but the thin hand-drawn
+# glyphs read dim (hang-doi-tay and hang-doi 7.2 runs), and l3 at 3.13 in light is the same case.
+TINT_TEXT_MIN = 3.5
+TINT_TEXT_FAILS = {
+    (T.FILL_TOKENS[f'fill-{k}'][0].lower(), T.TOKENS[k][0].lower()): k
+    for k in T.TOKENS if f'fill-{k}' in T.FILL_TOKENS
+    and min(_tuong_phan(T.TOKENS[k][i], T.FILL_TOKENS[f'fill-{k}'][i]) for i in (0, 1)) < TINT_TEXT_MIN}
 
 
 class Loi(SystemExit):
@@ -122,6 +142,18 @@ def cao_chu(s, size):
 # ───────────────────────── macros ─────────────────────────
 # Each function takes one spec element and returns a list of BASE elements:
 #   box ellipse diamond arrow line text  +  anchor (invisible area arrows attach to)  +  raw
+def _mau_nhan(e, mac_dinh='soft'):
+    """Label color for a macro whose label sits in a ghost box over the macro's own fill (db, pipe,
+    cloud, doc). The ghost box has no background, so the TINT_TEXT_FAILS pass never sees the tint:
+    an l4 `db` filled l4 kept l4 text at 2.58:1 in dark (thiet-ke-mau-thiet-ke 1.2 run)."""
+    c = e.get('color', 'ink')
+    f = e.get('fill', mac_dinh)
+    if f and e.get('fillStyle', 'solid') == 'solid' and c in MAU and \
+            (nen(f).lower(), MAU[c].lower()) in TINT_TEXT_FAILS:
+        return 'ink'
+    return c
+
+
 def _khung(e, **kw):
     """Ghost box: transparent border, only there so text centers itself in an area."""
     return dict({'t': 'box', 'ghost': True, 'x': e['x'], 'y': e['y'], 'w': e['w'], 'h': e['h'],
@@ -156,7 +188,9 @@ def m_cells(e):
         out.append(b)
         if e.get('index'):
             ix = e['index'][i] if isinstance(e['index'], list) else str(i)
-            if col:
+            if ix == '':
+                pass  # sparse index: "" draws nothing (it used to emit an empty text element per cell)
+            elif col:
                 out.append({'t': 'text', 'x': b['x'] - 12 - rong_chu(ix, 15), 'y': b['y'] + b['h'] / 2 - 9,
                             'text': ix, 'size': 15, 'color': 'muted'})
             else:
@@ -305,7 +339,7 @@ def m_plot(e):
         out.append({'t': 'text', 'x': x + w + 28, 'y': y - 12, 'text': e['xlabel'], 'size': 16, 'color': 'muted'})
     if e.get('ylabel'):
         out.append({'t': 'text', 'x': x - 10, 'y': y - h - 50, 'text': e['ylabel'], 'size': 16, 'color': 'muted'})
-    vmax = e.get('max') or max([b['value'] for b in e.get('bars', [])] +
+    vmax = e.get('max') or max([b.get('value', 0) for b in e.get('bars', [])] +
                                [p[1] for s in e.get('lines', []) for p in s['points']] +
                                [t['value'] for t in e.get('thresholds', [])] + [1e-9])
     bars = e.get('bars', [])
@@ -313,6 +347,8 @@ def m_plot(e):
         slot = w / len(bars)
         bw = min(slot * 0.62, 70)
         for i, b in enumerate(bars):
+            if b.get('gap'):                       # empty slot: separates a total bar from its parts
+                continue
             bh = max(h * b['value'] / vmax, 2)
             bx = x + slot * i + (slot - bw) / 2
             out.append({'t': 'box', 'id': f"{e.get('id', 'plot')}.{i}", 'sharp': True, 'x': bx, 'y': y - bh,
@@ -360,6 +396,7 @@ def m_sequence(e):
     sid = e.get('id') or f"seq@{e['x']},{e['y']}"      # ids of labels and lifelines, read by the lifeline lint in soat()
     out, y = [], e['y'] + ah + 34
     stack = []
+    ngoai = []          # (frame box index, first separator index, separator element count) of each top-level frame
 
     def cham(x1, x2):
         for f in stack:
@@ -398,16 +435,25 @@ def m_sequence(e):
                         break
             x0, x1, top, bot, fc = f['x0'] - 34, f['x1'] + 34, f['top'], y - 28, f['color']
             tw = rong_chu(f['kind'], 15) + 26
+            if not stack and not f['over']:        # top-level sibling frames get one right edge after the loop
+                ngoai.append((len(out), len(out) + 2 + bool(f['label']), sum(1 + bool(lab) for _, lab in f['seps'])))
             out.append({'t': 'box', 'x': x0, 'y': top, 'w': x1 - x0, 'h': bot - top, 'sharp': True, 'color': fc,
                         'weight': 1, 'under': True})
             out.append({'t': 'box', 'x': x0, 'y': top, 'w': tw, 'h': 30, 'sharp': True, 'color': fc, 'fill': 'soft',
                         'weight': 1, 'text': f['kind'], 'size': 15})
+            # Guard labels start right of the header box, which always lands past the frame's first lifeline
+            # (the frame reaches 34-40 units left of it, the box is 50+ wide). An `else` guard used to start at
+            # x0 + 10, so "[bị từ chối]" sat across the Web App lifeline in template 21 and lint 3c never saw it.
+            # Both get a `~lab~` id so 3c measures them against the next lifeline like a message label.
+            gx = x0 + tw + 8
             if f['label']:
-                out.append({'t': 'text', 'x': x0 + tw + 8, 'y': top + 5, 'text': f"[{f['label']}]", 'size': 15, 'color': fc})
+                out.append({'t': 'text', 'id': f"{sid}~lab~g{len(out)}", 'x': gx, 'y': top + 5,
+                            'text': f"[{f['label']}]", 'size': 15, 'color': fc})
             for sy, lab in f['seps']:
                 out.append({'t': 'line', 'points': [[x0, sy], [x1, sy]], 'color': fc, 'dashed': True, 'weight': 1})
                 if lab:
-                    out.append({'t': 'text', 'x': x0 + 10, 'y': sy + 4, 'text': f'[{lab}]', 'size': 15, 'color': fc})
+                    out.append({'t': 'text', 'id': f"{sid}~lab~g{len(out)}", 'x': gx, 'y': sy + 4,
+                                'text': f'[{lab}]', 'size': 15, 'color': fc})
             cham(f['x0'] - 12, f['x1'] + 12)       # outer frame encloses the inner one
             y += 14
             continue
@@ -441,8 +487,9 @@ def m_sequence(e):
         if m.get('self') or m['from'] == m.get('to'):
             # A self-message has no label above its line, so right after a frame opens the 24 units kept for
             # that label stood empty under the frame header (ds3 queue 2: `break` + one self-message).
-            if open_before in FRAGS:
-                y -= 20
+            # Elsewhere the same empty band sat between a call and the self-loop it triggers: 44 units above the
+            # loop against 26 below it (he-phan-tan 1.3 run), so the loop now moves up 12 there too.
+            y -= 20 if open_before in FRAGS else 12
             x = pos[m['from']]
             out.append({'t': 'arrow', 'points': [[x, y], [x + 46, y], [x + 46, y + 26], [x + 4, y + 26]],
                         'color': c, 'dashed': m.get('dashed'), 'sharp': True})
@@ -466,11 +513,20 @@ def m_sequence(e):
             out.append({'t': 'text', 'id': f"{sid}~lab~{len(out)}", 'x': cx, 'y': y - 24, 'text': nhan,
                         'size': 15, 'color': c, 'align': 'center'})
         if m.get('fail'):
-            out.append({'t': 'cross', 'x': cx + rong_chu(nhan, 15) * 0.42 + 8, 'y': y - 26, 'size': 16})
+            out.append({'t': 'cross', 'x': cx + rong_chu(nhan, 15) * 0.42 + 8, 'y': y - 26, 'size': 16, 'seq': True})
         cham(min(x1, x2), max(x1, x2))
         y += step
     if stack:
         chet(f"sequence: frame '{stack[-1]['kind']}' is not closed with {{\"end\":true}}")
+    # A self-message label widens only the frame that holds it, so an `alt` with self-messages ended
+    # ~280 units right of the `opt` under it (he-phan-tan 1.3 run). Sibling frames share the widest right edge.
+    if len(ngoai) > 1:
+        phai = max(out[i]['x'] + out[i]['w'] for i, _, _ in ngoai)
+        for i, s0, n in ngoai:
+            out[i]['w'] = phai - out[i]['x']
+            for k in range(s0, s0 + n):
+                if out[k]['t'] == 'line':
+                    out[k]['points'][1][0] = phai
     for a in acts:
         out.append({'t': 'box', 'id': a['id'], 'x': pos[a['id']] - aw / 2, 'y': e['y'], 'w': aw, 'h': ah,
                     'text': a['label'], 'size': 17, 'color': a.get('color', 'ink'), 'fill': a.get('fill', 'soft')})
@@ -692,21 +748,30 @@ def m_stack(e):
 
 
 def m_cross(e):
+    # `~mark~` lets lint 3e find a hand-placed mark lying on free text; the sequence `fail` X is left untagged,
+    # since it sits inside its label's Nunito box on purpose (see lint 3d).
     x, y, s = e['x'], e['y'], e.get('size', 22)
-    return [{'t': 'line', 'points': p, 'color': e.get('color', 'err'), 'weight': 4}
-            for p in ([[x, y], [x + s, y + s]], [[x + s, y], [x, y + s]])]
+    tag = {} if e.get('seq') else {'id': f"~mark~{x},{y}"}
+    return [dict({'t': 'line', 'points': p, 'color': e.get('color', 'err'), 'weight': 4},
+                 **({'id': f"{tag['id']}~{k}"} if tag else {}))
+            for k, p in enumerate(([[x, y], [x + s, y + s]], [[x + s, y], [x, y + s]]))]
 
 
 def m_check(e):
     x, y, s = e['x'], e['y'], e.get('size', 22)
-    return [{'t': 'line', 'points': [[x, y + s * 0.55], [x + s * 0.38, y + s], [x + s, y]],
+    return [{'t': 'line', 'id': f"~mark~{x},{y}~c", 'points': [[x, y + s * 0.55], [x + s * 0.38, y + s], [x + s, y]],
              'color': e.get('color', 'node'), 'weight': 4}]
 
 
 def m_badge(e):
     d, c = e.get('d', 30), e.get('color', 'l4')
     # Text sits in a ghost box, not bound to the ellipse: an ellipse with bound text grows into an egg.
-    return [{'t': 'ellipse', 'id': e.get('id'), 'x': e['x'], 'y': e['y'], 'w': d, 'h': d, 'color': c, 'fill': c},
+    # An auto id puts the disc in the arrow-crossing lint: without one it was skipped, and a badge placed on the
+    # strip -> box arrow of the thiet-ke-cong-nghe 0.1 map sat on the line with the tool silent.
+    # `muted` and `ink` have no fill tint: a muted badge (step numbers that must not compete with the accents)
+    # stopped the render with "fill 'muted' does not exist" (thiet-ke-mau-thiet-ke 2.3 run), so those take `soft`.
+    f = c if f'fill-{c}' in NEN else 'soft'
+    return [{'t': 'ellipse', 'id': e.get('id') or f"badge@{e['x']},{e['y']}", 'x': e['x'], 'y': e['y'], 'w': d, 'h': d, 'color': c, 'fill': f},
             _khung({'x': e['x'] - 6, 'y': e['y'], 'w': d + 12, 'h': d, 'text': str(e['n']), 'size': e.get('size', 16),
                     'color': c})]
 
@@ -724,17 +789,23 @@ def m_note(e):
 
 
 def m_legend(e):
-    out, y = [], e['y']
+    # `dir: "x"` lays the items in one row (a three-item key under a wide timeline cost 90 units of height)
+    out, x, y = [], e['x'], e['y']
     for it in e['items']:
         c = it.get('color', 'ink')
         if it.get('line'):      # `head: none` for a plain edge (tree line, ER line) so the key matches the figure
-            out.append({'t': 'arrow', 'points': [[e['x'], y + 10], [e['x'] + 34, y + 10]], 'color': c,
-                        'dashed': it.get('dashed'), 'head': it.get('head', 'arrow')})
+            out.append({'t': 'arrow', 'points': [[x, y + 10], [x + 34, y + 10]], 'color': c,
+                        'dashed': it.get('dashed'), 'dotted': it.get('dotted'), 'weight': it.get('weight', 2),
+                        'head': it.get('head', 'arrow')})
+        else:   # `weight` keys a thick border (leader, the row under discussion); dropped before raft-nhan-ban-ghi
+            out.append({'t': it.get('shape', 'box'), 'x': x + 6, 'y': y, 'w': 22, 'h': 20, 'color': c,
+                        'fill': it.get('fill'), 'fillStyle': it.get('fillStyle', 'solid'), 'dashed': it.get('dashed'),
+                        'dotted': it.get('dotted'), 'weight': it.get('weight', 2)})
+        out.append({'t': 'text', 'x': x + 44, 'y': y - 1, 'text': it['text'], 'size': 15, 'color': 'muted'})
+        if e.get('dir') == 'x':
+            x += 44 + rong_chu(it['text'], 15) + e.get('gap', 28)
         else:
-            out.append({'t': it.get('shape', 'box'), 'x': e['x'] + 6, 'y': y, 'w': 22, 'h': 20, 'color': c,
-                        'fill': it.get('fill'), 'fillStyle': it.get('fillStyle', 'solid'), 'dashed': it.get('dashed')})
-        out.append({'t': 'text', 'x': e['x'] + 44, 'y': y - 1, 'text': it['text'], 'size': 15, 'color': 'muted'})
-        y += 30
+            y += 30
     return out
 
 
@@ -777,7 +848,8 @@ def m_db(e):
             out.append({'t': 'text', 'x': x + w / 2 - rong_chu(e['text'], s) / 2, 'y': y + h + 6,
                         'text': e['text'], 'size': s, 'color': c})
         else:
-            out.append(_khung({'x': x, 'y': by0, 'w': w, 'h': bh, 'text': e['text'], 'size': s, 'color': c}))
+            out.append(_khung({'x': x, 'y': by0, 'w': w, 'h': bh, 'text': e['text'], 'size': s,
+                               'color': _mau_nhan(e)}))
     return out
 
 
@@ -804,7 +876,8 @@ def m_pipe(e):
         if n or e.get('labelPos') == 'above':
             out.append({'t': 'text', 'x': x + 4, 'y': y - 26, 'text': e['text'], 'size': s, 'color': c})
         else:
-            out.append(_khung({'x': x + rx * 2, 'y': y, 'w': w - rx * 3, 'h': h, 'text': e['text'], 'size': s, 'color': c}))
+            out.append(_khung({'x': x + rx * 2, 'y': y, 'w': w - rx * 3, 'h': h, 'text': e['text'], 'size': s,
+                               'color': _mau_nhan(e)}))
     return out
 
 
@@ -894,7 +967,7 @@ def m_cloud(e):
            {'t': 'anchor', 'id': e['id'], 'x': x + w * .05, 'y': y + h * .1, 'w': w * .9, 'h': h * .8, 'shape': 'ellipse'}]
     if e.get('text'):
         out.append(_khung({'x': x + w * .15, 'y': y + h * .3, 'w': w * .7, 'h': h * .5, 'text': e['text'],
-                           'size': e.get('size', 17), 'color': c}))
+                           'size': e.get('size', 17), 'color': _mau_nhan(e)}))
     return out
 
 
@@ -907,7 +980,7 @@ def m_doc(e):
            {'t': 'anchor', 'id': e['id'], 'x': x, 'y': y, 'w': w, 'h': h}]
     if e.get('text'):
         out.append(_khung({'x': x, 'y': y + k * 0.6, 'w': w, 'h': h - k * 0.6, 'text': e['text'],
-                           'size': e.get('size', 16), 'color': c}))
+                           'size': e.get('size', 16), 'color': _mau_nhan(e)}))
     return out
 
 
@@ -1276,9 +1349,11 @@ def dung(spec_els):
                         break
                     con -= L
                 sz = e.get('size', 16)
-                tw, th = rong_chu(e['text'], sz), cao_chu(e['text'], sz)
+                # Excalidraw lays Nunito at 1.35 per line, not cao_chu's 1.25: centring on the 1.25 height let a
+                # two-line label at labelDy -22 hang 1.2 units over its own line (hang-doi 6.3 run). Use the real height.
+                tw, th = rong_chu(e['text'], sz), (str(e['text']).count('\n') + 1) * sz * 1.35
                 dx = e.get('labelDx', 0 if ngang else tw / 2 + 8)
-                dy = e.get('labelDy', -(th / 2 + 3) if ngang else 0)
+                dy = e.get('labelDy', -(th / 2 + 4) if ngang else 0)
                 out.append({'type': 'text', 'id': f'_lab{i}', 'x': lx + dx, 'y': ly + dy - th / 2, 'text': str(e['text']),
                             'fontSize': sz, 'strokeColor': c, 'textAlign': 'center', 'opacity': e.get('opacity', 100)})
         elif t == 'text':
@@ -1295,6 +1370,14 @@ def dung(spec_els):
         for t in ([o] if o.get('type') == 'text' else []) + ([lab] if lab else []):
             if str(t.get('strokeColor', '')).lower() == MAU['warn'].lower():
                 t['strokeColor'] = MAU['ink']
+    # A token's text on its own solid tint can fail 3:1 in one theme: --l4 on --fill-l4 is 2.58:1
+    # in dark (also l2, l6, l7, err). Those labels drop to ink, which is >= 5.25:1 on every tint.
+    for o in out + raw:
+        lab = o.get('label') if isinstance(o.get('label'), dict) else None
+        if lab and o.get('fillStyle', 'solid') == 'solid':
+            k = TINT_TEXT_FAILS.get((str(o.get('backgroundColor', '')).lower(), str(lab.get('strokeColor', '')).lower()))
+            if k:
+                lab['strokeColor'] = MAU['ink']
     return out, raw, hinh, lint_arrows, els
 
 
@@ -1321,12 +1404,29 @@ def _cat_doan_hcn(p, q, r, co=6):
 
 
 def _dau(e):
-    """Number of drawn arrowheads (0-2) on an arrow spec."""
-    return int(e.get('head', 'arrow') != 'none') + int(e.get('tail', 'arrow' if e.get('both') else 'none') != 'none')
+    """Number of drawn arrowheads (0-2) on an arrow spec. A `dot` tail is a pointer's origin, a small disc
+    meant to sit inside the cell that holds the pointer: it hides no shaft and no border cuts it, so it is
+    not counted (redis 2.2 run: a ptr arrow starting in its cell was flagged as a head cut by that cell)."""
+    return int(e.get('head', 'arrow') != 'none') + int(e.get('tail', 'arrow' if e.get('both') else 'none') not in ('none', 'dot'))
+
+
+def _mono_that(e):
+    """Free `mono` text as the SVG draws it. Excalidraw measures it in Cascadia at ~0.50em per glyph,
+    but the SVG swaps in IBM Plex Mono at 0.60em, so a 47-char line drew 68 units wider than every
+    check below believed and ran into a table title the tool never flagged (hang-doi 3.1 run)."""
+    if e['type'] != 'text' or e.get('containerId') or e.get('fontFamily') != 3:
+        return e
+    w = max((len(l) for l in str(e['text']).split('\n')), default=0) * e['fontSize'] * 0.6
+    d = w - e['width']
+    if d <= 0:
+        return e
+    lech = {'center': d / 2, 'right': d}.get(e.get('textAlign'), 0)
+    return dict(e, width=w, x=e['x'] - lech)
 
 
 def soat(conv, hinh, lint_arrows, goc, sk=()):
     cung, nhac = [], []
+    conv = [_mono_that(e) for e in conv]
     by = {e['id']: e for e in conv}
     # 0 · Excalidraw silently GROWS a shape when its text does not fit: the layout shifts with no warning
     for s in sk:
@@ -1341,8 +1441,12 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
                 bt = next((e for e in conv if e['type'] == 'text' and e.get('containerId') == c['id']), None)
                 quan = bt is not None and bt['text'].count('\n') > t.count('\n')
                 if c['width'] <= s['width'] + 2 and quan:
+                    # Capitals are wider than the 0.52 rule: XREADGROUP at size 14 wrapped in w 106 and needed 107,
+                    # while the old hint said 89, below the width that had already failed (hang-doi 9.1 run)
+                    can = max((sum(0.65 if ch.isupper() else 0.52 for ch in l) for l in t.split('\n')), default=0)
+                    can = max(can * fs + 16, s['width'] + 6)
                     fix = (f"the text wrapped, so widen it, not heighten it: `w` (`cw` in a cells strip) at least "
-                           f"chars × size × 0.52 + 16 = {rong_chu(t, fs) + 16:.0f}")
+                           f"(lowercase × 0.52 + capitals × 0.65) × size + 16, and more than the current w: {can:.0f}")
                 elif c['width'] <= s['width'] + 2:
                     fix = (f"the text did not wrap, the box is too short for its lines: `h` (`ch`) at least "
                            f"lines × size × 1.35 + 11 = {(t.count(chr(10)) + 1) * fs * 1.35 + 11:.0f}")
@@ -1350,6 +1454,19 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
                     fix = "set a larger w/h (diamond and ellipse need twice the text width)"
                 cung.append(f"shape '{s['id']}' grew from {s['width']:.0f}×{s['height']:.0f} to {c['width']:.0f}×{c['height']:.0f} "
                             f"because text “{s['label']['text'][:20]}” does not fit: {fix}")
+            else:
+                # The text wrapped but the box was tall enough, so it did not grow and the check above stayed silent.
+                # `→16` in a 38-wide cell 56 tall drew as `→1` over `6` (thiet-ke-cong-nghe 1.9 run).
+                t, fs = s['label']['text'], s['label'].get('fontSize', 20)
+                bt = next((e for e in conv if e['type'] == 'text' and e.get('containerId') == c['id']), None)
+                if bt is not None and bt['text'].count('\n') > t.count('\n'):
+                    can = max((sum(0.65 if ch.isupper() else 0.52 for ch in l) for l in t.split('\n')), default=0)
+                    can = max(can * fs + 16, s['width'] + 6)
+                    loi = f"text “{t[:20]}” in shape '{s['id']}' wrapped to “{bt['text'][:24]}” without growing the box"
+                    if set(bt['text'].split()) - set(t.split()):
+                        cung.append(f"{loi}, splitting a word: widen `w` (`cw`) to about {can:.0f}")
+                    else:
+                        nhac.append(f"{loi}: widen `w` (`cw`) to about {can:.0f}, or put the `\\n` in the spec yourself")
     # 1 · text overflows the shape that contains it
     for e in conv:
         if e['type'] == 'text' and e.get('containerId') and e['containerId'] in by:
@@ -1383,11 +1500,24 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
                 break
     # 2a · one arrow's head lands where another arrow starts: in and out share a spot and read as one line crossing
     #      the shape (A6 roadmap, `ba6-duong-mac-dinh-14-chang`). Axes sharing an origin and a pair a→b, b→a are fine.
+    #      So is a chain of two `points` arrows that turns at a joint off every shape border: a timeline V where a
+    #      request reaches the DB lane and the reply leaves at that instant (thiet-ke-mau-thiet-ke 2.1 run, 22 nudges).
+    def _tren_vien(p):
+        return any(h['x'] - 4 <= p[0] <= h['x'] + h['w'] + 4 and h['y'] - 4 <= p[1] <= h['y'] + h['h'] + 4
+                   and not (h['x'] + 4 < p[0] < h['x'] + h['w'] - 4 and h['y'] + 4 < p[1] < h['y'] + h['h'] - 4)
+                   for h in than)
+    def _re(p1, p2):                        # cosine between the last segment of p1 and the first segment of p2
+        u = (p1[-1][0] - p1[-2][0], p1[-1][1] - p1[-2][1])
+        v = (p2[1][0] - p2[0][0], p2[1][1] - p2[0][1])
+        L = math.hypot(*u) * math.hypot(*v)
+        return (u[0] * v[0] + u[1] * v[1]) / L if L else 1
     for i, (a1, b1, p1, _) in enumerate(lint_arrows):
         for j, (a2, b2, p2, _) in enumerate(lint_arrows):
             if i == j or len(p1) < 2 or len(p2) < 2 or (a1 is not None and a1 == b2 and b1 == a2):
                 continue
             (hx, hy), (sx, sy) = p1[-1], p2[0]
+            if a1 is None and a2 is None and abs(_re(p1, p2)) < 0.8 and not _tren_vien(p1[-1]):
+                continue
             if math.hypot(hx - sx, hy - sy) < 6:
                 nhac.append(f"an arrow ends where another starts ({hx:.0f},{hy:.0f}): give one of them fromAt/toAt "
                             f"or another side so each end has its own spot")
@@ -1450,12 +1580,32 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
         h = min(p['y'] + p['height'], q['y'] + q['height']) - max(p['y'], q['y'])
         return max(w, 0) * max(h, 0)
 
+    def ngang_ve(e):
+        """x span of the glyphs as the SVG draws them. Mono boxes are already real (_mono_that). Nunito
+        boxes are measured by Excalidraw but drawn in the narrower Patrick Hand (digits in Nunito tspans):
+        drawn/measured was 0.80 to 0.89 on two flagged pairs, so keep 0.88 of the box, anchored by align."""
+        if e.get('fontFamily') == 3:
+            return e['x'], e['x'] + e['width']
+        w = e['width'] * 0.88
+        x = e['x'] + {'center': (e['width'] - w) / 2, 'right': e['width'] - w}.get(e.get('textAlign'), 0)
+        return x, x + w
+
+    def dung_chu(p, q):
+        """Glyphs collide: drawn x spans (ngang_ve) and boxes trimmed by 15% of their height top and bottom
+        (the line gap) overlap 6+ units BOTH ways. The 18% area test alone missed the end of a long mono
+        line running 13 units into a short title: 11% of the title's box (hang-doi 3.1 run)."""
+        (p0, p1), (q0, q1) = ngang_ve(p), ngang_ve(q)
+        tp, tq = p['height'] * 0.15, q['height'] * 0.15
+        w = min(p1, q1) - max(p0, q0)
+        h = min(p['y'] + p['height'] - tp, q['y'] + q['height'] - tq) - max(p['y'] + tp, q['y'] + tq)
+        return w >= 6 and h >= 6
+
     seen = set()
     for f in free:
         for o in alltext:
             if o is f or (o['id'], f['id']) in seen:
                 continue
-            if giao(f, o) > 0.18 * min(f['width'] * f['height'], o['width'] * o['height']):
+            if giao(f, o) > 0.18 * min(f['width'] * f['height'], o['width'] * o['height']) or dung_chu(f, o):
                 seen.add((f['id'], o['id']))
                 nhac.append(f"text “{f['text'][:22]}” overlaps text “{o['text'][:22]}”")
         for s in conv:
@@ -1512,6 +1662,8 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
     #      Measured on Excalidraw's Nunito box, which is ~20% wider than the Patrick Hand glyphs the SVG shows,
     #      so the box itself is the clearance (hang-doi 0.1 run: two labels and a self-message label crossed
     #      the next lifeline and the tool was silent).
+    #      Fragment guard labels (`[condition]` of alt/else/opt/loop...) carry `~lab~g` ids and are measured too:
+    #      an `else` guard drawn at the frame's left edge sat on the first lifeline (template 21) and 3c was silent.
     song = [e for e in conv if e['type'] == 'line' and '~life~' in str(e.get('id'))]
     for t in conv:
         if t['type'] != 'text' or '~lab~' not in str(t.get('id')):
@@ -1520,17 +1672,66 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
             ys = [L['y'] + p[1] for p in L['points']]
             if t['x'] < L['x'] < t['x'] + t['width'] and min(ys) < t['y'] + t['height'] and t['y'] < max(ys):
                 ai = str(L['id']).split('~life~')[1]
-                nhac.append(f"sequence label “{t['text'][:26]}” runs across the lifeline of '{ai}': shorten it, "
-                            f"or raise `gap` (this label needs about {t['width'] + 30:.0f})")
+                if '~lab~g' in str(t['id']):
+                    nhac.append(f"fragment guard “{t['text'][:26]}” runs across the lifeline of '{ai}': shorten the "
+                                f"condition, or raise `gap` by about {t['x'] + t['width'] - L['x'] + 8:.0f}")
+                else:
+                    nhac.append(f"sequence label “{t['text'][:26]}” runs across the lifeline of '{ai}': shorten it, "
+                                f"or raise `gap` (this label needs about {t['width'] + 30:.0f})")
     # 3d · an arrow's stroke runs through free text: a `vh` arrow leaving the bottom of a cells strip ran straight
     #      down through the strip's caption under it ("PEL: chưa XACK") and the tool was silent (hang-doi 2.3 run).
     #      Measured on the Excalidraw text box shrunk by 2 units, so a label resting beside its own line is skipped.
-    for ar in (e for e in conv if e['type'] == 'arrow' and len(e.get('points', [])) >= 2):
+    #      A detached arrow label (`_lab*`) is measured on its box grown by 1 unit instead: a two-line label at
+    #      labelDy -22 hung 1.2 units over its own line, the glyphs sat on the stroke, and the 2-unit shrink hid it
+    #      (hang-doi 6.3 run). The default placement leaves 4 units, so only a hand-set labelDy/labelDx can trip this.
+    #      A plain `line` counts too: a dashed vertical time guide (the moment one message is published) crossing
+    #      every block of a timeline ran through any outcome text placed past its x, and the tool was silent
+    #      (thiet-ke-mau-thiet-ke 1.3 run). Detached-label resting is an arrow notion, so lines use the shrunk box.
+    #      Sequence lifelines (`~life~`) are left to 3c, which already measures message labels against them.
+    #      Lines inside a 30-unit square are `cross`/`check` marks: the sequence `fail` X sits inside the label's
+    #      Nunito box on purpose (the drawn Patrick Hand glyphs end before it), so they are skipped.
+    #      A plain `line` is also measured against text inside a shape (a `cells` label, a box label): a dashed
+    #      deadline guide ran down through the label of a `cells` strip under it and the tool was silent
+    #      (thiet-ke-mau-thiet-ke 2.4 run). Arrows are not, since their ends are clipped at the shapes they join.
+    #      A filled shape drawn after the line hides it, so its label is skipped: a lane baseline drawn first and
+    #      covered by a filled hold box is the normal timeline build (thoi-gian-thuc-ba-cach-cho-mot-tin).
+    _thu_tu = {id(e): i for i, e in enumerate(conv)}
+    _theo_id = {e.get('id'): e for e in conv}
+
+    def _che(f, ln):
+        c = _theo_id.get(f.get('containerId')) if f.get('containerId') else None
+        return (c is not None and c['type'] != 'arrow' and _thu_tu[id(c)] > _thu_tu[id(ln)]
+                and c.get('backgroundColor') not in (None, 'transparent'))
+
+    def _dau(e):
+        xs = [p[0] for p in e['points']]; ys = [p[1] for p in e['points']]
+        return max(xs) - min(xs) <= 30 and max(ys) - min(ys) <= 30
+    for ar in (e for e in conv if len(e.get('points', [])) >= 2 and (e['type'] == 'arrow' or
+               (e['type'] == 'line' and '~life~' not in str(e.get('id', '')) and not _dau(e)))):
         P = [(ar['x'] + p[0], ar['y'] + p[1]) for p in ar['points']]
+        for f in (free if ar['type'] == 'arrow' else [g for g in alltext if not _che(g, ar)]):
+            r = {'x': f['x'], 'y': f['y'], 'w': f['width'], 'h': f['height']}
+            nhan = ar['type'] == 'arrow' and str(f.get('id', '')).startswith('_lab')
+            if any(_cat_doan_hcn(P[k], P[k + 1], r, co=-1 if nhan else 2) for k in range(len(P) - 1)):
+                nhac.append(f"arrow label “{f['text'][:22].replace(chr(10), ' ')}” rests on an arrow's line: give it at least "
+                            f"{f['height'] / 2 + 4:.0f} units of labelDy (half its height + 4), or move it"
+                            if nhan else
+                            (f"an arrow's line runs through text “{f['text'][:22]}”: move the text, or the arrow's side/route"
+                             if ar['type'] == 'arrow' else
+                             f"a `line` runs through text “{f['text'][:22]}”: move the text, or end the line before it"))
+    # 3e · a hand-placed `cross`/`check` lies on free text. 3d skips 30-unit lines, so a cross at a box's top-right
+    #      corner sat on the end of a section title right above the box and the tool was silent
+    #      (thiet-ke-mau-thiet-ke 7.5 run, viec-dai-vong-chong-trung-chan-sua).
+    _bao = set()
+    for mk in (e for e in conv if e['type'] == 'line' and '~mark~' in str(e.get('id', ''))):
+        P = [(mk['x'] + p[0], mk['y'] + p[1]) for p in mk['points']]
         for f in free:
             r = {'x': f['x'], 'y': f['y'], 'w': f['width'], 'h': f['height']}
-            if any(_cat_doan_hcn(P[k], P[k + 1], r, co=2) for k in range(len(P) - 1)):
-                nhac.append(f"an arrow's line runs through text “{f['text'][:22]}”: move the text, or the arrow's side/route")
+            goc_mk = str(mk['id']).rsplit('~', 1)[0]
+            if (goc_mk, id(f)) not in _bao and any(_cat_doan_hcn(P[k], P[k + 1], r, co=2) for k in range(len(P) - 1)):
+                _bao.add((goc_mk, id(f)))
+                nhac.append(f"a cross/check mark lies on text “{f['text'][:22]}”: put the mark at a shape's corner "
+                            f"clear of any text, or move the text")
     # 4 · too many accent colors
     dung_mau ={e.get('color') for e in goc if e.get('color') in ACCENT} | {e.get('fill') for e in goc if e.get('fill') in ACCENT}
     if len(dung_mau) > 3:
@@ -1638,6 +1839,33 @@ def code_bg_rects(svg):
     return _CODE_G_RE.sub(rect, _TEXT_G_RE.sub(text_abs, svg))
 
 
+_HAND_TEXT_RE = re.compile(r'(<text\b[^>]*font-family="\'Patrick Hand\'[^>]*>)([^<]*\d[^<]*)(</text>)')
+_RUN_RE = re.compile(r'(&#?\w+;)|(\d+)|([^&\d]+|&)')
+DIGIT_FONT = 'font-family="Nunito" font-weight="600" font-size="0.92em"'
+
+
+def digits_to_tspans(svg):
+    """Draw digits in Nunito, not Patrick Hand.
+
+    Patrick Hand's 9 is a small closed loop on a short stem: at 8-14px on screen "4096" reads "40%" and
+    "aB3xK9p" is ambiguous (two runs hit it). Each text that holds a digit becomes a row of <tspan> runs:
+    digit runs in Nunito 600 at 0.92em, the rest in plain <tspan>s that keep Patrick Hand.
+    - Nunito is Excalidraw's own font and ships offline in assets/fonts; 600 matches Patrick Hand's stroke,
+      0.92em matches its digit height (Nunito cap 0.71em × 0.92 = 0.65em, Patrick Hand 0.66em).
+    - Width stays inside Excalidraw's layout box: Excalidraw measured every glyph in Nunito 400, whose
+      digits are 0.60em (tabular, same at 600); here they are 0.55em, and Patrick Hand letters are ~0.8×
+      their Nunito width, so the shape-overflow checks done on Excalidraw's boxes still hold.
+    - EVERY run is a <tspan>, not only the digits: precheck's contrast and occlusion gates skip a <text>
+      that holds a <tspan> and measure the tspans, so a bare text node beside a tspan would go unchecked.
+    """
+    def split(m):
+        runs = []
+        for ent, dig, rest in _RUN_RE.findall(m.group(2)):
+            runs.append(f'<tspan {DIGIT_FONT}>{dig}</tspan>' if dig else f'<tspan>{ent or rest}</tspan>')
+        return m.group(1) + ''.join(runs) + m.group(3)
+    return _HAND_TEXT_RE.sub(split, svg)
+
+
 def ve(pg, base, src, ra):
     ten = src.stem
     sk, raw, hinh, lint_arrows, goc = dung(nap(src))
@@ -1654,7 +1882,7 @@ def ve(pg, base, src, ra):
     for k, hx in LIT.items():
         svg = re.sub(re.escape(hx), f'var(--{k})', svg, flags=re.I)
     svg = X._fix_mask_luminance(T.tokenize(svg))      # same as the engine's PATCH 8 (VÁ 8): masks do not flip with the theme
-    svg = code_bg_rects(mask_rects_to_paths(svg))
+    svg = digits_to_tspans(code_bg_rects(mask_rects_to_paths(svg)))
     sot = T.audit(svg)
     (ra / f'{ten}.excalidraw').write_text(json.dumps(
         {'type': 'excalidraw', 'version': 2, 'source': 'migrationKl', 'elements': r['els'],
@@ -1665,7 +1893,8 @@ def ve(pg, base, src, ra):
     pg.set_viewport_size({'width': COT + 66, 'height': 400})
     pg.goto(f'{base}/__xem.html?{ten}')
     pg.evaluate("s => { document.getElementById('k').innerHTML = s }", svg)
-    pg.evaluate('document.fonts.ready')
+    pg.evaluate("Promise.all([document.fonts.load(\"16px 'Patrick Hand'\"), document.fonts.load('600 16px Nunito', '0123456789')])"
+                ".then(() => document.fonts.ready).then(() => true)")
     do = None
     for th in ('light', 'dark'):
         pg.evaluate("v => { document.documentElement.dataset.theme = v }", th)   # same as tools/shot.py
