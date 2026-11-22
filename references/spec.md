@@ -58,7 +58,7 @@ A diamond or ellipse needs about twice the text width and twice the text height.
 |---|---|
 | `from` `to` | ids of the two ends. Endpoints are clipped at the shape edge. `from` equal to `to` gives a self-loop at the top-right corner |
 | `fromSide` `toSide` | Force an edge: `top` `right` `bottom` `left` |
-| `fromAt` `toAt` | Position along the edge, 0 to 1, default 0.5. Use when several arrows share one edge. When only one end is pinned, the free end aims at that pinned point, so `toSide: "left"` + `toAt` on a tall target gives a level arrow from a box at that height (before the td5 run the free end aimed at the target's centre and the arrow sloped) |
+| `fromAt` `toAt` | Position along the edge, 0 to 1, default 0.5. Always name the side too (`fromSide`/`toSide`) when you pin a position: with `fromAt` alone the tool picks the side itself and the arrow can leave from a different edge than planned (three arrows left a container frame from mid-bottom at wrong x and one crossed a neighbouring label, app-nhin-thay-gi 5.1 run) Use when several arrows share one edge. When only one end is pinned, the free end aims at that pinned point, so `toSide: "left"` + `toAt` on a tall target gives a level arrow from a box at that height (before the td5 run the free end aimed at the target's centre and the arrow sloped) |
 | `bend` | Offset in units to curve the arrow, negative curves the other way. Two opposite arrows between two shapes: give both the same `bend` |
 | `route` | Orthogonal routing: `hv` `vh` `hvh` `vhv`. Add `shift` to move the middle segment |
 | `points` | Replaces `from`/`to`: a list of absolute coordinates. Three or more points make a curve, add `sharp` to keep sharp corners |
