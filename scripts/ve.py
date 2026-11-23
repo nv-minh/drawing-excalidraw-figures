@@ -255,7 +255,7 @@ def m_cells(e):
     for i, lab in enumerate(labs):
         m = e.get('marks', {}).get(str(i), {})
         buoc = ws[i] if ws else (e['ch'] if col else e['cw'])
-        b = {'t': 'box', 'id': f"{e['id']}.{i}", 'sharp': True,
+        b = {'t': 'box', 'id': f"{e['id']}.{i}", 'sharp': True, 'chart': True,
              'x': e['x'] + (0 if col else chay), 'y': e['y'] + (chay if col else 0),
              'w': e['cw'] if col else buoc, 'h': buoc if col else e['ch'],
              'text': lab, 'size': e.get('size', 18)}
@@ -375,19 +375,21 @@ def m_code(e):
 def m_axis(e):
     x, y, L, c = e['x'], e['y'], e['length'], e.get('color', 'ink')
     doc = e.get('dir') == 'y'
-    out = [{'t': 'arrow', 'points': [[x, y], [x, y - L] if doc else [x + L, y]], 'color': c}]
+    out = [{'t': 'arrow', 'points': [[x, y], [x, y - L] if doc else [x + L, y]], 'color': c, 'axis': True}]
     ticks = e.get('ticks', [])
     for i, lab in enumerate(ticks):
         d = e['gap'] * i if e.get('gap') else (L - 40) * i / max(len(ticks) - 1, 1)
         s = e.get('size', 15)
         if doc:
             out.append({'t': 'line', 'points': [[x - 6, y - d], [x + 6, y - d]], 'color': c})
-            out.append({'t': 'text', 'x': x - 14 - rong_chu(lab, s), 'y': y - d - s * 0.6, 'text': lab,
-                        'size': s, 'color': 'muted'})
+            if lab != '':               # an empty tick is a mark with no label, not an empty text element
+                out.append({'t': 'text', 'x': x - 14 - rong_chu(lab, s), 'y': y - d - s * 0.6, 'text': lab,
+                            'size': s, 'color': 'muted'})
         else:
             out.append({'t': 'line', 'points': [[x + d, y - 6], [x + d, y + 6]], 'color': c})
-            out.append({'t': 'text', 'x': x + d - rong_chu(lab, s) / 2, 'y': y + 12, 'text': lab,
-                        'size': s, 'color': 'muted'})
+            if lab != '':
+                out.append({'t': 'text', 'x': x + d - rong_chu(lab, s) / 2, 'y': y + 12, 'text': lab,
+                            'size': s, 'color': 'muted'})
     if e.get('label'):
         out.append({'t': 'text', 'x': x - rong_chu(e['label'], 17) / 2 if doc else x + L + 10,
                     'y': y - L - 30 if doc else y - 12, 'text': e['label'], 'size': 17, 'color': c})
@@ -412,7 +414,8 @@ def m_span(e):
 
 def m_plot(e):
     x, y, w, h = e['x'], e['y'], e['w'], e['h']       # (x,y) = BOTTOM-LEFT corner of the plot area
-    out = [{'t': 'arrow', 'points': [[x, y], [x + w + 20, y]]}, {'t': 'arrow', 'points': [[x, y], [x, y - h - 20]]}]
+    out = [{'t': 'arrow', 'points': [[x, y], [x + w + 20, y]], 'axis': True},
+           {'t': 'arrow', 'points': [[x, y], [x, y - h - 20]], 'axis': True}]
     if e.get('xlabel'):
         out.append({'t': 'text', 'x': x + w + 28, 'y': y - 12, 'text': e['xlabel'], 'size': 16, 'color': 'muted'})
     if e.get('ylabel'):
@@ -429,7 +432,7 @@ def m_plot(e):
                 continue
             bh = max(h * b['value'] / vmax, 2)
             bx = x + slot * i + (slot - bw) / 2
-            out.append({'t': 'box', 'id': f"{e.get('id', 'plot')}.{i}", 'sharp': True, 'x': bx, 'y': y - bh,
+            out.append({'t': 'box', 'id': f"{e.get('id', 'plot')}.{i}", 'sharp': True, 'chart': True, 'x': bx, 'y': y - bh,
                         'w': bw, 'h': bh, 'color': b.get('color', 'l4'), 'fill': b.get('fill', b.get('color', 'l4')),
                         'fillStyle': b.get('fillStyle', 'hachure')})
             if b.get('label'):
@@ -784,10 +787,13 @@ def m_swimlane(e):
         b = {'t': 'diamond' if kind in ('decision', 'merge') else 'box', 'id': n['id'], 'x': mx - w / 2, 'y': my - h / 2,
              'w': w, 'h': h, 'text': n.get('text'), 'size': n.get('size', size),
              'color': n.get('color', 'ink')}
-        for k in ('fill', 'fillStyle', 'dashed', 'weight'):
+        for k in ('fill', 'fillStyle', 'dashed', 'weight', 'textColor'):
             if k in n:
                 b[k] = n[k]
         out.append(b)
+        if n.get('n') is not None:     # step number: a badge on the node's top-left corner (strategy process-flow)
+            out.append({'t': 'badge', 'x': b['x'] - 13, 'y': b['y'] - 13, 'd': 26, 'n': n['n'], 'size': n.get('badgeSize', 15),
+                        'color': n.get('badgeColor', 'l2')})
     for g in e.get('edges', []):
         for k in ('from', 'to'):
             if g.get(k) not in info:
@@ -924,11 +930,11 @@ def m_legend(e):
     for it in e['items']:
         c = it.get('color', 'ink')
         if it.get('line'):      # `head: none` for a plain edge (tree line, ER line) so the key matches the figure
-            out.append({'t': 'arrow', 'points': [[x, y + 10], [x + 34, y + 10]], 'color': c,
+            out.append({'t': 'arrow', 'points': [[x, y + 10], [x + 34, y + 10]], 'color': c, 'legend': True,
                         'dashed': it.get('dashed'), 'dotted': it.get('dotted'), 'weight': it.get('weight', 2),
                         'head': it.get('head', 'arrow')})
         else:   # `weight` keys a thick border (leader, the row under discussion); dropped before this rule
-            out.append({'t': it.get('shape', 'box'), 'x': x + 6, 'y': y, 'w': 22, 'h': 20, 'color': c,
+            out.append({'t': it.get('shape', 'box'), 'chart': True, 'x': x + 6, 'y': y, 'w': 22, 'h': 20, 'color': c,
                         'fill': it.get('fill'), 'fillStyle': it.get('fillStyle', 'solid'), 'dashed': it.get('dashed'),
                         'dotted': it.get('dotted'), 'weight': it.get('weight', 2)})
         out.append({'t': 'text', 'x': x + 44, 'y': y - 1, 'text': it['text'], 'size': 15, 'color': 'muted'})
@@ -1031,7 +1037,8 @@ def m_card(e):
     s, c = e.get('size', 15), e.get('color', 'l2')
     body = e.get('text', '')
     w = e.get('w') or max(rong_chu(e.get('title', ''), 17), rong_chu(body, s) * (1.17 if e.get('mono') else 1)) + 28
-    h = e.get('h') or (34 if e.get('title') else 10) + cao_chu(body, s) + 14
+    # Excalidraw sets Nunito at 1.35 line height; cao_chu's 1.25 left a 4-5 line body touching the bottom border
+    h = e.get('h') or (34 if e.get('title') else 10) + (str(body).count('\n') + 1) * s * 1.35 + 14
     out = [{'t': 'box', 'id': e.get('id'), 'x': e['x'], 'y': e['y'], 'w': w, 'h': h, 'color': c,
             'fill': e.get('fill'), 'weight': 1, 'dashed': e.get('dashed')}]
     if not e.get('_hang'):          # a flow's example card sits in its step's row: the row is its link
@@ -1435,7 +1442,10 @@ def dung(spec_els):
             if t == 'box':
                 o['roundness'] = None if e.get('sharp') else {'type': 3}
             if e.get('text'):
-                o['label'] = {'text': str(e['text']), 'fontSize': e.get('size', 20), 'strokeColor': c,
+                # `textColor`: the text can differ from the border (an accent border on a tinted answer box drew
+                # accent text that was hard to read in the dark theme)
+                o['label'] = {'text': str(e['text']), 'fontSize': e.get('size', 20),
+                              'strokeColor': mau(e['textColor']) if e.get('textColor') else c,
                               'textAlign': e.get('align', 'center'), 'verticalAlign': e.get('valign', 'middle')}
             if o['fillStyle'] in ('hachure', 'cross-hatch') and e.get('fill') and not e.get('ghost'):
                 u = _hachure_ro(e, o)
@@ -1481,7 +1491,8 @@ def dung(spec_els):
                 o['startArrowhead'] = HEAD.get(e.get('tail', 'arrow' if e.get('both') else 'none'))
                 tu_do = any(k in e for k in ('labelAt', 'labelDx', 'labelDy'))
                 if e.get('text') and not tu_do:
-                    o['label'] = {'text': str(e['text']), 'fontSize': e.get('size', 16), 'strokeColor': c}
+                    o['label'] = {'text': str(e['text']), 'fontSize': e.get('size', 16),
+                                  'strokeColor': mau(e['labelColor']) if e.get('labelColor') else c}
             out.append(o)
             # Excalidraw dashes the arrowheads of a dashed arrow too, which cuts an ER bar or crow into stubs
             # (a FK-less column drawn dashed). Keep the line dashed but
@@ -1530,7 +1541,8 @@ def dung(spec_els):
                 dx = e.get('labelDx', 0 if ngang else tw / 2 + 8)
                 dy = e.get('labelDy', -(th / 2 + 4) if ngang else 0)
                 out.append({'type': 'text', 'id': f'_lab{i}', 'x': lx + dx, 'y': ly + dy - th / 2, 'text': str(e['text']),
-                            'fontSize': sz, 'strokeColor': c, 'textAlign': 'center', 'opacity': e.get('opacity', 100)})
+                            'fontSize': sz, 'strokeColor': mau(e['labelColor']) if e.get('labelColor') else c,
+                            'textAlign': 'center', 'opacity': e.get('opacity', 100)})
         elif t == 'text':
             o = {'type': 'text', 'id': e.get('id') or f'_text{i}', 'x': e['x'], 'y': e['y'], 'text': str(e['text']),
                  'fontSize': e.get('size', 20), 'strokeColor': c, 'textAlign': e.get('align', 'left'),
@@ -1692,7 +1704,9 @@ def duong_doc(conv, goc, lint_arrows, strat):
     cfg = STRATEGIES.get(strat, {})
     # a · a side panel (code block, card) with no arrow or note reaching it reads as a separate figure
     panels = [e for e in goc if e.get('panel')]
-    chinh = [e for e in goc if e['t'] in SHAPES and not e.get('panel') and not e.get('ghost') and 'so' not in e]
+    # main shapes: the things the figure is about, not the pieces of a chart (plot bars, legend swatches, cells)
+    chinh = [e for e in goc if e['t'] in SHAPES and not e.get('panel') and not e.get('ghost') and 'so' not in e
+             and not e.get('chart')]
     dau_mut = [q for x in lint_arrows for q in (x[2][0], x[2][-1])]
     noi = lambda pn: any(pn['x'] - 10 <= qx <= pn['x'] + pn['w'] + 10 and pn['y'] - 10 <= qy <= pn['y'] + pn['h'] + 10
                          for qx, qy in dau_mut)
@@ -1721,7 +1735,14 @@ def duong_doc(conv, goc, lint_arrows, strat):
                     f"strategy '{strat}' tells a story in order, so put ① ② ③ at the top-left of each part in story order")
     # e · relations: in a map of knowledge or a model of a life problem the arrow's label IS the content
     if cfg.get('relation'):
-        cam = [x[4] for x in lint_arrows if x[4].get('t') == 'arrow' and not x[4].get('dashed')]
+        # an axis (`axis: true`, set by the axis and plot macros) is a scale, not a relation (a 2x2's two axes
+        # were flagged under strategy idea)
+        # a key's sample line is not a relation either, and neither is a note pointer: thin dashed, or muted dashed.
+        # A dashed arrow at full weight in a real color IS a relation (vapour vs liquid in a water cycle), so it is checked
+        def chi_tro(a):
+            return a.get('dashed') and (a.get('weight', 2) <= 1 or a.get('color', 'ink') == 'muted')
+        cam = [x[4] for x in lint_arrows if x[4].get('t') == 'arrow' and not x[4].get('axis')
+               and not x[4].get('legend') and not chi_tro(x[4])]
         rong = [x for x in cam if not x.get('text')]
         if rong:
             nhac.append(f"{len(rong)} of {len(cam)} arrows carry no label: strategy '{strat}' needs each to say its "
@@ -1753,15 +1774,48 @@ def _so(text):
     return out
 
 
+_QUY_MO = {'nghìn': 10**3, 'ngàn': 10**3, 'k': 10**3, 'thousand': 10**3, 'triệu': 10**6, 'million': 10**6,
+           'tỷ': 10**9, 'tỉ': 10**9, 'billion': 10**9}
+_QUY_MO_RE = re.compile(r'(\d+(?:[.,]\d+)?)\s*(' + '|'.join(_QUY_MO) + r')(?![^\W\d_])', re.I)
+
+
+def _quy_mo(text):
+    """Numbers written with a scale word, as (canonical form as written, full value): "200 nghìn" -> ("200", "200000"),
+    "3,6 triệu" -> ("36", "3600000"). A translated figure spells one form and the source the other."""
+    out = []
+    for m in _QUY_MO_RE.finditer(text):
+        v = m.group(1)
+        so = int(re.sub(r'[.,]', '', v)) if re.fullmatch(r'\d+[.,]\d{3}', v) else float(v.replace(',', '.'))
+        out.append((re.sub(r'[.,]', '', v), str(round(so * _QUY_MO[m.group(2).lower()]))))
+    return out
+
+
 def so_voi_nguon(conv, nguon, ten_nguon):
     """Numbers in the figure that the source text does not contain. Single digits are skipped (step numbers,
     counts like 2 or 3). A derived value is fine when its arithmetic is visible in the figure; anything else
     is an invented number, which teaches something false."""
     co = _so(nguon)
+    # every whole-number part counts too: a version "21.0.13.0.3" or a date "17/11" holds 21, 13, 17, 11, which the
+    # figure may cite alone ("cả bản 21, 25")
+    co |= set(re.findall(r'\d+', nguon))
+    # an English month name in the source is a number in a Vietnamese date: "Nov 17, 2026" is drawn "17/11/2026"
+    thang = ('jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
+    co |= {str(i + 1) for i, t in enumerate(thang)
+           if re.search(rf'\b{t}[a-z]*\.?\s+\d{{1,2}}\b|\b\d{{1,2}}\s+{t}', nguon, re.I)}
+    # "200 nghìn" in the source is 200000 too, so a translated "200,000" matches
+    co |= {du for _, du in _quy_mo(nguon)}
     hinh = set()
     for e in conv:
         if e['type'] == 'text' and not e.get('isDeleted'):
-            hinh |= {n for n in _so(e['text']) if len(n.lstrip('0')) >= 2 or n.startswith('0X')}
+            t = e['text']
+            # and the other way round: "200 nghìn" drawn from a source that says "200,000"
+            ket = {viet for viet, du in _quy_mo(t) if du in co}
+            # a result whose arithmetic is written in the same text ("40 nhà × 2 lần = 80") is shown, not invented
+            for dong in [t.replace('\n', ' ')]:      # the arithmetic may wrap: "40 nhà × 2 lần\n= 80"
+                if re.search(r'[×x*+/−-]\s*\d', dong):
+                    for m in re.finditer(r'[=≈]\s*(' + _SO_RE.pattern + ')', dong):
+                        ket |= _so(m.group(1))
+            hinh |= {n for n in _so(t) - ket if len(n.lstrip('0')) >= 2 or n.startswith('0X')}
     la = sorted(hinh - co, key=lambda n: (len(n), n))
     if not la:
         return []
@@ -1785,7 +1839,18 @@ def soat(conv, hinh, lint_arrows, goc, sk=(), strat=None):
                 # were called "wrapped" and told to widen a box that only needed 3 more units of height .
                 bt = next((e for e in conv if e['type'] == 'text' and e.get('containerId') == c['id']), None)
                 quan = bt is not None and bt['text'].count('\n') > t.count('\n')
-                if c['width'] <= s['width'] + 2 and quan:
+                # a diamond holds its text in the middle half of its width and height, an ellipse in 1/√2 of them,
+                # so the box formulas below undershoot: a size-16 one-liner wrapped at w 200 when told 206.
+                # Measured at size 16: text 160 wide needs a diamond 320 and an ellipse 230; text 116 needs 250 / 180
+                he, pad = {'diamond': (2.0, 24), 'ellipse': (1.42, 20)}.get(s['type'], (0, 0))
+                if he:
+                    rong = max((sum(0.65 if ch.isupper() else 0.52 for ch in l) for l in t.split('\n')), default=0) * fs
+                    cao = (t.count('\n') + 1) * fs * 1.35
+                    fix = (f"a {s['type']} fits its text only in its middle {'half' if he == 2 else '70%'}: "
+                           f"`w` at least {he:g} × text width + {pad} = {max(he * rong + pad, s['width'] + 6):.0f}, "
+                           f"`h` at least {he:g} × lines × size × 1.35 + {pad} = {he * cao + pad:.0f}; "
+                           f"or shorten the text, or break it into two lines")
+                elif c['width'] <= s['width'] + 2 and quan:
                     # Capitals are wider than the 0.52 rule: XREADGROUP at size 14 wrapped in w 106 and needed 107,
                     # while the old hint said 89, below the width that had already failed 
                     can = max((sum(0.65 if ch.isupper() else 0.52 for ch in l) for l in t.split('\n')), default=0)
@@ -1796,7 +1861,7 @@ def soat(conv, hinh, lint_arrows, goc, sk=(), strat=None):
                     fix = (f"the text did not wrap, the box is too short for its lines: `h` (`ch`) at least "
                            f"lines × size × 1.35 + 11 = {(t.count(chr(10)) + 1) * fs * 1.35 + 11:.0f}")
                 else:
-                    fix = "set a larger w/h (diamond and ellipse need twice the text width)"
+                    fix = "set a larger w/h"
                 cung.append(f"shape '{s['id']}' grew from {s['width']:.0f}×{s['height']:.0f} to {c['width']:.0f}×{c['height']:.0f} "
                             f"because text “{s['label']['text'][:20]}” does not fit: {fix}")
             else:
@@ -1832,7 +1897,8 @@ def soat(conv, hinh, lint_arrows, goc, sk=(), strat=None):
             A, B = hinh[a], hinh[b]
         dai = sum(math.hypot(pts[k + 1][0] - pts[k][0], pts[k + 1][1] - pts[k][1]) for k in range(len(pts) - 1))
         if a != b and dai < (22 if dau < 2 else 64):     # two heads (`both`, a `tail`) need room for a visible shaft: 36- and 50-long `both` arrows read as a diamond (aws1)
-            nhac.append(f"arrow {a} → {b} is only {dai:.0f} long for {dau} head(s), the heads hide the line: move the two shapes apart")
+            nhac.append(f"arrow {a} → {b} is only {dai:.0f} long for {dau} head(s), the heads hide the line: move the two shapes "
+                        f"apart (each end stops 6 units off its shape, so leave {(22 if dau < 2 else 64) + 12} or more between them)")
         h = _xuyen(pts, A, B, than)
         if h:
             goi = _goi_y_duong(spec, A, B, than) if spec.get('from') and spec['from'] != spec.get('to') else None
@@ -2054,9 +2120,21 @@ def soat(conv, hinh, lint_arrows, goc, sk=(), strat=None):
         for f in (free if ar['type'] == 'arrow' else [g for g in alltext if not _che(g, ar)]):
             r = {'x': f['x'], 'y': f['y'], 'w': f['width'], 'h': f['height']}
             nhan = ar['type'] == 'arrow' and str(f.get('id', '')).startswith('_lab')
-            if any(_cat_doan_hcn(P[k], P[k + 1], r, co=-1 if nhan else 2) for k in range(len(P) - 1)):
-                nhac.append(f"arrow label “{f['text'][:22].replace(chr(10), ' ')}” rests on an arrow's line: give it at least "
-                            f"{f['height'] / 2 + 4:.0f} units of labelDy (half its height + 4), or move it"
+            cat = [k for k in range(len(P) - 1) if _cat_doan_hcn(P[k], P[k + 1], r, co=-1 if nhan else 2)]
+            if cat:
+                # On a slope a label must rise by half its height PLUS half its width times the slope: -22 did not
+                # clear a 1:3 slope that needed -34, while the flat-line advice said 15
+                (x1, y1), (x2, y2) = P[cat[0]], P[cat[0] + 1]
+                doc = abs(y2 - y1) / max(abs(x2 - x1), 1e-6)
+                if doc > 3:
+                    can = (f"the line is near vertical, so shift it sideways: labelDx at least "
+                           f"{f['width'] / 2 + 6:.0f} (half its width + 6)")
+                elif doc > 0.05:
+                    can = (f"on this slope (1:{1 / doc:.1f}) give it labelDy of at least "
+                           f"{f['height'] / 2 + f['width'] / 2 * doc + 4:.0f} (half its height + half its width × slope + 4)")
+                else:
+                    can = f"give it at least {f['height'] / 2 + 4:.0f} units of labelDy (half its height + 4)"
+                nhac.append(f"arrow label “{f['text'][:22].replace(chr(10), ' ')}” rests on an arrow's line: {can}, or move it"
                             if nhan else
                             (f"an arrow's line runs through text “{f['text'][:22]}”: move the text, or the arrow's side/route"
                              if ar['type'] == 'arrow' else
@@ -2187,8 +2265,10 @@ def code_bg_rects(svg):
     return _CODE_G_RE.sub(rect, _TEXT_G_RE.sub(text_abs, svg))
 
 
-_HAND_TEXT_RE = re.compile(r'(<text\b[^>]*font-family="\'Patrick Hand\'[^>]*>)([^<]*\d[^<]*)(</text>)')
-_RUN_RE = re.compile(r'(&#?\w+;)|(\d+)|([^&\d]+|&)')
+# Superscript ¹ ² ³ go with the digits: Patrick Hand draws "²" as a small tick, so "m/s²" read "m/s'" (strategy
+# gallery run). Nunito has them in its latin subset.
+_HAND_TEXT_RE = re.compile(r'(<text\b[^>]*font-family="\'Patrick Hand\'[^>]*>)([^<]*[\d¹²³][^<]*)(</text>)')
+_RUN_RE = re.compile(r'(&#?\w+;)|([\d¹²³]+)|([^&\d¹²³]+|&)')
 DIGIT_FONT = 'font-family="Nunito" font-weight="600" font-size="0.92em"'
 
 
@@ -2340,7 +2420,7 @@ def ve(pg, base, ten, els, ra, strat=None, nguon=None):
 
 # ───────────────────────── labels in another language ─────────────────────────
 # Keys whose string value is structure (an id, a token, a side), never words the reader sees.
-CAU_TRUC = {'t', 'id', 'from', 'to', 'color', 'fill', 'fillStyle', 'titleColor', 'textColor', 'numColor', 'edgeColor',
+CAU_TRUC = {'t', 'id', 'from', 'to', 'color', 'fill', 'fillStyle', 'titleColor', 'textColor', 'numColor', 'edgeColor', 'labelColor', 'badgeColor',
             'kind', 'shape', 'lane', 'over', 'extends', 'remove', 'route', 'align', 'valign', 'dir', 'fromSide', 'toSide',
             'tail', 'labelPos', 'prefix', 'side', '_'}
 
@@ -2353,7 +2433,8 @@ def _chu(v, f, key=None, owner=None):
                     else _chu(x, f, k, v)) for k, x in v.items()}
     if isinstance(v, list):
         return [_chu(x, f, key, owner) for x in v]
-    if isinstance(v, str) and any(c.isalpha() for c in v):
+    # a bare decimal or grouped number is a label too: "16,1" and "200.000" are spelled differently in English
+    if isinstance(v, str) and (any(c.isalpha() for c in v) or re.search(r'\d[.,]\d', v)):
         return f(v)
     return v
 
@@ -2503,7 +2584,8 @@ def doc_co(args):
             chet(f"unknown option {a}. Options: {' '.join(CO)}")
         elif CO[a]:
             if i + 1 >= len(args) or args[i + 1].startswith('--'):
-                chet(f'{a} needs a value')
+                chet(f'{a} needs a value' + (': the source text file. A spec with a "source" key is already checked'
+                                             ' against that file, no flag needed' if a == '--source' else ''))
             i += 1
             if a == '--lib':
                 co[a].append(args[i])

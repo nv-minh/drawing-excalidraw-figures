@@ -178,6 +178,7 @@ Supporting pieces are fine: a timeline may carry a small `plot`, an ER figure a 
 ### 4. Write the spec
 
 Copy the template of the chosen type and edit it; do not start from a blank file.
+A template's `"strategy"` describes the template's own content: set it to the strategy you picked in step 1.
 A spec is short JSON: coordinates, text, colors by token name.
 Full syntax of every element: `references/spec.md`.
 Conventions for shapes, color, layout, arrows: `references/visual-language.md`.
