@@ -1,0 +1,118 @@
+{
+ "strategy": "knowledge-summary",
+ "source": "de-bai.md",
+ "_": "Concept map tổng hợp chương ba định luật Newton: lực F là tâm (l4), ba nhánh có nhãn là điều kiện về tổng lực, mỗi định luật một thẻ có một ví dụ thật; khối lượng m nối vào định luật II từ bên dưới để không cắt nhánh nào.",
+ "caption": "Cả ba định luật đều trả lời câu hỏi lực làm gì: hợp lực bằng 0 thì vận tốc giữ nguyên (I), khác 0 thì sinh gia tốc a = F / m (II), và mỗi lực đều có một lực đi cặp với nó, đặt lên vật kia (III); định luật I chỉ là trường hợp riêng của định luật II khi hợp lực bằng 0.",
+ "elements": [
+  {
+   "t": "box",
+   "id": "f",
+   "x": 0,
+   "y": 262,
+   "w": 170,
+   "h": 72,
+   "text": "Lực F\n(đơn vị N)",
+   "color": "l4",
+   "weight": 3,
+   "size": 20
+  },
+  {
+   "t": "text",
+   "x": 85,
+   "y": 348,
+   "text": "hợp lực = tổng vectơ\ncác lực tác dụng lên vật",
+   "align": "center",
+   "color": "l4",
+   "size": 16
+  },
+  {
+   "t": "card",
+   "id": "l1",
+   "x": 360,
+   "y": 0,
+   "w": 410,
+   "title": "Định luật I (định luật quán tính)",
+   "color": "ink",
+   "size": 16,
+   "text": "vận tốc giữ nguyên: đứng yên, hoặc thẳng đều\nvd: xe chạy thẳng đều 60 km/h: lực kéo và\nlực cản cùng đặt lên xe nên triệt tiêu,\nhợp lực = 0"
+  },
+  {
+   "t": "card",
+   "id": "l2",
+   "x": 360,
+   "y": 232,
+   "w": 410,
+   "title": "Định luật II: a = F / m  (F = hợp lực)",
+   "color": "ink",
+   "size": 16,
+   "text": "gia tốc a cùng hướng với hợp lực\nvd: lực đẩy 10 N, bỏ qua ma sát (nên hợp lực\n= 10 N), xe 2 kg → a = 10 / 2 = 5 m/s²,\ntức vận tốc thay đổi 5 m/s mỗi giây"
+  },
+  {
+   "t": "box",
+   "id": "m",
+   "x": 400,
+   "y": 486,
+   "w": 170,
+   "h": 56,
+   "text": "Khối lượng m",
+   "size": 18
+  },
+  {
+   "t": "card",
+   "id": "l3",
+   "x": 360,
+   "y": 590,
+   "w": 410,
+   "title": "Định luật III: lực và phản lực",
+   "color": "ink",
+   "size": 16,
+   "text": "(từng lực trong cặp, không phải hợp lực)\nA tác dụng lực lên B thì B tác dụng lại A:\ncùng giá (cùng đường thẳng),\ncùng độ lớn, ngược chiều\nvd: đạp thành bể, thành bể đẩy người ra\nlưu ý: hai lực đặt lên hai vật khác nhau\nnên không triệt tiêu (khác ví dụ ở định luật I)"
+  },
+  {
+   "t": "arrow",
+   "from": "f",
+   "to": "l1",
+   "fromSide": "right",
+   "fromAt": 0.2,
+   "toSide": "left",
+   "toAt": 0.6,
+   "text": "hợp lực = 0"
+  },
+  {
+   "t": "arrow",
+   "from": "f",
+   "to": "l2",
+   "fromSide": "right",
+   "toSide": "left",
+   "toAt": 0.5,
+   "text": "hợp lực ≠ 0"
+  },
+  {
+   "t": "arrow",
+   "from": "f",
+   "to": "l3",
+   "fromSide": "right",
+   "fromAt": 0.8,
+   "toSide": "left",
+   "toAt": 0.3,
+   "text": "mỗi lực đều có\nmột lực đi cặp với nó"
+  },
+  {
+   "t": "arrow",
+   "from": "m",
+   "to": "l2",
+   "fromSide": "top",
+   "toSide": "bottom",
+   "toAt": 0.3,
+   "text": "cùng một hợp lực,\nm càng lớn, a càng nhỏ"
+  },
+  {
+   "t": "arrow",
+   "from": "l2",
+   "to": "l1",
+   "fromSide": "top",
+   "toSide": "bottom",
+   "text": "trường hợp riêng:\nhợp lực = 0 thì a = 0"
+  }
+ ]
+}

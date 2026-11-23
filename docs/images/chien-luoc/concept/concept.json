@@ -1,0 +1,520 @@
+{
+ "strategy": "concept",
+ "source": "de-bai.md",
+ "_": "Explainer cho người mới: ① ẩn dụ quả cầu tuyết, ② cột chồng theo đúng tỉ lệ 5 đơn vị = 1 triệu. Sinh bằng script.",
+ "caption": "Phần lãi của lãi phình to dần qua từng mốc 5 năm, đến năm 20 còn lớn hơn cả lãi tính trên gốc, nên 10 triệu để lãi nhập gốc thành 67,3 triệu thay vì 30 triệu.",
+ "elements": [
+  {
+   "t": "badge",
+   "x": 0,
+   "y": 0,
+   "n": 1,
+   "color": "l2"
+  },
+  {
+   "t": "text",
+   "x": 40,
+   "y": 2,
+   "text": "Lãi kép giống quả cầu tuyết lăn xuống dốc",
+   "size": 20
+  },
+  {
+   "t": "text",
+   "x": 40,
+   "y": 32,
+   "text": "(lãi kép: lãi nhập vào gốc, năm sau tính lãi trên cả số đó)",
+   "size": 16,
+   "color": "muted"
+  },
+  {
+   "t": "line",
+   "points": [
+    [
+     10,
+     96
+    ],
+    [
+     340,
+     206
+    ]
+   ],
+   "weight": 2
+  },
+  {
+   "t": "ellipse",
+   "id": "ball0",
+   "x": 39,
+   "y": 85,
+   "w": 22,
+   "h": 22,
+   "fill": "soft"
+  },
+  {
+   "t": "ellipse",
+   "id": "ball1",
+   "x": 120,
+   "y": 96,
+   "w": 40,
+   "h": 40,
+   "fill": "soft"
+  },
+  {
+   "t": "ellipse",
+   "id": "ball2",
+   "x": 229,
+   "y": 110,
+   "w": 66,
+   "h": 66,
+   "fill": "soft"
+  },
+  {
+   "t": "arrow",
+   "points": [
+    [
+     74,
+     70
+    ],
+    [
+     116,
+     82
+    ]
+   ],
+   "color": "muted",
+   "weight": 1
+  },
+  {
+   "t": "arrow",
+   "points": [
+    [
+     174,
+     94
+    ],
+    [
+     220,
+     108
+    ]
+   ],
+   "color": "muted",
+   "weight": 1
+  },
+  {
+   "t": "text",
+   "x": 390,
+   "y": 80,
+   "text": "quả cầu = tiền trong sổ tiết kiệm",
+   "size": 18
+  },
+  {
+   "t": "text",
+   "x": 390,
+   "y": 108,
+   "text": "mỗi vòng lăn = một năm",
+   "size": 18
+  },
+  {
+   "t": "text",
+   "x": 390,
+   "y": 136,
+   "text": "tuyết dính thêm = tiền lãi năm đó",
+   "size": 18
+  },
+  {
+   "t": "text",
+   "x": 390,
+   "y": 164,
+   "text": "quả càng to, mỗi vòng dính càng nhiều",
+   "size": 18,
+   "color": "l4"
+  },
+  {
+   "t": "badge",
+   "x": 0,
+   "y": 262,
+   "n": 2,
+   "color": "l2"
+  },
+  {
+   "t": "text",
+   "x": 40,
+   "y": 264,
+   "text": "Gửi 10 triệu, lãi suất 10%/năm, để lãi nhập vào gốc",
+   "size": 20
+  },
+  {
+   "t": "text",
+   "x": 40,
+   "y": 294,
+   "text": "(đơn vị: triệu đồng)",
+   "size": 16,
+   "color": "muted"
+  },
+  {
+   "t": "legend",
+   "x": 40,
+   "y": 324,
+   "dir": "x",
+   "gap": 14,
+   "items": [
+    {
+     "text": "gốc",
+     "fill": "soft"
+    },
+    {
+     "text": "lãi trên gốc",
+     "color": "l2",
+     "fill": "l2",
+     "fillStyle": "hachure"
+    }
+   ]
+  },
+  {
+   "t": "legend",
+   "x": 40,
+   "y": 354,
+   "items": [
+    {
+     "text": "lãi của lãi",
+     "color": "l4",
+     "fill": "l4"
+    }
+   ]
+  },
+  {
+   "t": "box",
+   "id": "g0",
+   "x": 40,
+   "y": 602.0,
+   "w": 64,
+   "h": 50.0,
+   "fill": "soft",
+   "sharp": true
+  },
+  {
+   "t": "text",
+   "x": 72.0,
+   "y": 574,
+   "text": "10 triệu",
+   "size": 18,
+   "align": "center"
+  },
+  {
+   "t": "text",
+   "x": 72.0,
+   "y": 660,
+   "text": "năm 0",
+   "size": 16,
+   "align": "center",
+   "color": "muted"
+  },
+  {
+   "t": "box",
+   "id": "g1",
+   "x": 140,
+   "y": 602.0,
+   "w": 64,
+   "h": 50.0,
+   "fill": "soft",
+   "sharp": true
+  },
+  {
+   "t": "box",
+   "id": "s1",
+   "x": 140,
+   "y": 577.0,
+   "w": 64,
+   "h": 25.0,
+   "color": "l2",
+   "fill": "l2",
+   "fillStyle": "hachure",
+   "sharp": true
+  },
+  {
+   "t": "box",
+   "id": "e1",
+   "x": 140,
+   "y": 571.5,
+   "w": 64,
+   "h": 5.5,
+   "color": "l4",
+   "fill": "l4",
+   "sharp": true
+  },
+  {
+   "t": "text",
+   "x": 172.0,
+   "y": 543,
+   "text": "16,1 triệu",
+   "size": 18,
+   "align": "center"
+  },
+  {
+   "t": "text",
+   "x": 172.0,
+   "y": 660,
+   "text": "năm 5",
+   "size": 16,
+   "align": "center",
+   "color": "muted"
+  },
+  {
+   "t": "box",
+   "id": "g2",
+   "x": 240,
+   "y": 602.0,
+   "w": 64,
+   "h": 50.0,
+   "fill": "soft",
+   "sharp": true
+  },
+  {
+   "t": "box",
+   "id": "s2",
+   "x": 240,
+   "y": 552.0,
+   "w": 64,
+   "h": 50.0,
+   "color": "l2",
+   "fill": "l2",
+   "fillStyle": "hachure",
+   "sharp": true
+  },
+  {
+   "t": "box",
+   "id": "e2",
+   "x": 240,
+   "y": 522.3,
+   "w": 64,
+   "h": 29.7,
+   "color": "l4",
+   "fill": "l4",
+   "sharp": true
+  },
+  {
+   "t": "text",
+   "x": 272.0,
+   "y": 494,
+   "text": "25,9 triệu",
+   "size": 18,
+   "align": "center"
+  },
+  {
+   "t": "text",
+   "x": 272.0,
+   "y": 660,
+   "text": "năm 10",
+   "size": 16,
+   "align": "center",
+   "color": "muted"
+  },
+  {
+   "t": "box",
+   "id": "g3",
+   "x": 340,
+   "y": 602.0,
+   "w": 64,
+   "h": 50.0,
+   "fill": "soft",
+   "sharp": true
+  },
+  {
+   "t": "box",
+   "id": "s3",
+   "x": 340,
+   "y": 527.0,
+   "w": 64,
+   "h": 75.0,
+   "color": "l2",
+   "fill": "l2",
+   "fillStyle": "hachure",
+   "sharp": true
+  },
+  {
+   "t": "box",
+   "id": "e3",
+   "x": 340,
+   "y": 443.1,
+   "w": 64,
+   "h": 83.9,
+   "color": "l4",
+   "fill": "l4",
+   "sharp": true
+  },
+  {
+   "t": "text",
+   "x": 372.0,
+   "y": 415,
+   "text": "41,8 triệu",
+   "size": 18,
+   "align": "center"
+  },
+  {
+   "t": "text",
+   "x": 372.0,
+   "y": 660,
+   "text": "năm 15",
+   "size": 16,
+   "align": "center",
+   "color": "muted"
+  },
+  {
+   "t": "box",
+   "id": "g4",
+   "x": 440,
+   "y": 602.0,
+   "w": 64,
+   "h": 50.0,
+   "fill": "soft",
+   "sharp": true
+  },
+  {
+   "t": "box",
+   "id": "s4",
+   "x": 440,
+   "y": 502.0,
+   "w": 64,
+   "h": 100.0,
+   "color": "l2",
+   "fill": "l2",
+   "fillStyle": "hachure",
+   "sharp": true
+  },
+  {
+   "t": "box",
+   "id": "e4",
+   "x": 440,
+   "y": 315.6,
+   "w": 64,
+   "h": 186.4,
+   "color": "l4",
+   "fill": "l4",
+   "sharp": true
+  },
+  {
+   "t": "text",
+   "x": 472.0,
+   "y": 288,
+   "text": "67,3 triệu",
+   "size": 18,
+   "align": "center"
+  },
+  {
+   "t": "text",
+   "x": 472.0,
+   "y": 660,
+   "text": "năm 20",
+   "size": 16,
+   "align": "center",
+   "color": "muted"
+  },
+  {
+   "t": "line",
+   "points": [
+    [
+     20,
+     652
+    ],
+    [
+     524,
+     652
+    ]
+   ],
+   "weight": 2
+  },
+  {
+   "t": "text",
+   "x": 522,
+   "y": 379,
+   "text": "lãi của lãi: 37,3 triệu",
+   "size": 18,
+   "color": "l4"
+  },
+  {
+   "t": "text",
+   "x": 522,
+   "y": 405,
+   "text": "(lãi các năm trước lại sinh\nthêm lãi; rút lãi ra tiêu\nthì mất phần này)",
+   "size": 15,
+   "color": "muted"
+  },
+  {
+   "t": "line",
+   "points": [
+    [
+     512,
+     504
+    ],
+    [
+     520,
+     504
+    ],
+    [
+     520,
+     650
+    ],
+    [
+     512,
+     650
+    ]
+   ],
+   "weight": 2
+  },
+  {
+   "t": "text",
+   "x": 532,
+   "y": 508,
+   "text": "gốc 10 + lãi trên gốc 20\n= 30 triệu = số có được\nnếu rút lãi ra tiêu",
+   "size": 17
+  },
+  {
+   "t": "text",
+   "x": 532,
+   "y": 588,
+   "text": "(lãi trên gốc: 1 triệu × 20 năm;\ngốc: tiền gửi ban đầu)",
+   "size": 15,
+   "color": "muted"
+  },
+  {
+   "t": "arrow",
+   "points": [
+    [
+     116,
+     458
+    ],
+    [
+     116,
+     574
+    ],
+    [
+     139,
+     574
+    ]
+   ],
+   "color": "l4",
+   "dashed": true,
+   "weight": 1
+  },
+  {
+   "t": "note",
+   "x": 20,
+   "y": 386,
+   "size": 16,
+   "color": "l4",
+   "text": "lãi của lãi bắt đầu từ năm 2:\n10% của 1 triệu lãi năm 1 = 0,1 triệu\nnăm 5: 16,1 - 10 (gốc) - 5 (lãi trên gốc) = 1,1"
+  },
+  {
+   "t": "text",
+   "x": 0,
+   "y": 700,
+   "text": "Rút lãi ra tiêu (lãi đơn): tổng nhận được 30 triệu (10 gốc + 20 lãi đã rút).",
+   "size": 18
+  },
+  {
+   "t": "text",
+   "x": 0,
+   "y": 728,
+   "text": "Để lãi nhập gốc (lãi kép): năm 20 có 67,3 triệu.",
+   "size": 18,
+   "color": "l4"
+  }
+ ]
+}

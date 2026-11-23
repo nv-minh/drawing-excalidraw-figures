@@ -240,7 +240,12 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between}
 #lb figcaption{position:fixed;bottom:18px;left:0;right:0;text-align:center;color:#fff;
   font:17px var(--hand);text-shadow:0 1px 6px rgba(0,0,0,.5)}
 
-@media(max-width:1220px){
+/* tám mục nav + ba nút cần khoảng 1 340px: dưới 1 480 bỏ chữ của nút theme (chỉ còn icon), dưới 1 260 ẩn mục nav */
+@media(max-width:1480px){
+  #theme-lbl{display:none}
+  nav .links a{padding:6px 8px}
+}
+@media(max-width:1260px){
   nav .links{display:none}
 }
 @media(max-width:1000px){
@@ -282,6 +287,7 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between}
       <a href="#co-che">Cơ chế</a>
       <a href="#loai-hinh">Loại hình</a>
       <a href="#y-tuong">Ý tưởng</a>
+      <a href="#chien-luoc">Chiến lược</a>
       <a href="#icon">Icon</a>
       <a href="#so-sanh">So sánh 4 model</a>
       <a href="#cai-dat">Cài đặt</a>
@@ -490,6 +496,28 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between}
   </div>
 </section>
 
+<section id="chien-luoc" style="padding-top:20px">
+  <div class="wrap">
+    <h2>Mười ba chiến lược, mỗi loại một hình mẫu</h2>
+    <p class="lead" style="font-size:16.5px;color:var(--muted);max-width:70ch;margin:4px 0 0">Mỗi loại nội dung có một cách kể riêng: quy trình đi theo bước, sự cố đi theo thời gian, khái niệm cần một hình ảnh quen. Mười ba hình dưới đây, mỗi hình một đề bài và một người đọc khác nhau, từ nhân viên bán hàng tới chuyên gia TCP. Mỗi hình qua ít nhất ba vòng phản biện, mỗi vòng một reviewer mới chỉ được xem ảnh, cho tới khi reviewer kể lại đúng ý chính.</p>
+    <div class="mau">
+      <figure><img data-base="images/chien-luoc/process-flow/process-flow" src="images/chien-luoc/process-flow/process-flow-light.png" alt="quy trình - đổi trả hàng qua 4 vai, hoàn tiền không chờ lên kệ" loading="lazy"><figcaption><span><b>quy trình</b> - đổi trả hàng qua 4 vai, hoàn tiền không chờ lên kệ</span></figcaption></figure>
+      <figure><img data-base="images/chien-luoc/interaction/interaction" src="images/chien-luoc/interaction/interaction-light.png" alt="tương tác - đăng nhập Google: token đổi thẳng giữa backend và Google" loading="lazy"><figcaption><span><b>tương tác</b> - đăng nhập Google: token đổi thẳng giữa backend và Google</span></figcaption></figure>
+      <figure><img data-base="images/chien-luoc/architecture/architecture" src="images/chien-luoc/architecture/architecture-light.png" alt="kiến trúc - 9 trên 10 lượt đọc dừng ở bản chép nhanh" loading="lazy"><figcaption><span><b>kiến trúc</b> - 9 trên 10 lượt đọc dừng ở bản chép nhanh</span></figcaption></figure>
+      <figure><img data-base="images/chien-luoc/data-model/data-model" src="images/chien-luoc/data-model/data-model-light.png" alt="mô hình dữ liệu - khoá chính nào cho bài hát lặp lại trong playlist" loading="lazy"><figcaption><span><b>mô hình dữ liệu</b> - khoá chính nào cho bài hát lặp lại trong playlist</span></figcaption></figure>
+      <figure><img data-base="images/chien-luoc/incident/incident" src="images/chien-luoc/incident/incident-light.png" alt="sự cố - một dòng cấu hình làm đầy đĩa Postgres sau 8 giờ" loading="lazy"><figcaption><span><b>sự cố</b> - một dòng cấu hình làm đầy đĩa Postgres sau 8 giờ</span></figcaption></figure>
+      <figure><img data-base="images/chien-luoc/mechanism/mechanism" src="images/chien-luoc/mechanism/mechanism-light.png" alt="cơ chế - TCP Reno: 3 dup ACK và timeout để lại hai vết khác nhau" loading="lazy"><figcaption><span><b>cơ chế</b> - TCP Reno: 3 dup ACK và timeout để lại hai vết khác nhau</span></figcaption></figure>
+      <figure><img data-base="images/chien-luoc/vulnerability/vulnerability" src="images/chien-luoc/vulnerability/vulnerability-light.png" alt="lỗ hổng - Java4Shell: ghi tràn 62 byte ra ngoài mảng" loading="lazy"><figcaption><span><b>lỗ hổng</b> - Java4Shell: ghi tràn 62 byte ra ngoài mảng</span></figcaption></figure>
+      <figure><img data-base="images/chien-luoc/decision/decision" src="images/chien-luoc/decision/decision-light.png" alt="quyết định - tiền thưởng đi qua ba câu hỏi theo thứ tự" loading="lazy"><figcaption><span><b>quyết định</b> - tiền thưởng đi qua ba câu hỏi theo thứ tự</span></figcaption></figure>
+      <figure><img data-base="images/chien-luoc/concept/concept" src="images/chien-luoc/concept/concept-light.png" alt="khái niệm - lãi kép: phần lãi của lãi phình dần" loading="lazy"><figcaption><span><b>khái niệm</b> - lãi kép: phần lãi của lãi phình dần</span></figcaption></figure>
+      <figure><img data-base="images/chien-luoc/knowledge-summary/knowledge-summary" src="images/chien-luoc/knowledge-summary/knowledge-summary-light.png" alt="tổng hợp kiến thức - ba định luật Newton cùng trả lời: lực làm gì" loading="lazy"><figcaption><span><b>tổng hợp kiến thức</b> - ba định luật Newton cùng trả lời: lực làm gì</span></figcaption></figure>
+      <figure><img data-base="images/chien-luoc/note/note" src="images/chien-luoc/note/note-light.png" alt="ghi chú - đêm ngủ muộn nhất là đêm mang điện thoại vào phòng" loading="lazy"><figcaption><span><b>ghi chú</b> - đêm ngủ muộn nhất là đêm mang điện thoại vào phòng</span></figcaption></figure>
+      <figure><img data-base="images/chien-luoc/life-problem/life-problem" src="images/chien-luoc/life-problem/life-problem-light.png" alt="vấn đề đời sống - vòng thiếu tiền, bị lãi, càng thiếu, và chỗ chặn nó" loading="lazy"><figcaption><span><b>vấn đề đời sống</b> - vòng thiếu tiền, bị lãi, càng thiếu, và chỗ chặn nó</span></figcaption></figure>
+      <figure><img data-base="images/chien-luoc/idea/idea" src="images/chien-luoc/idea/idea-light.png" alt="ý tưởng - tủ đồ chung chỉ đáng làm cho đồ đắt mà ít dùng" loading="lazy"><figcaption><span><b>ý tưởng</b> - tủ đồ chung chỉ đáng làm cho đồ đắt mà ít dùng</span></figcaption></figure>
+    </div>
+  </div>
+</section>
+
 <section id="icon" style="padding-top:20px">
   <div class="wrap">
     <h2>188 icon dựng sẵn cho sơ đồ hạ tầng</h2>
@@ -567,8 +595,8 @@ function apDungTheme(){
   document.getElementById('icon-den').style.display = dark ? 'none' : '';
   document.getElementById('icon-sang').style.display = dark ? '' : 'none';
   document.querySelectorAll('img[data-base]').forEach(i => {
-    /* hình trong examples/ có bản tiếng Anh: chèn -en trước hậu tố theme */
-    const en = nn === 'en' && i.dataset.base.startsWith('images/examples/') ? '-en' : '';
+    /* hình trong examples/ và chien-luoc/ có bản tiếng Anh: chèn -en trước hậu tố theme */
+    const en = nn === 'en' && /^images\/(examples|chien-luoc)\//.test(i.dataset.base) ? '-en' : '';
     i.src = i.dataset.base + en + (dark ? '-dark.png' : '-light.png');
   });
 }
@@ -728,7 +756,7 @@ addEventListener('keydown', e => { if (e.key === 'Escape') dongLb(); });
 const DICH = {
   /* nav */
   'Cách hoạt động': 'How it works', 'Cơ chế': 'Internals', 'Loại hình': 'Figure types',
-  'Ý tưởng': 'Ideas', 'Icon': 'Icons', 'So sánh 4 model': '4-model comparison', 'Cài đặt': 'Install',
+  'Ý tưởng': 'Ideas', 'Chiến lược': 'Strategies', 'Icon': 'Icons', 'So sánh 4 model': '4-model comparison', 'Cài đặt': 'Install',
   /* hero */
   'Ý tưởng kỹ thuật đáng được': 'Technical ideas deserve to be',
   'vẽ tay': 'hand-drawn',
@@ -828,6 +856,36 @@ const DICH = {
   'thanh 8 tháng ngắn, thanh 5 năm dài': 'the 8-month bar short, the 5-year bar long',
   'ba vai, một ngưỡng, một đường trả lại': 'three roles, one threshold, one return path',
   'ba vai, nhánh 2 triệu, đường nộp lại': 'three roles, the 2-million branch, the re-submit path',
+  /* chiến lược */
+  'Mười ba chiến lược, mỗi loại một hình mẫu': 'Thirteen strategies, one sample each',
+  'Mỗi loại nội dung có một cách kể riêng: quy trình đi theo bước, sự cố đi theo thời gian, khái niệm cần một hình ảnh quen. Mười ba hình dưới đây, mỗi hình một đề bài và một người đọc khác nhau, từ nhân viên bán hàng tới chuyên gia TCP. Mỗi hình qua ít nhất ba vòng phản biện, mỗi vòng một reviewer mới chỉ được xem ảnh, cho tới khi reviewer kể lại đúng ý chính.':
+    'Each kind of content has its own way to be told: a process goes step by step, an incident goes along time, a concept needs a familiar picture. The thirteen figures below each have their own brief and their own reader, from a shop assistant to a TCP specialist. Each went through at least three review rounds, each by a new reviewer who saw only the image, until the reviewer retold the main point correctly.',
+  'quy trình': 'process flow', '- đổi trả hàng qua 4 vai, hoàn tiền không chờ lên kệ': '- a return across 4 roles, refund without waiting for the shelf',
+  'quy trình - đổi trả hàng qua 4 vai, hoàn tiền không chờ lên kệ': 'process flow - a return across 4 roles, refund without waiting for the shelf',
+  'tương tác': 'interaction', '- đăng nhập Google: token đổi thẳng giữa backend và Google': '- Google sign-in: the token is swapped backend to Google',
+  'tương tác - đăng nhập Google: token đổi thẳng giữa backend và Google': 'interaction - Google sign-in: the token is swapped backend to Google',
+  'kiến trúc': 'architecture', '- 9 trên 10 lượt đọc dừng ở bản chép nhanh': '- 9 reads in 10 stop at the fast copy',
+  'kiến trúc - 9 trên 10 lượt đọc dừng ở bản chép nhanh': 'architecture - 9 reads in 10 stop at the fast copy',
+  'mô hình dữ liệu': 'data model', '- khoá chính nào cho bài hát lặp lại trong playlist': '- which primary key lets a playlist repeat a song',
+  'mô hình dữ liệu - khoá chính nào cho bài hát lặp lại trong playlist': 'data model - which primary key lets a playlist repeat a song',
+  'sự cố': 'incident', '- một dòng cấu hình làm đầy đĩa Postgres sau 8 giờ': '- one config line fills the Postgres disk in 8 hours',
+  'sự cố - một dòng cấu hình làm đầy đĩa Postgres sau 8 giờ': 'incident - one config line fills the Postgres disk in 8 hours',
+  'cơ chế': 'mechanism', '- TCP Reno: 3 dup ACK và timeout để lại hai vết khác nhau': '- TCP Reno: 3 dup ACKs and a timeout leave different marks',
+  'cơ chế - TCP Reno: 3 dup ACK và timeout để lại hai vết khác nhau': 'mechanism - TCP Reno: 3 dup ACKs and a timeout leave different marks',
+  'lỗ hổng': 'vulnerability', '- Java4Shell: ghi tràn 62 byte ra ngoài mảng': '- Java4Shell: a 62-byte write past the array',
+  'lỗ hổng - Java4Shell: ghi tràn 62 byte ra ngoài mảng': 'vulnerability - Java4Shell: a 62-byte write past the array',
+  'quyết định': 'decision', '- tiền thưởng đi qua ba câu hỏi theo thứ tự': '- a bonus goes through three questions in order',
+  'quyết định - tiền thưởng đi qua ba câu hỏi theo thứ tự': 'decision - a bonus goes through three questions in order',
+  'khái niệm': 'concept', '- lãi kép: phần lãi của lãi phình dần': '- compound interest: the interest on interest grows',
+  'khái niệm - lãi kép: phần lãi của lãi phình dần': 'concept - compound interest: the interest on interest grows',
+  'tổng hợp kiến thức': 'knowledge summary', '- ba định luật Newton cùng trả lời: lực làm gì': '- Newton\'s three laws answer one question: what a force does',
+  'tổng hợp kiến thức - ba định luật Newton cùng trả lời: lực làm gì': 'knowledge summary - Newton\'s three laws answer one question: what a force does',
+  'ghi chú': 'note', '- đêm ngủ muộn nhất là đêm mang điện thoại vào phòng': '- the latest night is the night the phone came in',
+  'ghi chú - đêm ngủ muộn nhất là đêm mang điện thoại vào phòng': 'note - the latest night is the night the phone came in',
+  'vấn đề đời sống': 'life problem', '- vòng thiếu tiền, bị lãi, càng thiếu, và chỗ chặn nó': '- short of money, charged interest, shorter still, and the break',
+  'vấn đề đời sống - vòng thiếu tiền, bị lãi, càng thiếu, và chỗ chặn nó': 'life problem - short of money, charged interest, shorter still, and the break',
+  'ý tưởng': 'idea', '- tủ đồ chung chỉ đáng làm cho đồ đắt mà ít dùng': '- a shared cabinet only pays for costly, rarely used tools',
+  'ý tưởng - tủ đồ chung chỉ đáng làm cho đồ đắt mà ít dùng': 'idea - a shared cabinet only pays for costly, rarely used tools',
   /* icon */
   '188 icon dựng sẵn cho sơ đồ hạ tầng': '188 ready icons for infrastructure diagrams',
   'AWS, Azure, GCP, cơ sở dữ liệu và công cụ phổ biến. Gọi theo tên, skill tự tô màu theo chủ đề sáng hoặc tối.':

@@ -1,0 +1,27 @@
+{"_": "Data model playlist cho DBA: ER crow's foot ở trên (playlist_tracks là bảng đang review, l4), hai bản nháp của playlist_tracks với cùng 3 hàng thật ở dưới: PK (playlist_id, track_id) chặn bài 501 lần hai, PK (playlist_id, position) nhận cả ba nhưng phải trả giá khi dời position. Ô 501 tô l4 ở cả hai bảng.",
+ "strategy": "data-model",
+ "source": "de-bai.md",
+ "caption": "Khoá chính (playlist_id, track_id) chặn bài 501 xuất hiện lần thứ hai trong playlist 12 với lỗi 23505; đổi khoá thành (playlist_id, position) thì ba hàng cùng ghi được, đổi lại khoá phải DEFERRABLE để chèn hay đổi chỗ bài không tự va vào chính nó.",
+ "elements": [
+ {"t":"entity","id":"pl","x":0,"y":0,"w":150,"name":"playlists","fields":["id  PK","name"]},
+ {"t":"entity","id":"pt","x":290,"y":0,"w":200,"name":"playlist_tracks","fields":["playlist_id  PK, FK","position  PK","track_id  FK, INDEX"],"color":"l4"},
+ {"t":"entity","id":"tr","x":620,"y":40,"w":150,"name":"tracks","fields":["id  PK","title"]},
+ {"t":"arrow","from":"pl","to":"pt","fromSide":"right","toSide":"left","fromAt":0.45,"toAt":0.36,"tail":"one","head":"zero-many","text":"chứa","size":15,"labelDy":-24,"labelAt":0.45},
+ {"t":"arrow","from":"tr","to":"pt","fromSide":"left","toSide":"right","fromAt":0.45,"toAt":0.73,"tail":"one","head":"zero-many","text":"trỏ tới","size":15,"labelDy":-24,"labelAt":0.5},
+
+ {"t":"text","x":296,"y":127,"text":"khoá chính theo nháp 2 (đã chọn)","size":15,"color":"l4"},
+ {"t":"text","x":0,"y":160,"text":"playlist_tracks của playlist 12 \"Chạy bộ\": bài 501 ở vị trí 1 và 3, bài 733 ở vị trí 2","size":15,"color":"muted"},
+
+ {"t":"table","id":"t1","x":0,"y":230,"cols":[125,100,105],"head":["playlist_id PK","track_id PK","position"],
+  "rows":[["12","501","1"],["12","733","2"],["12","501","3"]],"size":15,
+  "marks":{"0,1":{"fill":"l4"},"2":{"color":"err","dashed":true}},"title":"nháp 1: PK (playlist_id, track_id)"},
+ {"t":"cross","x":316,"y":332},
+ {"t":"note","x":0,"y":426,"text":"INSERT (12, 501, 3): lỗi 23505,\nkhoá (12, 501) đã có ở hàng đầu","to":"t1.2","color":"err","size":15},
+
+ {"t":"table","id":"t2","x":430,"y":230,"cols":[125,100,105],"head":["playlist_id PK","track_id","position PK"],
+  "rows":[["12","501","1"],["12","733","2"],["12","501","3"]],"size":15,
+  "marks":{"0,1":{"fill":"l4"},"2,1":{"fill":"l4"}},"title":"nháp 2: PK (playlist_id, position)"},
+ {"t":"note","x":430,"y":426,"text":"khoá (12, 1)\n≠ (12, 3): bài 501\nghi được hai lần","to":"t2.2.1","color":"muted","size":15},
+ {"t":"card","id":"gia","x":430,"y":496,"title":"giá phải trả của nháp 2","text":"chèn hay đổi chỗ bài thì UPDATE dời\nposition. PK không DEFERRABLE kiểm\ntừng dòng → UPDATE dời position có\nthể báo 23505 giữa chừng.\nKhai báo PK DEFERRABLE (kiểm ở cuối\ncâu lệnh); INITIALLY DEFERRED nếu\ndời qua nhiều câu lệnh.\nDEFERRABLE: không làm arbiter cho\nON CONFLICT, không làm đích FK.","color":"warn","size":15},
+ {"t":"arrow","from":"gia","to":"t2.2.2","fromSide":"top","toSide":"bottom","fromAt":0.76,"color":"warn","dashed":true}
+]}
