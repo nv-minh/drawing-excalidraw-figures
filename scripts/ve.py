@@ -7,7 +7,7 @@
     python3 scripts/ve.py a.json b.json --page out.html|out.pdf [--title T] [--caption C]
                                              every figure on one page, each under its spec's "caption"
     python3 scripts/ve.py a.json --extract-labels en   write a.en.labels.json (label -> translation)
-    python3 scripts/ve.py a.json --lang en             render a.en.* with those labels, spec unchanged
+    python3 scripts/ve.py a.json --lang en             render a-en.* with those labels, spec unchanged
 
 Each spec produces four files with the same name:
     <name>.excalidraw   source scene; drop it on excalidraw.com to keep editing
@@ -362,7 +362,7 @@ def m_code(e):
     # `color` marks the block itself as broken (err), correct (node) or under discussion (l4):
     # the text inside is always code-fg on the dark ground, so the border is the only place
     # an accent can go; without it, "run 2 fails / run 2 is silent" needed loose labels (infra2 run).
-    out = [{'t': 'box', 'id': e['id'], 'x': e['x'], 'y': e['y'], 'w': w, 'h': h,
+    out = [{'t': 'box', 'id': e['id'], 'x': e['x'], 'y': e['y'], 'w': w, 'h': h, 'panel': e.get('title') or e['id'],
             'color': e.get('color', 'line'), 'fill': 'code', 'weight': 2 if e.get('color') else 1},
            {'t': 'text', 'x': e['x'] + 16, 'y': e['y'] + 12 + th, 'text': e['text'], 'size': fs,
             'color': 'code-fg', 'mono': True}]
@@ -887,7 +887,7 @@ def m_flow(e):
             out.append({'t': 'text', 'x': xd, 'y': y + (rh - dh) / 2, 'text': st['text'], 'size': ds,
                         'color': st.get('textColor', 'ink')})
         if ex:
-            out.append(dict(ex, t='card', x=xe, y=y + (rh - eh) / 2))
+            out.append(dict(ex, t='card', x=xe, y=y + (rh - eh) / 2, _hang=True))
         y += rh + gap
     return out
 
@@ -900,7 +900,8 @@ def m_badge(e):
     # `muted` and `ink` have no fill tint: a muted badge (step numbers that must not compete with the accents)
     # stopped the render with "fill 'muted' does not exist" ), so those take `soft`.
     f = c if f'fill-{c}' in NEN else 'soft'
-    return [{'t': 'ellipse', 'id': e.get('id') or f"badge@{e['x']},{e['y']}", 'x': e['x'], 'y': e['y'], 'w': d, 'h': d, 'color': c, 'fill': f},
+    return [{'t': 'ellipse', 'id': e.get('id') or f"badge@{e['x']},{e['y']}", 'x': e['x'], 'y': e['y'], 'w': d, 'h': d, 'color': c, 'fill': f,
+             'so': e['n']},
             _khung({'x': e['x'] - 6, 'y': e['y'], 'w': d + 12, 'h': d, 'text': str(e['n']), 'size': e.get('size', 16),
                     'color': c})]
 
@@ -1033,6 +1034,8 @@ def m_card(e):
     h = e.get('h') or (34 if e.get('title') else 10) + cao_chu(body, s) + 14
     out = [{'t': 'box', 'id': e.get('id'), 'x': e['x'], 'y': e['y'], 'w': w, 'h': h, 'color': c,
             'fill': e.get('fill'), 'weight': 1, 'dashed': e.get('dashed')}]
+    if not e.get('_hang'):          # a flow's example card sits in its step's row: the row is its link
+        out[0]['panel'] = e.get('title') or str(body).split('\n')[0][:24]
     yy = e['y'] + 8
     if e.get('title'):
         out.append({'t': 'text', 'x': e['x'] + 14, 'y': yy, 'text': e['title'], 'size': 17, 'color': e.get('titleColor', c)})
@@ -1637,7 +1640,136 @@ def _mono_that(e):
     return dict(e, width=w, x=e['x'] - lech)
 
 
-def soat(conv, hinh, lint_arrows, goc, sk=()):
+# ───────────────────────── strategy and reading path ─────────────────────────
+# A spec's "strategy" names the kind of content (references/strategies.md). It sets which reading-path checks
+# are strict: an ordered story (a flow, an incident, a vulnerability, a concept taught step by step) needs its
+# regions numbered; a vulnerability figure must not carry anything that looks like an attack payload.
+#   order    several parts need ① ② ③ in story order
+#   payload  'hard': text that works as attack input is a ✗, not a •
+#   relation every arrow must say its relation (a verb, + or -): an unlabelled arrow only says "related"
+#   parts    more main shapes than this: split into an overview and a zoom
+STRATEGIES = {
+    # technical
+    'process-flow': {'order': True}, 'interaction': {}, 'incident': {'order': True},
+    'vulnerability': {'order': True, 'payload': 'hard'}, 'architecture': {}, 'mechanism': {},
+    'data-model': {}, 'decision': {},
+    # knowledge, notes, ideas, everyday life
+    'concept': {'order': True}, 'knowledge-summary': {'relation': True, 'parts': 9},
+    'note': {'parts': 9}, 'life-problem': {'relation': True}, 'idea': {'relation': True},
+}
+
+# Text that works as attack input rather than as an explanation of it (SKILL.md, "Security and other sensitive
+# topics"): a long run of one character (a trigger such as 64 × "A"), escaped bytes, a shell, a JNDI lookup.
+PAYLOAD = [(re.compile(r'(.)\1{15,}'), 'a run of 16+ identical characters'),
+           (re.compile(r'(?:\\x[0-9a-fA-F]{2}){4,}'), 'escaped bytes (\\x..)'),
+           (re.compile(r'/bin/(?:ba)?sh|\bnc\s+-e\b|curl[^|\n]*\|\s*(?:ba)?sh', re.I), 'a shell command'),
+           (re.compile(r'\$\{jndi:', re.I), 'a JNDI lookup string')]
+
+
+def _vung(conv, khe=30):
+    """Vertical regions of the figure: groups of elements separated by an empty horizontal band of `khe` units.
+    An arrow spans the gap it crosses, so a flow whose steps are joined stays one region."""
+    hop = []
+    for e in conv:
+        if e.get('isDeleted'):
+            continue
+        ys = [e['y'] + q[1] for q in e['points']] if e.get('points') else [e['y'], e['y'] + e.get('height', 0)]
+        hop.append((min(ys), max(ys)))
+    hop.sort()
+    vung = []
+    for a, b in hop:
+        if vung and a - vung[-1][1] < khe:
+            vung[-1][1] = max(vung[-1][1], b)
+        else:
+            vung.append([a, b])
+    return vung
+
+
+def duong_doc(conv, goc, lint_arrows, strat):
+    """Reading-path nudges (references/visual-language.md, "Guiding the eye"): what a team review caught by eye on
+    a correct figure that a non-specialist still could not follow. Returns (hard errors, nudges)."""
+    cung, nhac = [], []
+    cfg = STRATEGIES.get(strat, {})
+    # a · a side panel (code block, card) with no arrow or note reaching it reads as a separate figure
+    panels = [e for e in goc if e.get('panel')]
+    chinh = [e for e in goc if e['t'] in SHAPES and not e.get('panel') and not e.get('ghost') and 'so' not in e]
+    dau_mut = [q for x in lint_arrows for q in (x[2][0], x[2][-1])]
+    noi = lambda pn: any(pn['x'] - 10 <= qx <= pn['x'] + pn['w'] + 10 and pn['y'] - 10 <= qy <= pn['y'] + pn['h'] + 10
+                         for qx, qy in dau_mut)
+    # a comparison pair (two panels side by side, same top and height) is one group: one joined member joins both
+    cap = lambda a, b: a is not b and abs(a['y'] - b['y']) <= 4 and abs(a['h'] - b['h']) <= 4
+    if len(chinh) >= 2 and panels:
+        for pn in panels:
+            if not noi(pn) and not any(cap(pn, o) and noi(o) for o in panels):
+                nhac.append(f"panel “{str(pn['panel'])[:28]}” at ({pn['x']:.0f},{pn['y']:.0f}) has no arrow or note to the "
+                            f"part it explains: add one dashed arrow from it to that part, or drop the panel")
+    # b · badge numbers: a gap or a repeat breaks the reading order the numbers promise
+    so = [e['so'] for e in goc if 'so' in e]
+    so_int = sorted(int(n) for n in so if str(n).isdigit())
+    if len(so_int) >= 2:
+        thieu = sorted(set(range(so_int[0], so_int[-1] + 1)) - set(so_int))
+        lap = sorted({n for n in so_int if so_int.count(n) > 1})
+        if thieu:
+            nhac.append(f"badges skip {', '.join(map(str, thieu))}: number the regions in one unbroken story order")
+        if lap:
+            nhac.append(f"badge {', '.join(map(str, lap))} is used twice: fine only if both mark the same step")
+    # c · an ordered story split over 3+ regions with no numbers: the reader does not know where to start
+    vung = _vung(conv)
+    nhieu_phan = len(vung) >= 3 or (panels and len(chinh) >= 2)    # side panels beside a main structure: parts too
+    if cfg.get('order') and nhieu_phan and not so:
+        nhac.append(f"the figure has several parts ({len(vung)} regions, {len(panels)} side panels) and no badge: "
+                    f"strategy '{strat}' tells a story in order, so put ① ② ③ at the top-left of each part in story order")
+    # e · relations: in a map of knowledge or a model of a life problem the arrow's label IS the content
+    if cfg.get('relation'):
+        cam = [x[4] for x in lint_arrows if x[4].get('t') == 'arrow' and not x[4].get('dashed')]
+        rong = [x for x in cam if not x.get('text')]
+        if rong:
+            nhac.append(f"{len(rong)} of {len(cam)} arrows carry no label: strategy '{strat}' needs each to say its "
+                        f"relation (a verb like `làm tăng`, `cần`, or + / -), otherwise it only says \"related\"")
+    if cfg.get('parts') and len(chinh) > cfg['parts']:
+        nhac.append(f"{len(chinh)} main shapes, above {cfg['parts']} for strategy '{strat}': keep the 4 to 7 on the "
+                    f"main claim, or split into an overview and a zoom figure")
+    # d · attack payloads
+    for t in (e for e in conv if e['type'] == 'text'):
+        for rx, ten in PAYLOAD:
+            if rx.search(t['text']):
+                msg = (f"text “{t['text'][:30]}” contains {ten}, which works as attack input: name the class "
+                       f"instead (`64 ký tự + \"=\"`, `<payload>`), SKILL.md \"Security and other sensitive topics\"")
+                (cung if cfg.get('payload') == 'hard' else nhac).append(msg)
+                break
+    return cung, nhac
+
+
+_SO_RE = re.compile(r'0x[0-9a-fA-F_]+|\d+(?:[ _.,]\d{3})*(?:[.,]\d+)?')
+
+
+def _so(text):
+    """Numbers in a text in one canonical form: 200 000 / 200_000 / 200,000 -> 200000, 0,25 / 0.25 -> 025,
+    0xFFFF_FFFF -> 0XFFFFFFFF, so the figure's and the source's spelling of the same number match."""
+    out = set()
+    for m in _SO_RE.finditer(text):
+        v = m.group(0)
+        out.add(v.replace('_', '').upper() if v.lower().startswith('0x') else re.sub(r'[ _.,]', '', v))
+    return out
+
+
+def so_voi_nguon(conv, nguon, ten_nguon):
+    """Numbers in the figure that the source text does not contain. Single digits are skipped (step numbers,
+    counts like 2 or 3). A derived value is fine when its arithmetic is visible in the figure; anything else
+    is an invented number, which teaches something false."""
+    co = _so(nguon)
+    hinh = set()
+    for e in conv:
+        if e['type'] == 'text' and not e.get('isDeleted'):
+            hinh |= {n for n in _so(e['text']) if len(n.lstrip('0')) >= 2 or n.startswith('0X')}
+    la = sorted(hinh - co, key=lambda n: (len(n), n))
+    if not la:
+        return []
+    return [f"{len(la)} number(s) in the figure are not in {ten_nguon}: {', '.join(la[:12])}" + (' …' if len(la) > 12 else '')
+            + ". Keep one only if its arithmetic is shown in the figure (17 × 3 - 1 = 50); otherwise fix it from the source"]
+
+
+def soat(conv, hinh, lint_arrows, goc, sk=(), strat=None):
     cung, nhac = [], []
     conv = [_mono_that(e) for e in conv]
     by = {e['id']: e for e in conv}
@@ -1961,7 +2093,8 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
             and not any(e.get('strokeStyle') == 'dashed' or (e['type'] == 'rectangle' and e.get('roundness') is None) for e in conv):
         nhac.append('figure is only rounded boxes joined by arrows: check references/figure-types.md for a figure type '
                     'that SHOWS the mechanism better')
-    return cung, list(dict.fromkeys(nhac))
+    c2, n2 = duong_doc(conv, goc, lint_arrows, strat)
+    return cung + c2, list(dict.fromkeys(nhac + n2))
 
 
 JS = """async ([sk, raw]) => {
@@ -2141,7 +2274,7 @@ def kich_thuoc(conv, w, h, cot):
     return nhac
 
 
-def ve(pg, base, ten, els, ra):
+def ve(pg, base, ten, els, ra, strat=None, nguon=None):
     sk, raw, hinh, lint_arrows, goc = dung(els)
     sk0 = copy.deepcopy(sk)
     r = pg.evaluate(JS, [sk, raw])
@@ -2177,7 +2310,7 @@ def ve(pg, base, ten, els, ra):
         if th == 'light':
             do = pg.evaluate(DO)
     pg.unroute('**/__xem.html*')
-    cung, nhac = soat(r['els'], hinh, lint_arrows, goc, sk0)
+    cung, nhac = soat(r['els'], hinh, lint_arrows, goc, sk0, strat)
     cung += [f'text “{b}” overflows the figure frame' for b in do['bad']]
     ty = min(COT / w, 1.0)
     if do['nho'] < CHU_MIN:
@@ -2188,6 +2321,11 @@ def ve(pg, base, ten, els, ra):
     if sot:
         cung.append(f'non-token colors left: {sorted(sot)}')
     nhac += kich_thuoc(r['els'], w, h, COT)
+    if nguon:
+        nhac += so_voi_nguon(r['els'], *nguon)
+    elif strat in ('incident', 'vulnerability'):
+        nhac.append(f"strategy '{strat}': numbers here are claims about a real event; pass the article with "
+                    f"--source (or \"source\" in the spec) so the tool lists any number the article does not contain")
     print(f"{'✗' if cung else '✓'} {ten}: {len(r['els'])} elements · {w:.0f}×{h:.0f} · scale {ty:.2f}× · smallest text {do['nho']}px")
     for c in cung:
         print('  ✗', c)
@@ -2350,6 +2488,7 @@ def kiem_tra():
 
 # ───────────────────────── command line ─────────────────────────
 CO = {'--out': 1, '--col': 1, '--lib': 1, '--lang': 1, '--extract-labels': 1, '--page': 1, '--title': 1, '--caption': 1,
+      '--source': 1,
       '--icons': 0, '--check': 0, '--open': 0}
 
 
@@ -2428,7 +2567,7 @@ def chay(co, specs):
             src = pathlib.Path(a).resolve()
             out = ra or src.parent
             out.mkdir(parents=True, exist_ok=True)
-            ten = f'{src.stem}.{lang}' if lang else src.stem
+            ten = f'{src.stem}-{lang}' if lang else src.stem      # the repo's convention: 05-threshold-en-light.png
             pg.goto(base + '/__ve.html')
             pg.wait_for_function('window.__ready === true', timeout=90000)
             try:
@@ -2439,12 +2578,22 @@ def chay(co, specs):
                 if not isinstance(spec, dict) or not ('elements' in spec or 'extends' in spec):
                     chet('not a spec: it has no "elements" (a *.labels.json file goes to --lang, not to the renderer)')
                 els, cap = nap(src), spec.get('caption')
+                strat = spec.get('strategy')
+                if strat is not None and strat not in STRATEGIES:
+                    chet(f"strategy '{strat}' is not known. Use one of: {' '.join(STRATEGIES)} (references/strategies.md)")
+                nguon = None
+                f_nguon = co.get('--source') or (str(src.parent / spec['source']) if spec.get('source') else None)
+                if f_nguon:
+                    fp = pathlib.Path(f_nguon)
+                    if not fp.is_file():
+                        chet(f'source file not found: {f_nguon}')
+                    nguon = (fp.read_text(encoding='utf-8', errors='replace'), fp.name)
                 if lang:
                     els, cap, thieu = dich(src, lang, els, cap)
                     if thieu:
                         print(f"  • {len(thieu)} labels have no translation in {file_nhan(src, lang).name}, kept as written: "
                               + ', '.join(f'“{t[:20]}”' for t in thieu[:5]) + (' …' if len(thieu) > 5 else ''))
-                good, svg, w = ve(pg, base, ten, els, out)
+                good, svg, w = ve(pg, base, ten, els, out, strat, nguon)
                 ok = good and ok
                 hinh.append((ten, svg, w, cap))
                 xem += [out / f'{ten}-light.png', out / f'{ten}-dark.png']

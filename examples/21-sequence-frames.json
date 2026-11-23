@@ -1,4 +1,5 @@
 {"_": "Business sequence with fragments: alt/else holds the happy path and the failure in one frame, a divider separates scenarios, real endpoints and status codes on every message.",
+ "strategy": "interaction",
  "elements": [
  {"t":"sequence","x":0,"y":0,"gap":205,"actors":[{"id":"web","label":"Web App"},{"id":"ord","label":"Order Service","color":"l4"},{"id":"pay","label":"Payment"},{"id":"db","label":"Orders DB"}],
   "messages":[

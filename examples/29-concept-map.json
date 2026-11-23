@@ -1,4 +1,5 @@
 {"_": "Concept map: 5 to 7 concepts, each edge labelled with the verb that joins them (làm tăng, đẩy lên, làm giảm), read left to right from causes to effects. The concept the lesson is about is l4 in the middle; the harm at the end is err. A concept with no labelled edge does not belong. Use for teaching a concept or untangling a note full of related ideas.",
+ "strategy": "knowledge-summary",
  "elements": [
  {"t":"box","id":"in","x":0,"y":0,"w":170,"h":56,"text":"in thêm tiền"},
  {"t":"box","id":"lt","x":0,"y":170,"w":170,"h":56,"text":"tiền lưu thông"},

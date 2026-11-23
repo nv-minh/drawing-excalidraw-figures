@@ -88,6 +88,31 @@ Usage rules:
 - Arrows do not pass through boxes or over text. If one does, move the box, do not force a bend.
 - A note pointing at something uses `note` with a thin dashed `muted` line, so it is not mistaken for data flow.
 
+## Guiding the eye
+
+A figure whose facts are all right can still leave the reader asking "where do I start, and how do these parts relate".
+These rules make the reading path visible, so a reader outside the field follows the story in a few seconds.
+They come from a team review of a security figure (a byte strip, two code panels, a closing sentence): every part was correct, and a non-Java reader still could not tell the order or which panel caused what.
+
+- **Number the reading order across regions.** When the figure has two or more separate regions that tell one story (input, cause, effect, outcome), put a `badge` ① ② ③ at the top-left of each region, in the order the story happens, not the order they sit on the page.
+  Following only the numbers must retell the step 1 sentence.
+  Skip it when the figure is one structure read in one glance (a single strip, one ring) or already reads along one arrow chain.
+- **Join every explanation to what it explains.** A side panel (a `code` block, a `card`, a comparison pair, a callout) that explains one part of the main structure gets one dashed `muted` arrow or `note` pointer to that exact part: the cause panel points at the span it causes, the config card at the box it configures.
+  A panel with no line to its subject reads as a second, unrelated figure.
+  One line is enough; if a panel needs three, it explains too much: split it.
+- **Gloss each term in plain words, under it.** Keep the exact term (it is what the reader will search for), and put a short plain-language gloss right below or beside it in smaller `muted` text, in parentheses: `intrinsic AVX-512` / `(đường tắt của CPU, không kiểm tra biên)`.
+  The gloss says what the thing does IN THIS FIGURE, in at most about eight words, not a dictionary definition.
+  This is how the step 1 term list lands in the figure; a gloss that is not true for this figure is worse than none, so check it against the source.
+- **Give every abstract category one concrete example from the source.** A label that names a kind of thing (`object khác trên heap`, `dữ liệu nhạy cảm`, `downstream service`, `khách hàng`) gets one real instance under it: `(vd: token, khoá bí mật, dữ liệu cá nhân)`, `(vd: Payment API)`.
+  The example comes from the source; never invent one to sound alarming. If the source has none, ask or leave the category alone.
+  The example is what makes the severity or the scale land for a reader who cannot picture the category.
+- **Show a change of state as before and after, stacked.** When the point is that one thing changes (memory overwritten, a row updated, a cache invalidated, a queue drained), draw the same strip twice on the same scale and the same `x`: the upper one labelled `trước`, the lower one `sau`, and color only what changed.
+  One strip carrying both states plus annotations makes the reader reconstruct the before in their head.
+  Skip it when the change is one cell among many and a single `err` mark on it is clear, or when room is short: then the before goes in a one-line note.
+- **Mark the start and the end.** The first region a reader should look at is the top-left one or carries ①; the last carries the conclusion as one plain sentence (the outcome, the takeaway), not a further detail.
+
+Order of priority when room is short: reading order and the joining line first (they cost one badge and one arrow each), the glosses next, before/after last (it costs the most height).
+
 ## Text
 
 - A figure holds only labels, numbers and short phrases. Sentences belong in the lesson, not in the figure.

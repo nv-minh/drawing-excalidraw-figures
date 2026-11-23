@@ -1,4 +1,5 @@
 {"_": "Funnel: one closed trapezoid per stage, width shrinking with what survives, the real count large and the stage name small inside. The pass rate between two stages sits to the right on a dotted leader, worded as 'x% đi tiếp' so it cannot be read as a loss rate; the biggest drop is the only err mark, and the stage the idea is about (usually the last) is l4. Keep the writer's numbers; with no numbers, keep the shape and drop the rates.",
+ "strategy": "idea",
  "elements": [
  {"t":"line","points":[[10.0,0],[550.0,0],[495.0,76],[65.0,76]],"closed":true,"fill":"soft"},
  {"t":"text","x":280,"y":8,"text":"10 000","align":"center","size":24},

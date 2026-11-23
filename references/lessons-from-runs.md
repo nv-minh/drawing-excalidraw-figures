@@ -80,6 +80,7 @@ Fastest way to a good figure with Opus: keep its strengths, cap its two costs (r
 6. Every free label sits on a straight segment, 12 units clear of any frame, lifeline or axis.
 7. Accents: at most three, `err` only on what is broken, frames `muted`.
 8. Every term on the step 1 term list is explained in the figure, replaced, or known at the reader's level.
+9. Several regions: numbered in story order, and every side panel joined by one line to the part it explains.
 
 ## Sonnet 5.5
 
@@ -148,3 +149,17 @@ OOM 137 missed the "limit line" grader, and an A/B against the skill before this
 
 \* GLM ran in a separate session with interruptions and reviewed renders through a
 vision tool, so time and tokens are not comparable with the automated batch.
+
+## Fresh eyes on a correct figure (2026-11-24)
+
+A reviewer given only the PNG and the reader level ("Java developer, little security background"), never the article, read the six-step Java4Shell flow (`30`-style) that the author had already checked.
+Every fact was right; the review still found what the author could not see:
+
+- The eye went to the two colored step boxes before the title, so the colored steps must be the ones the step 1 sentence is about.
+- Instruction names (`bzhiq`, `VMOVDQU8`) and lab words (`PoC`) shown without a gloss stopped the reader; a gloss or the plain word wins over the exact name unless the reader will search for it.
+- A math sign the figure did not explain (`⌈65/4⌉`) was a question, not information: write it out (`65 ký tự / 4, làm tròn lên`).
+- The reader had to do `48 + 64 - 1 = 111` and `111 - 49 = 62` in their head; show the arithmetic where the number appears.
+- A footnote outside the flow (`JDK 17 cũ: 128 ký tự`) read as unrelated: join it to the step it modifies or drop it.
+
+Rule: run fresh eyes (`references/review.md`) even when the tool is clean and you are sure of the facts.
+

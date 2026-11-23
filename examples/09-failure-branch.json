@@ -1,4 +1,5 @@
 {"_": "Plan versus breaking points: the happy path is a row of black boxes; each place that can fail hangs off a red dashed diamond.",
+ "strategy": "process-flow",
  "elements": [
  {"t":"row","x":0,"y":110,"gap":50,"elements":[
    {"t":"box","id":"p1","w":110,"h":56,"text":"Trừ tiền","size":17},

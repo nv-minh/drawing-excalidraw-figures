@@ -1,4 +1,5 @@
 {"_": "Business flow with swimlanes: one column per role, steps placed by (lane,row), decisions are diamonds with labelled branches, every branch converges on one shared step (Lưu quyết định) before the flow continues.",
+ "strategy": "process-flow",
  "elements": [
  {"t":"swimlane","x":0,"y":0,"laneW":175,"rowH":108,
   "lanes":[{"id":"nv","label":"Nhân viên"},{"id":"ql","label":"Quản lý"},{"id":"hr","label":"HR"},{"id":"sys","label":"Hệ thống","w":215}],

@@ -57,6 +57,10 @@ Hình đúng dữ kiện vẫn có thể vô dụng nếu giả định người
 Với người mới, skill đi từ ví dụ đời thường sang cơ chế, ghi một câu bằng lời bên cạnh từng phần, và có sẵn loại hình "flow giải thích từng bước" (`30-explained-flow`): số bước, một dòng mô tả, một ví dụ nhỏ bên cạnh.
 Chủ đề bảo mật thì vẽ cơ chế và cách phòng thủ, dừng trước mọi thứ dùng được như hướng dẫn tấn công (chi tiết trong `SKILL.md`).
 
+Mỗi loại nội dung có chiến lược riêng (`references/strategies.md`): luồng nghiệp vụ, tương tác giữa hệ thống, sự cố, lỗ hổng, kiến trúc, cơ chế, mô hình dữ liệu, lựa chọn, khái niệm, tổng hợp kiến thức, ghi chú, vấn đề đời sống, ý tưởng thô.
+Chiến lược nói nên vẽ mấy hình, theo thứ tự nào, loại hình nào, và luật dẫn mắt nào bắt buộc; ghi `"strategy"` vào spec thì tool kiểm theo đúng loại đó.
+Sau khi tool xanh, skill đưa PNG cho một "mắt lạ" (subagent chỉ biết trình độ người đọc, không đọc bài gốc) hỏi bốn câu: mắt bắt đầu ở đâu, hình nói gì, chữ nào không hiểu, phần nào lạc lõng.
+
 ## Cài đặt
 
 Yêu cầu: Python 3.11+, Playwright Chromium, và font nằm sẵn trong `assets/fonts/` (không tải gì từ mạng lúc render).
@@ -130,7 +134,8 @@ python3 scripts/ve.py spec.json --open                       # render xong mở 
 python3 scripts/ve.py a.json b.json --page bai.html \
     --title "Base64 cho người mới" --caption "Hai hình đọc liền nhau"   # nhiều hình một trang, .pdf cũng được
 python3 scripts/ve.py spec.json --extract-labels en          # tách nhãn ra spec.en.labels.json để dịch
-python3 scripts/ve.py spec.json --lang en                    # render bản tiếng Anh, spec giữ nguyên
+python3 scripts/ve.py spec.json --lang en                    # render bản tiếng Anh (spec-en-light.png...), spec giữ nguyên
+python3 scripts/ve.py spec.json --source bai.md              # liệt kê số trong hình mà bài gốc không có
 ```
 
 `"caption"` trong spec (câu của bước 1) được in dưới mỗi hình trên trang `--page` và được dịch cùng nhãn.
@@ -152,6 +157,7 @@ Màu chỉ nhận tên token, công cụ từ chối mã hex - nhờ vậy hình
 Lỗi cứng (`✗`): hộp bị Excalidraw phình vì chữ không vừa, chữ tràn khung, chữ nhỏ hơn 8px trên màn hình, màu không phải token, lỗi spec (báo đích danh element: thứ tự, `t`, `id`, đầu dòng chữ).
 Nhắc nhẹ (`•`): mũi tên xuyên hộp, nhãn dài bằng mũi tên, đầu mũi tên trùng điểm xuất phát của mũi tên khác, hơn ba màu nhấn, hình toàn hộp nối mũi tên, hình cao quá một màn hình hoặc rộng quá cột.
 Nhiều nhắc nhẹ kèm luôn chỗ sửa: mũi tên xuyên hộp thì gợi ý `route`/`bend` cụ thể đã thử là thoát, chữ đè nhau thì gợi ý `y` mới, hình quá cao thì chỉ ra chỗ cắt đôi.
+Đường đọc cũng được kiểm: khung giải thích đứng rời không nối với phần nó giải thích, số thứ tự ① ② ③ nhảy cóc, hình nhiều phần mà không đánh số (với chiến lược có thứ tự), mũi tên không ghi quan hệ (với tổng hợp kiến thức, vấn đề đời sống, ý tưởng), và chuỗi trông như payload tấn công (lỗi cứng với chiến lược `vulnerability`).
 Chữ trong hình như `lỗi #1480` không bao giờ bị hiểu thành mã màu.
 Còn hình có nói đúng chuyện hay không thì chỉ mắt người kiểm tra được - đó là bước 6, và `evals/` đo nó qua nhiều lần chạy.
 
@@ -178,7 +184,7 @@ docs/               landing page + bộ so sánh bốn model
 ## Tests
 
 Chuẩn bị: `pip install -r requirements.txt pytest` (riêng golden render cần `playwright install chromium`).
-`python3 -m pytest` chạy 100 phép thử: unit cho hệ màu (`engine/theme.py`), cổng token và biên dịch spec (`scripts/ve.py`), lỗi spec chỉ đích danh element, gợi ý chỗ sửa, flow, tách nhãn để dịch, trang nhiều hình, dựng icon (`scripts/build_icons.py`), và một golden render chạy `ve.py` thật trên cả 30 ví dụ rồi soát màu ngoài token, hex lit thô, cảnh `.excalidraw` hợp lệ.
+`python3 -m pytest` chạy 111 phép thử: unit cho hệ màu (`engine/theme.py`), cổng token và biên dịch spec (`scripts/ve.py`), lỗi spec chỉ đích danh element, gợi ý chỗ sửa, flow, tách nhãn để dịch, trang nhiều hình, dựng icon (`scripts/build_icons.py`), và một golden render chạy `ve.py` thật trên cả 30 ví dụ rồi soát màu ngoài token, hex lit thô, cảnh `.excalidraw` hợp lệ.
 Muốn bỏ bước render (~80 giây): `python3 -m pytest -m "not slow"`.
 GitHub Actions chạy đủ cả bộ ở `.github/workflows/tests.yml`; bundle và font đã commit trong repo nên CI không cần Node và chạy offline.
 

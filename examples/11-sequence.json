@@ -1,4 +1,5 @@
 {"_": "Message order between parties: sequence. Solid line = call, dashed line = reply; the failure is marked right on the message.",
+ "strategy": "interaction",
  "elements": [
  {"t":"sequence","x":0,"y":0,"gap":220,"actors":[{"id":"c","label":"Client"},{"id":"lb","label":"ALB","color":"l4"},{"id":"s","label":"NestJS"}],
   "messages":[

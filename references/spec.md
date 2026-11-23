@@ -8,6 +8,8 @@ Contents: [File skeleton](#file-skeleton) · [Common properties](#common-propert
 {
   "_": "ghi chú tự do, công cụ bỏ qua",
   "caption": "câu 'người đọc THẤY ...' của bước 1",
+  "strategy": "vulnerability",
+  "source": "../bai-goc.md",
   "extends": "buoc-1.json",
   "dimBase": true,
   "remove": ["id-cũ"],
@@ -19,6 +21,8 @@ Contents: [File skeleton](#file-skeleton) · [Common properties](#common-propert
 - `x`,`y` of every element is its **top-left corner**. Negative coordinates work, the frame fits the content tightly.
 - Order in `elements` is draw order: a later element sits on top of an earlier one.
 - `extends`, `dimBase`, `remove` are only for progressive figure series, see [Layout and reuse](#layout-and-reuse).
+- `strategy` is optional: the kind of content (`process-flow` `interaction` `incident` `vulnerability` `architecture` `mechanism` `data-model` `decision` `concept` `knowledge-summary` `note` `life-problem` `idea`). It switches on that kind's checks; see `references/strategies.md`.
+- `source` is optional: the source text, relative to the spec. The tool lists every number in the figure that it does not contain.
 - `caption` is optional: the step 1 sentence. `--page` prints it under the figure; it is translated with the labels.
 
 ## Common properties
@@ -442,7 +446,8 @@ python3 scripts/ve.py --icons
 python3 scripts/ve.py a.json --col 1100          # preview and font check at another column width
 python3 scripts/ve.py a.json b.json --page bai.html --title "Base64" --caption "Hai hình cho người mới"
 python3 scripts/ve.py a.json --extract-labels en # writes a.en.labels.json
-python3 scripts/ve.py a.json --lang en           # renders a.en.svg, a.en-light.png ... from that file
+python3 scripts/ve.py a.json --lang en           # renders a-en.svg, a-en-light.png ... from that file
+python3 scripts/ve.py a.json --source bai.md     # lists numbers in the figure that bai.md does not contain
 ```
 
 `--col` is for figures that will not sit in the default 666px reading column (a business document, a slide, a wiki page).
@@ -453,7 +458,7 @@ A `.pdf` name prints the same page to A4 PDF in the light theme.
 
 `--extract-labels LANG` writes `<spec>.<LANG>.labels.json`: a JSON object whose keys are every reader-visible string in the spec (and its `extends` base) and whose values start as the same string.
 Translate the values and keep the keys; running it again keeps translations already made and adds new labels.
-`--lang LANG` renders with that file, so the spec stays in one language and the output is `<spec>.<LANG>.*`.
+`--lang LANG` renders with that file, so the spec stays in one language and the output is `<spec>-<LANG>.*` (`a-en-light.png`, the same suffix the docs images use).
 Ids, colors, sides and icon names are never translated.
 A translated label is often longer: the usual checks (overflow, lifeline crossing) flag it, so widen in the spec, which serves both languages.
 
@@ -494,6 +499,13 @@ There is no browser-free mode: the shapes, the text measuring and the SVG come f
 | `•` | A free label touches the bar or crow of an ER end (the last ~24 units of the edge, ~8 units either side of the line) | Slide it with `labelAt` toward the middle, raise it with `labelDy` (-22 on a horizontal edge under ~130 units), or lengthen the edge |
 | `•` | A `sequence` message or self-message label runs across a lifeline (measured on Excalidraw's Nunito box, ~20% wider than the drawn glyphs). Fragment guard labels count too (an `else` guard sat on the first lifeline of template 21 and this check missed it) | Shorten the label, drop `n` numbers the text does not cite, or raise `gap` to the width the message gives |
 | `•` | More than three accent colors | Remove some colors |
+| `•` | A `code` block or `card` beside the main structure has no arrow or note reaching it; a side-by-side pair (same top, same height) counts as one group | Add one dashed arrow from the panel to the part it explains, or drop the panel |
+| `•` | Badge numbers skip or repeat | Renumber in one unbroken story order; a repeat is fine only when both badges mark the same step |
+| `•` | Strategy `process-flow` `incident` `vulnerability` `concept`: a figure of several parts (3+ regions, or side panels beside a main structure) with no badge | Put ① ② ③ at the top-left of each part, in story order |
+| `•` / `✗` | Text that works as attack input: 16+ identical characters, `\x..` bytes, a shell command, `${jndi:`. `✗` under strategy `vulnerability` | Write the shape of the input (`64 ký tự + "="`, `<payload>`) |
+| `•` | Strategy `knowledge-summary` `life-problem` `idea`: an arrow with no label (dashed note pointers excepted) | Label it with the relation (`làm tăng`, `cần`) or the sign (`+`, `-`) |
+| `•` | Strategy `knowledge-summary` `note`: more than 9 main shapes | Keep the 4 to 7 on the main claim, or split into overview and zoom |
+| `•` | With `--source` or `"source"`: numbers in the figure that the source does not contain (single digits skipped; `200 000`, `200_000` and `200,000` match). Strategy `incident` or `vulnerability` without a source asks for one | Keep a number only if its arithmetic is in the figure; otherwise take it from the source |
 | `•` | Figure shows taller than one screen (900px in the column) | Split it: the nudge names an empty band near the middle where the figure can be cut, between which two labels; for a sequence, repeat the actor row in the second figure |
 | `•` | Figure wider than 888 units, so text shrinks below 3/4 | Stack the parts vertically or split: the nudge names an empty vertical band if there is one |
 | `•` | Only rounded boxes joined by arrows, and at least one arrow carries no label (`code` blocks do not count; a figure whose every edge names its relation, like a concept map or causal loop, passes) | Reconsider the figure type, or say on each arrow what flows or changes |

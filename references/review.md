@@ -12,6 +12,7 @@ Pass 1 matters most and is skipped most, because pass 2 and 3 errors are easier 
 - **Retell test**: with the source text covered, write the two or three sentences this reader could say after looking at the figure for 30 seconds.
   If they do not contain the step 1 sentence, or contain something false, the figure fails for this reader even when every fact in it is correct.
   When someone else is around (the person who asked, a subagent given only the PNG and the reader level), ask them to retell it instead of guessing: their words are the measurement, yours are not.
+- **Reading path (10 seconds)**: look at the figure as someone outside the field. Do you know where to start, in what order to read, and which side panel explains which part? Check the "Guiding the eye" rules in `references/visual-language.md`: numbered regions, one line from each explanation to its subject, plain gloss under each term, one concrete example under each abstract category, before/after for a change of state.
 - **Coverage**: go down the fact list from step 2 of the workflow. Every actor is drawn, every main step has a mark, every alternative and error branch has its own frame, edge or node, and each branch label says the same condition as the source ("timeout", not "other error"). Add what is missing or state why it is left out.
 - Cover the caption. Does the figure say the "the reader SEES ..." sentence written in step 1?
 - **Drop the text**: imagine all text erased. Does the remaining structure suggest the idea, or is it just a row of identical boxes?
@@ -23,6 +24,34 @@ Pass 1 matters most and is skipped most, because pass 2 and 3 errors are easier 
 - Is every label true? Check numbers and names against the lesson, do not trust memory.
 
 If this pass fails, change the figure type (go back to the table in SKILL.md), do not tweak coordinates.
+
+## Fresh eyes: let someone who has not read the source look first
+
+You wrote the figure, so you read into it what you meant.
+A reviewer who has only the image shows what it actually says, and that is the check a team review did by hand on a correct security figure that a non-Java reader still could not follow.
+
+Do it once the tool is clean and before you polish, for every figure meant for someone else.
+When you can start a subagent (the Agent tool, or a second session), give it ONLY the light PNG and the reader level, never the source or your notes:
+
+```text
+You are <the reader from step 1, e.g. "a Java developer with little security background">.
+Look only at the image at <absolute path to name-light.png>. You have not read any article about it.
+Answer in <the figure's language>, briefly:
+1. Where did your eye start, and in what order did you read the parts?
+2. In one or two sentences, what does this figure say?
+3. Which words or marks did you not understand?
+4. Which part seemed unrelated to the rest?
+```
+
+Then compare:
+
+- Answer 2 against the step 1 sentence. If it misses the point or says something false, the figure fails: change the structure (strategy, type, reading order), not the wording.
+- Answer 1 against the order you intended. A different order means the badges, the joining arrows or the layout are missing (`references/visual-language.md`, "Guiding the eye").
+- Answer 3: every term listed there gets a plain gloss or is replaced.
+- Answer 4: that part gets a dashed arrow to what it explains, or goes.
+
+Fix, render, and ask a NEW reviewer (the first one has now seen the answer).
+With no subagent available, ask the person who gave the task the same four questions, or do it yourself with the source closed, knowing it is the weakest of the three.
 
 ## Pass 2: visible errors
 
@@ -76,6 +105,8 @@ Do not stop after the first round just because there are no hard errors: the fir
 | Figure needs three paragraphs to understand | Several ideas crammed into one figure | One figure, one idea: split it |
 | Rough idea drawn as a mind map of every word | Concepts listed, relations skipped | Keep the 4 to 7 concepts on the main relation, label every edge with its verb, drop the rest |
 | Concept map where every node links to every other | No claim chosen | Go back to the "This idea really says that" sentence, keep only edges that serve it |
+| Reader asks "where do I start?" or "what does this panel have to do with that strip?" | Regions not ordered, explanations not joined | Badges ① ② ③ in story order, one dashed arrow from each panel to the part it explains |
+| Reader nods at `object khác`, `dữ liệu nhạy cảm`, but the severity does not land | Abstract category with no instance | One real example from the source under the label |
 | Every fact is right, and the reader still does not get it | The figure assumes terms the reader lacks | Step 1 term list: explain or replace each term, and for a newcomer switch to explainer mode |
 | Figure is taller than one screen | One figure carries the whole story | Split where the tool's nudge says, or make a progressive series |
 | Security figure reads like a how-to | Steps copied from an exploit write-up | Cut back to mechanism and defence (SKILL.md, "Security and other sensitive topics") |

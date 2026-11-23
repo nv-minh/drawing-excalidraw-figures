@@ -1,4 +1,5 @@
 {"_": "System design with two flows on one picture: zones name the paths (write / read), the write flow is numbered 1-3 and the read flow lettered A-D, each flow keeps one colour, labels carry the design decision (base62, TTL, miss).",
+ "strategy": "architecture",
  "elements": [
  {"t":"window","id":"cl","x":0,"y":150,"w":110,"h":80,"title":"client"},
  {"t":"frame","id":"fw","x":178,"y":0,"w":422,"h":150,"title":"Đường ghi","dashed":true,"color":"l2"},

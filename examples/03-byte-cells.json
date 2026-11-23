@@ -1,4 +1,5 @@
 {"_": "On-disk data: cell width follows the real byte count (10 units per byte); the byte ruler lines up with cell edges thanks to gap.",
+ "strategy": "mechanism",
  "elements": [
  {"t":"text","x":0,"y":0,"text":"can_le_xau: nhỏ xen lớn, 56 byte","size":18,"color":"err"},
  {"t":"cells","id":"a","x":0,"y":30,"cw":0,"ch":46,"widths":[240,40,40,80,40,40,80],"labels":["tuple header","a","đệm","b bigint","c","đệm","d bigint"],"size":15,"fill":"soft","marks":{"2":{"color":"err","fill":"err","fillStyle":"hachure"},"5":{"color":"err","fill":"err","fillStyle":"hachure"}}},

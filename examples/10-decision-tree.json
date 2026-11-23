@@ -1,4 +1,5 @@
 {"_": "Which one to pick: diamonds are questions, yes/no labels sit on the edges, leaves are answers. A diamond needs to be twice as wide as its text.",
+ "strategy": "decision",
  "elements": [
  {"t":"tree","id":"d","x":0,"y":0,"nw":170,"nh":110,"dx":30,"dy":56,"size":16,
   "root":{"shape":"diamond","text":"server cần\nchủ động đẩy?","w":250,"children":[

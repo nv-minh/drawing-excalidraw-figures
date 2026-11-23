@@ -1,5 +1,6 @@
 {
   "_": "Flow giải thích từng bước cho người mới: số bước, một dòng 'bước này làm gì', một ví dụ thật bên cạnh. Mỗi bước mang giá trị thật nên không phải hàng hộp chỉ nêu tên.",
+ "strategy": "concept",
   "caption": "Base64 biến 3 byte thành 4 ký tự in được qua bốn bước tra bảng, không có khoá nào, nên ai cũng giải ngược được.",
   "elements": [
     {"t":"flow","id":"b64","x":0,"y":0,"title":"Base64 mã hoá chữ \"Man\"",

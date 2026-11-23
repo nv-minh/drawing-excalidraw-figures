@@ -1,4 +1,5 @@
 {"_": "2x2 matrix: two trade-off axes as arrows with low/high at the ends, four equal quadrants, a short verdict as each quadrant's title and the writer's real items under it. Only the quadrant the idea argues for is accented (l4); the one to avoid is muted and dashed. Use for prioritising, positioning, or any 'two forces' idea.",
+ "strategy": "decision",
  "elements": [
  {"t":"box","id":"q1","x":90,"y":40,"w":310,"h":140,"color":"l4","weight":3},
  {"t":"box","id":"q2","x":420,"y":40,"w":310,"h":140},
