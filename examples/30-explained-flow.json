@@ -1,0 +1,14 @@
+{
+  "_": "Flow giải thích từng bước cho người mới: số bước, một dòng 'bước này làm gì', một ví dụ thật bên cạnh. Mỗi bước mang giá trị thật nên không phải hàng hộp chỉ nêu tên.",
+  "caption": "Base64 biến 3 byte thành 4 ký tự in được qua bốn bước tra bảng, không có khoá nào, nên ai cũng giải ngược được.",
+  "elements": [
+    {"t":"flow","id":"b64","x":0,"y":0,"title":"Base64 mã hoá chữ \"Man\"",
+     "steps":[
+       {"title":"Lấy 3 byte","text":"mỗi lần đọc 3 ký tự\n= 3 × 8 = 24 bit","example":"M→77  a→97\nn→110"},
+       {"title":"Cắt 4 nhóm 6 bit","text":"6 bit chỉ đếm được\ntừ 0 đến 63","example":"010011 010110\n000101 101110"},
+       {"title":"Tra bảng 64 ký tự","text":"A-Z, a-z, 0-9, + và /\nđủ đúng 64 ký tự","example":"19→T  22→W\n 5→F  46→u"},
+       {"title":"Ghép lại","text":"3 byte thành 4 ký tự:\ndài hơn 1/3","example":"\"TWFu\"","color":"node"}
+     ]},
+    {"t":"text","x":0,"y":436,"text":"Không có khoá: Base64 chỉ đổi cách viết (encoding), không giấu gì (encryption).","size":16}
+  ]
+}

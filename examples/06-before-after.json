@@ -14,6 +14,6 @@
    {"t":"db","id":"b","x":260,"y":44,"w":80,"h":82,"text":"S3","size":17},
    {"t":"arrow","from":"c","to":"s","text":"URL"}
  ]},
- {"t":"arrow","points":[[460,116],[590,176],[716,132]],"color":"l4","weight":4},
+ {"t":"arrow","points":[[460,116],[590,176],[716,132]],"smooth":true,"color":"l4","weight":4},
  {"t":"text","x":540,"y":176,"text":"2GB, một lần","size":16,"color":"l4"}
 ]}

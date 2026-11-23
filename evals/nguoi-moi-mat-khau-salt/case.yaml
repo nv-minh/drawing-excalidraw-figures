@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: nguoi-moi-mat-khau-salt
+expected_outcome: |
+  A reader who has never programmed understands, from the figure alone, that a website stores a scrambled value instead of the password, that a random salt makes two equal passwords look different, and why a stolen database does not give away the passwords. Every technical term in the figure is explained in plain words, and nothing in it works as cracking instructions.

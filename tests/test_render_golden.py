@@ -1,4 +1,4 @@
-"""Golden render: cả 29 ví dụ trong examples/ phải vẽ sạch.
+"""Golden render: cả 30 ví dụ trong examples/ phải vẽ sạch.
 
 Đây là phép thử bao trùm mọi macro m_* mà không phải test từng macro: chạy
 ve.py thật (Chromium thật) qua subprocess và bám vào đúng cam kết công khai

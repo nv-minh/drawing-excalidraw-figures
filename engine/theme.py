@@ -340,7 +340,31 @@ LEAKED = {           # màu mermaid nhúng cứng, không đến từ themeVaria
     '#0F9F95': 'l3',
 }
 
-_COLOR_RE = re.compile(r'#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)')
+# Chỉ bốn độ dài CSS chấp nhận (#RGB #RGBA #RRGGBB #RRGGBBAA). Bản {3,8} cũ bắt cả `#1480`
+# (5 ký tự) trong nhãn "lỗi #1480", rồi _nearest() chết với
+# "invalid literal for int() with base 16".
+_COLOR_RE = re.compile(r'#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b|rgba?\([^)]*\)')
+_TEXT_RE = re.compile(r'<text\b[^>]*>(.*?)</text>', re.S)
+
+
+def _text_spans(src):
+    """(đầu, cuối) phần chữ của mọi phần tử <text>."""
+    return [m.span(1) for m in _TEXT_RE.finditer(src)]
+
+
+def _in_text(src, i, spans):
+    """Vị trí i nằm trong CHỮ của một <text>, không nằm trong thuộc tính.
+
+    Chữ trong hình là nội dung, không bao giờ là màu: "issue #123" từng thành
+    "issue var(--ink)", còn "lỗi #1480" làm render chết. Màu chỉ nằm trong giá trị
+    thuộc tính và khối <style>.
+    """
+    for a, b in spans:
+        if a <= i < b:
+            return src.rfind('<', a, i) <= src.rfind('>', a, i)
+        if a > i:
+            break
+    return False
 
 
 def _parse_rgb(c):
@@ -361,7 +385,7 @@ def _canon(c):
     c = c.strip()
     if c.startswith('#'):
         h = c.upper()
-        if re.fullmatch(r'#[0-9A-F]{3}', h):
+        if re.fullmatch(r'#[0-9A-F]{3,4}', h):          # #RGB, #RGBA
             h = '#' + ''.join(ch * 2 for ch in h[1:])
         if re.fullmatch(r'#[0-9A-F]{8}', h):          # #RRGGBBAA
             return h[:7], int(h[7:], 16) / 255
@@ -427,8 +451,10 @@ def tokenize(svg):
     Chỉ dùng cho đầu ra mermaid/echarts. SVG viết tay đã dùng token sẵn và
     có `#fff` cố ý (chữ trắng trên nền đậm) — đừng chạy hàm này lên chúng.
     """
+    spans = _text_spans(svg)
+
     def sub(m):
-        if _is_id_ref(m.string, m.start()):
+        if _is_id_ref(m.string, m.start()) or _in_text(m.string, m.start(), spans):
             return m.group(0)
         hx, _a = _canon(m.group(0))
         if hx is None:
@@ -447,11 +473,12 @@ _SAFE_RAW = {'NONE', 'TRANSPARENT', 'CURRENTCOLOR'}
 def audit(svg):
     """Màu còn sót trong SVG nướng sẵn mà sẽ vỡ ở dark mode. Rỗng = an toàn."""
     bad = set()
+    spans = _text_spans(svg)
     for m in _COLOR_RE.finditer(svg):
         raw = m.group(0)
         if raw.strip().upper() in _SAFE_RAW:
             continue
-        if _is_id_ref(svg, m.start()):
+        if _is_id_ref(svg, m.start()) or _in_text(svg, m.start(), spans):
             continue
         hx, a = _canon(raw)
         if hx is None:

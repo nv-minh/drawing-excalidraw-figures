@@ -26,11 +26,44 @@ Sources and licenses: `references/sources.md`.
 Do all six steps in order.
 Steps 1, 2 and 6 are skipped most often, and they decide whether the figure is usable.
 
-### 1. Write one sentence before drawing
+### 1. Name the reader, then write one sentence
 
-Write exactly one sentence: **"Looking at this figure, the reader SEES ... that the paragraph does not show."**
+**First ask who reads the figure and what they already know.**
+A figure can be true in every fact and still teach nothing: three figures about a browser exploit were correct, and the reader understood none of them, because they assumed the reader knew Base64, the heap and JIT.
+"What does the reader see" depends on "what does the reader already know", so settle that before anything else.
+
+Ask the person who gave the task one question, with these three answers:
+
+| Reader | Already knows | Mode |
+|---|---|---|
+| Newcomer (student, non-specialist, someone new to the field) | Everyday words, not the field's terms | **Explainer** |
+| Developer (works in software, not in this exact area) | General programming terms | **Compact**, plus the explanations below for terms outside general programming |
+| Specialist (security, database, kernel expert in this exact area) | The field's terms and numbers | **Compact** |
+
+When nobody can be asked, read the level off the source (a beginner lesson, an internal postmortem, a paper) and write the assumed level in the hand-off.
+
+Then write a **term list** in your working notes: every term in the figure that this reader may not know (`Base64`, `heap`, `JIT`, `cgroup`, `MVCC`).
+For each term, decide one of three:
+
+- **Explain it in the figure**: a few plain words beside the term (`heap: vùng nhớ chương trình xin thêm khi đang chạy`), as a `note` or a second muted line under the label.
+- **Replace it** with the everyday word, when the term itself is not what the lesson teaches.
+- **Leave it**, only when the reader's level from the table already includes it.
+
+A term that the figure uses and the reader does not know is a hole in the figure, the same as a missing step.
+
+**The two modes:**
+
+- **Compact** (developer, specialist): one figure, dense, real values, terms used as they are. Everything below in this workflow is written for this mode.
+- **Explainer** (newcomer): go from the concept to the detail, never the reverse.
+  Start with an everyday example or a physical metaphor (`08-metaphor-token-bucket`) that carries the idea, then show the mechanism with real values.
+  Put a short sentence in words beside each part (what it is, why it is there), not only a name.
+  Fewer things per figure (3 to 5 clusters), and often two or three figures in a row (a `17a`/`17b` progressive series) instead of one dense one.
+  The explained flow (`30-explained-flow`) is built for this mode: each step has a number, one line on what happens and a small example.
+
+Now write exactly one sentence: **"Looking at this figure, the reader SEES ... that the paragraph does not show."**
 If you cannot write it, do not draw: a needless figure is worse than no figure.
-The sentence picks the figure type in step 3 and later becomes the caption.
+The sentence picks the figure type in step 3 and later becomes the caption: put it in the spec as `"caption"` so `--page` prints it under the figure.
+For a newcomer, write the sentence in words the newcomer uses; if it needs a term from the term list, the figure must explain that term.
 
 When the source is a rough idea (a note, a pitch, a paragraph of thinking out loud) rather than a worked-out text, write one more sentence first: **"This idea really says that ..."**, in at most 20 words.
 Rough ideas often say three things at once; this sentence picks the one the figure is about.
@@ -86,6 +119,7 @@ For a rough idea, first name the structure of the idea from the idea list, then 
 | Life before and after one change | Before and after | `06-before-after` |
 | A choice between options | Decision tree | `10-decision-tree` |
 | Who does which step | Swimlane | `22-swimlane` |
+| Steps in order that a newcomer must follow | Explained flow | `30-explained-flow` |
 | Something abstract that needs intuition | Physical metaphor | `08-metaphor-token-bucket` |
 | A trend or a point of no return | Curve or threshold | `19-curve`, `05-threshold` |
 
@@ -94,6 +128,7 @@ For a technical source, or when the table above does not fit, pick from the full
 | The reader needs to see | Figure type | Template in `examples/` |
 |---|---|---|
 | Who calls whom, in what order | Request flow | `01-request-flow` |
+| Steps in order, each explained with a small example ("draw the flow", a newcomer) | Explained flow | `30-explained-flow` |
 | What is inside a thing | Anatomy, nested frames | `02-anatomy` |
 | How data lies on disk or in RAM | Byte cells | `03-byte-cells` |
 | What happens over time | Timeline | `04-timeline` |
@@ -123,9 +158,15 @@ For a technical source, or when the table above does not fit, pick from the full
 | How much survives each stage | Funnel | `28-funnel` |
 | Concepts joined by named relations | Concept map | `29-concept-map` |
 
+**"Flow" is not a broken rule.**
+When someone asks for a flow (`luồng`, `các bước`, "how does it go"), they want arrows in order, and that is right.
+The load-bearing rule forbids boxes that only NAME things, because their arrows say only "A calls B".
+A flow passes the rule when every step carries what changes at that step: a real value, an example, a condition.
+Use `30-explained-flow` for that (number, one line, small example per step); add a `sequence`, `swimlane` or failure branch only when several parties or branches matter.
+
 `references/figure-types.md` describes each type: when to use it, when not to, how to build it, where it breaks.
 Read the section of the chosen type before writing the spec.
-Then run the seven-line pre-render checklist in `references/lessons-from-runs.md`: it removes the mistakes that cost the most rounds in testing.
+Then run the eight-line pre-render checklist in `references/lessons-from-runs.md`: it removes the mistakes that cost the most rounds in testing.
 A lesson about the mechanism inside a technology almost never wants a plain request flow.
 Interaction over time is a sequence, the life of one entity is a state diagram, who does what is a swimlane: do not mix two of those three in one figure.
 Supporting pieces are fine: a timeline may carry a small `plot`, an ER figure a `table` of rows, any figure a `code` block.
@@ -152,19 +193,28 @@ A file name given by the person who asked wins.
 ### 5. Render
 
 ```bash
-python3 .claude/skills/drawing-excalidraw-figures/scripts/ve.py <spec.json> [--out dir] [--col N]
+python3 .claude/skills/drawing-excalidraw-figures/scripts/ve.py <spec.json> [--out dir] [--col N] [--open]
 ```
 
+The first time on a machine, run `ve.py --check`: it checks Python, Playwright and Chromium and prints the one command that installs whatever is missing.
+
 The tool prints one summary line per figure, then the paths of the two PNGs to open.
-A `✗` line is a hard error to fix (text overflow, shape grown by Excalidraw, text too small).
+A `✗` line is a hard error to fix (text overflow, shape grown by Excalidraw, text too small, a spec error naming its element).
 A `•` line is a nudge: read each one, fix it or know exactly why you keep it.
+Many nudges carry the fix: a crossing arrow names the `route` or `bend` that clears it, overlapping text names the `y` that frees it, a figure taller than one screen names where it splits.
 `--col N` previews at another column width, only for a figure that will not sit in the site column.
+`--open` opens the two PNGs after rendering.
+
+Other options, all in `references/spec.md` under Command line:
+
+- `--page out.html` (or `out.pdf`) puts every rendered figure on one page, each with its `caption`, under a shared `--title` and `--caption`.
+- `--extract-labels en` writes `<spec>.en.labels.json` with every label; translate its values, then `--lang en` renders `<spec>.en-*.png` without touching the spec.
 
 ### 6. Open the images, check, fix
 
 Open both `<name>-light.png` and `<name>-dark.png` with the image reader.
 A valid spec and a silent tool do not mean the figure reads well: the tool cannot know whether the figure says the right thing.
-Go through `references/review.md`, which starts with the coverage check against the fact list of step 2, then fix the spec and render again.
+Go through `references/review.md`, which starts with the reader check against step 1 (term list, retell test) and the coverage check against the fact list of step 2, then fix the spec and render again.
 Expect 2 to 4 rounds.
 Stop when the figure says the sentence of step 1 with the caption covered.
 
@@ -172,6 +222,22 @@ For a rough idea with a person to ask, show the first clean render before polish
 Name the one relation or tension you were least sure of, so the answer is about the idea and not the colors.
 Writers often see their idea more clearly in the draft and change it; that is the figure doing its job, so redraw rather than defend the first version.
 With nobody to ask, list the relations you assumed in the hand-off instead.
+
+## Security and other sensitive topics
+
+A figure travels further than the text around it, so decide how far it goes before drawing.
+
+**Draw**: the mechanism and the defence.
+What the weakness is, why it exists (the design choice or the missing check), which condition an attack needs, where in the chain each defence stops it, and how to detect it.
+A figure that shows "the bounds check is missing here, so a long input overwrites the next field, and this check or this setting stops it" teaches defenders and students.
+
+**Stop before**: anything that works as instructions against a system the reader does not own.
+No working payloads or shellcode, no exact offsets, addresses or gadget chains, no ordered step-by-step exploitation of a named product or version, no commands aimed at a target, no bypass recipe for a specific defence, no real credentials, tokens or personal data.
+Name the class of the step (`ghi đè con trỏ hàm`, `<payload>`) instead of its content, and keep real values to the ones the defence needs (a limit, a status code, a log line).
+
+Test before rendering: could someone copy the figure into a terminal or a debugger and attack a real system with it?
+If yes, cut it back to mechanism level and say in the hand-off what was left out and why.
+The same rule holds for other harm-sensitive topics (weapons, self-harm, getting around safety controls): show how it works and how it is prevented, not how to do it.
 
 ## When no type fits
 
@@ -204,7 +270,7 @@ The skill stops at producing correct files; it does not edit the site's engine o
 | `references/spec.md` | You need the exact syntax of an element |
 | `references/visual-language.md` | Unsure which shape for what, color, layout, arrow labels |
 | `references/lessons-from-runs.md` | Before the first render (checklist), and when a figure needs more than three rounds |
-| `references/review.md` | After every render |
+| `references/review.md` | After every render, starting with the reader check |
 | `references/sources.md` | You need to know where a rule comes from, or an icon's license |
 | `references/samples/README.md` | You want a real example of a whole system-design scene or a business diagram source to look at |
 | `examples/*.json` | Always: copy one as the starting point |

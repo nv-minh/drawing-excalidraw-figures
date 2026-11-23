@@ -1,6 +1,6 @@
 # Figure types: when to use, how to build, where they break
 
-Contents: [1 Request flow](#1-request-flow) · [2 Anatomy](#2-anatomy) · [3 Byte cells](#3-byte-cells) · [4 Timeline](#4-timeline) · [5 Threshold](#5-threshold) · [6 Before and after](#6-before-and-after) · [7 Two views](#7-two-views) · [8 Physical metaphor](#8-physical-metaphor) · [9 Failure branch](#9-failure-branch) · [10 Decision tree](#10-decision-tree) · [11 Sequence](#11-sequence) · [12 State machine](#12-state-machine) · [13 ER and tables](#13-er-and-tables) · [14 Hash ring](#14-hash-ring) · [15 Code block](#15-code-block) · [16 Layer lanes](#16-layer-lanes) · [17 Progressive build](#17-progressive-build) · [18 Layer stack](#18-layer-stack) · [19 Curve](#19-curve) · [20 Icons](#20-icons) · [21 Sequence with fragments](#21-sequence-with-fragments) · [22 Business flow in swimlanes](#22-business-flow-in-swimlanes) · [23 Composite state](#23-composite-state) · [24 ER with crow's foot](#24-er-with-crows-foot) · [25 System design with two flows](#25-system-design-with-two-flows) · [26 Causal loop](#26-causal-loop) · [27 Matrix 2x2](#27-matrix-2x2) · [28 Funnel](#28-funnel) · [29 Concept map](#29-concept-map) · [Rare figure types](#rare-figure-types) · [Building a new figure from primitives](#building-a-new-figure-from-primitives)
+Contents: [1 Request flow](#1-request-flow) · [2 Anatomy](#2-anatomy) · [3 Byte cells](#3-byte-cells) · [4 Timeline](#4-timeline) · [5 Threshold](#5-threshold) · [6 Before and after](#6-before-and-after) · [7 Two views](#7-two-views) · [8 Physical metaphor](#8-physical-metaphor) · [9 Failure branch](#9-failure-branch) · [10 Decision tree](#10-decision-tree) · [11 Sequence](#11-sequence) · [12 State machine](#12-state-machine) · [13 ER and tables](#13-er-and-tables) · [14 Hash ring](#14-hash-ring) · [15 Code block](#15-code-block) · [16 Layer lanes](#16-layer-lanes) · [17 Progressive build](#17-progressive-build) · [18 Layer stack](#18-layer-stack) · [19 Curve](#19-curve) · [20 Icons](#20-icons) · [21 Sequence with fragments](#21-sequence-with-fragments) · [22 Business flow in swimlanes](#22-business-flow-in-swimlanes) · [23 Composite state](#23-composite-state) · [24 ER with crow's foot](#24-er-with-crows-foot) · [25 System design with two flows](#25-system-design-with-two-flows) · [26 Causal loop](#26-causal-loop) · [27 Matrix 2x2](#27-matrix-2x2) · [28 Funnel](#28-funnel) · [29 Concept map](#29-concept-map) · [30 Explained flow](#30-explained-flow) · [Rare figure types](#rare-figure-types) · [Building a new figure from primitives](#building-a-new-figure-from-primitives)
 
 Each section points to a file in `examples/`.
 Copy that file, then edit it.
@@ -578,7 +578,7 @@ Put the main path down the middle, failures to the right, cancellations to the l
   Draw one `sharp` `points` edge from the parent's `id` row to a fork 48 units out, then up 10 to the first FK row; a second edge starts at the fork with `tail: none` and runs down 10 to the second row.
   Keep each branch 80 units or more so crow, ring and the verb label fit, and put the label on the upper branch with `labelDy` -20.
 - A many-to-many relation of a table with itself (Mermaid `users }o--o{ users`) is a join table with two FKs to it, drawn as the fork above; the Mermaid line has no table to land on.
-- An elbow ER edge (`points` with three or more points) needs `sharp: true`, or the corners come out as curves.
+- An elbow ER edge is a `points` edge with three or more points; its corners stay sharp by default.
 - Leave 110 units or more between entities so the feet and the verb label fit.
 - Put the verb label beside the line with `labelDy` or `labelDx`, not on it.
 - The ring of a `zero-` end sits 24 to 34 units inside the edge, so on a horizontal edge under about 130 units a label centred at `labelDy` -16 lands on it: use `labelDy` -24, or `labelAt` toward the other end. The tool reports it.
@@ -620,7 +620,7 @@ Common in business ("happy customers bring more customers"), economics, habits, 
 - Every arrow carries a sign as its label: `+` when more of A gives more of B, `-` when more of A gives less of B. Size 24 so the sign is not lost.
 - All arrows stay `ink`. The sign carries the meaning; color goes only on the loop's name.
 - Name each loop in the space it encloses: `R` with "vòng tự khuếch đại" for a reinforcing loop (even number of `-`), `B` with "vòng cân bằng" for a balancing one (odd number of `-`). The loop the idea is about is `l4`, the other `muted`.
-- A balancing loop that leaves the ring takes an outside route (`points` with `sharp`) along the figure's edge, so it never crosses the ring.
+- A balancing loop that leaves the ring takes an outside route (a `points` path, straight between its corners) along the figure's edge, so it never crosses the ring.
 - Curve the ring arrows with the same `bend` sign so the whole ring turns one way.
 
 **Common failure:** drawing a list of causes as a ring when the last one does not really feed the first.
@@ -668,6 +668,27 @@ Then the idea is a spectrum: draw one axis with options as points on it.
 **Common failure:** every concept linked to every other.
 Go back to the "This idea really says that" sentence of step 1 and keep only the edges that serve it.
 
+## 30 Explained flow
+
+**Use when** someone asks for "the flow" (`luồng`, `các bước`), or a newcomer must follow steps in order: an encoding, a login, a build pipeline, a request taught for the first time.
+**Template:** `30-explained-flow.json`.
+
+The load-bearing rule forbids boxes that only name things; it does not forbid order.
+An explained flow keeps the arrows in order and makes every step carry its content, in three columns:
+
+- **Number and action**: a numbered badge and a box with the step as a verb phrase (`Lấy 3 byte`, `Tra bảng 64 ký tự`), not a component name.
+- **One line on what happens**: what changes at this step and why, in the reader's words. For a newcomer this is where a term from the step 1 term list gets its explanation.
+- **A small example**: the real value at this step (`M→77 a→97`, `010011 010110`, `"TWFu"`), in a dashed mono card. Follow ONE example through every step, so the reader watches the same data change.
+
+- 3 to 6 steps. More than six: split into two figures (setup, then the main part) or group steps.
+- The step whose result is the point gets `node` (correct result) or `err` (where it breaks); the rest stay `ink`. Its badge takes the same color.
+- `edge` on a step labels the arrow coming into it with a condition (`nếu hợp lệ`); keep it to two words.
+- A misconception the reader is likely to bring (`Base64 là mã hoá bí mật`) goes under the flow as one plain sentence: newcomers remember the correction best right after the steps.
+- When the flow branches (success, failure, retry) or several parties act, it is no longer this type: use a failure branch (`09`), a sequence with fragments (`21`) or a swimlane (`22`).
+
+**Common failure:** step boxes that hold component names (`API`, `DB`, `Cache`) with no line and no example.
+That is the boxes-and-arrows figure again; write what happens and the value at that step, or pick a sequence.
+
 ## Rare figure types
 
 | Need to show | How to build |
@@ -706,7 +727,7 @@ Go back to the "This idea really says that" sentence of step 1 and keep only the
 When no type fits, build from `box` `ellipse` `diamond` `line` `arrow` `text`.
 
 - **Free polygon**: `line` with `points` and `closed: true`, plus `fill`. Bucket, funnel, block arrow, parallelogram, label tag.
-- **Arcs and curves**: a `line` or `arrow` with three or more points is rounded automatically. Add `sharp` to keep the corners.
+- **Arcs and curves**: a `points` path is straight between its points; add `smooth: true` to round it into a curve (a ring arc, a bypass, a token falling into a bucket). A `from`/`to` arrow curves with `bend`.
 - **Repeated things**: write a short Python script that generates the element list and writes JSON. Do not hand-type thirty cells.
 - **Reused shapes**: wrap in a `group`, then move it with `dx` `dy`.
 - **Background layer**: elements declared earlier sit underneath. Declare filled background regions first.

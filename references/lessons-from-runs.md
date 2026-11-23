@@ -79,6 +79,7 @@ Fastest way to a good figure with Opus: keep its strengths, cap its two costs (r
 5. Content spans at most 780 units.
 6. Every free label sits on a straight segment, 12 units clear of any frame, lifeline or axis.
 7. Accents: at most three, `err` only on what is broken, frames `muted`.
+8. Every term on the step 1 term list is explained in the figure, replaced, or known at the reader's level.
 
 ## Sonnet 5.5
 
