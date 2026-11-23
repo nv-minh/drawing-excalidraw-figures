@@ -1,4 +1,5 @@
 {"_": "Physical metaphor: the token bucket is a real bucket. Countable objects get a hachure fill.",
+ "strategy": "concept",
  "elements": [
  {"t":"text","x":0,"y":0,"text":"nạp đều 5 token mỗi giây","color":"muted","size":18},
  {"t":"ellipse","id":"a","x":0,"y":34,"w":34,"h":34,"color":"warn","fill":"warn","fillStyle":"hachure"},

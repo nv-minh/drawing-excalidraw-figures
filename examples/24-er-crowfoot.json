@@ -1,4 +1,5 @@
 {"_": "ER with crow's foot ends: tail/head one, many, one-many, zero-one, zero-many carry the cardinality, PK/FK written in the column list, only the columns the point needs. Verb labels float beside the line (labelDy) so the feet stay visible.",
+ "strategy": "data-model",
  "elements": [
  {"t":"entity","id":"cus","x":0,"y":0,"w":180,"name":"customers","fields":["id  PK","email  UNIQUE","created_at"]},
  {"t":"entity","id":"ord","x":300,"y":0,"w":180,"name":"orders","fields":["id  PK","customer_id  FK","status","total"],"color":"l4"},

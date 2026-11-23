@@ -1,4 +1,5 @@
 {"_": "Causal loop: concepts in a ring, every arrow carries its sign (+ same direction, - opposite) as text, all arrows ink. The loop the idea is about is named in its centre in l4; a second, balancing loop is named beside it. Use for 'A feeds B feeds A' ideas in business, teaching or personal notes.",
+ "strategy": "idea",
  "elements": [
  {"t":"box","id":"hl","x":250,"y":0,"w":170,"h":52,"text":"khách hài lòng","color":"l4"},
  {"t":"box","id":"tm","x":490,"y":110,"w":150,"h":52,"text":"truyền miệng"},

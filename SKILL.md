@@ -42,6 +42,10 @@ Ask the person who gave the task one question, with these three answers:
 
 When nobody can be asked, read the level off the source (a beginner lesson, an internal postmortem, a paper) and write the assumed level in the hand-off.
 
+Then name the **strategy**: what kind of content this is (a process flow, an interaction, an incident, a vulnerability, an architecture, a mechanism, a data model, a decision, a concept, a knowledge summary, a note, a problem from everyday life, a rough idea or pitch).
+`references/strategies.md` gives each one its figure set (how many figures, in what order), its types, the reading-path rules that are mandatory for it, and its pitfalls.
+Put it in the spec as `"strategy"`, and the source file as `"source"`, so the tool runs that strategy's checks and lists any number the source does not contain.
+
 Then write a **term list** in your working notes: every term in the figure that this reader may not know (`Base64`, `heap`, `JIT`, `cgroup`, `MVCC`).
 For each term, decide one of three:
 
@@ -166,7 +170,7 @@ Use `30-explained-flow` for that (number, one line, small example per step); add
 
 `references/figure-types.md` describes each type: when to use it, when not to, how to build it, where it breaks.
 Read the section of the chosen type before writing the spec.
-Then run the eight-line pre-render checklist in `references/lessons-from-runs.md`: it removes the mistakes that cost the most rounds in testing.
+Then run the nine-line pre-render checklist in `references/lessons-from-runs.md`: it removes the mistakes that cost the most rounds in testing.
 A lesson about the mechanism inside a technology almost never wants a plain request flow.
 Interaction over time is a sequence, the life of one entity is a state diagram, who does what is a swimlane: do not mix two of those three in one figure.
 Supporting pieces are fine: a timeline may carry a small `plot`, an ER figure a `table` of rows, any figure a `code` block.
@@ -178,12 +182,13 @@ A spec is short JSON: coordinates, text, colors by token name.
 Full syntax of every element: `references/spec.md`.
 Conventions for shapes, color, layout, arrows: `references/visual-language.md`.
 
-Three things to remember even before opening those files:
+Four things to remember even before opening those files:
 
 - **Real values beat generic names.** `user:1`, `1 023`, `429`, `POST /orders` instead of "key", "n", "error", "request".
   A figure with real values teaches; a figure of generic labels only names things.
 - **Color is meaning.** Default is `ink` stroke, no fill.
   At most three accent colors per figure: `err` broken, `node` correct, `l4` the thing under discussion or the new thing, `warn` the affected region, `hot` the path of one request.
+- **Show the reader the path.** A figure with several regions numbers them ① ② ③ in story order, joins each side panel to the part it explains with one dashed line, glosses each term in plain words under it, and gives each abstract category one real example. Rules and when to skip them: "Guiding the eye" in `references/visual-language.md`.
 - **The default reading column is 666px** (a typical article column; `--col N` previews another width). Keep the figure under about 800 units wide (the width the tool reports, which includes 20 units of padding); it is a guide, the tool enforces text size.
   Out of room: stack vertically or split the figure, never shrink the text.
 
@@ -217,6 +222,8 @@ A valid spec and a silent tool do not mean the figure reads well: the tool canno
 Go through `references/review.md`, which starts with the reader check against step 1 (term list, retell test) and the coverage check against the fact list of step 2, then fix the spec and render again.
 Expect 2 to 4 rounds.
 Stop when the figure says the sentence of step 1 with the caption covered.
+
+Before polishing, get **fresh eyes**: give only the PNG and the reader level to a subagent (or the person who asked) with the four questions in `references/review.md`, and fix what their answers show the figure does not say.
 
 For a rough idea with a person to ask, show the first clean render before polishing and ask one question: "Is this what you meant?"
 Name the one relation or tension you were least sure of, so the answer is about the idea and not the colors.
@@ -266,6 +273,7 @@ The skill stops at producing correct files; it does not edit the site's engine o
 
 | File | Read when |
 |---|---|
+| `references/strategies.md` | In step 1, to plan the figure set for this kind of content |
 | `references/figure-types.md` | After picking the type, before writing the spec |
 | `references/spec.md` | You need the exact syntax of an element |
 | `references/visual-language.md` | Unsure which shape for what, color, layout, arrow labels |

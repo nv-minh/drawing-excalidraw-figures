@@ -250,3 +250,92 @@ class TestTrinhDuyet:
         msg = str(k.value)
         assert 'could not start' in msg and 'MachPortRendezvousServer' in msg and 'sandbox' in msg
         assert 'Traceback' not in msg
+
+
+# ── đường đọc, payload, số liệu với nguồn, chiến lược ───────────────
+def _doc(spec, strat=None, conv=None):
+    """Chạy duong_doc trên spec đã biên dịch; conv giả: mỗi phần tử cơ sở thành một hình chữ nhật/chữ."""
+    sk, _, _, lint, goc = ve.dung(spec)
+    if conv is None:
+        conv = [{'type': 'text' if o['type'] == 'text' else 'rectangle', 'id': o['id'], 'x': o['x'], 'y': o['y'],
+                 'width': o.get('width', 0), 'height': o.get('height', 0), 'text': o.get('text', '')}
+                for o in sk if 'x' in o]
+    return ve.duong_doc(conv, goc, lint, strat)
+
+
+CHINH = [{'t': 'box', 'id': 'a', 'x': 0, 'y': 0, 'w': 100, 'h': 50, 'text': 'A'},
+         {'t': 'box', 'id': 'b', 'x': 200, 'y': 0, 'w': 100, 'h': 50, 'text': 'B'},
+         {'t': 'arrow', 'from': 'a', 'to': 'b', 'text': 'gọi'}]
+
+
+class TestDuongDoc:
+    def test_khung_dung_roi_bi_nhac(self):
+        _, nhac = _doc(CHINH + [{'t': 'code', 'id': 'c', 'x': 0, 'y': 120, 'title': 'intrinsic', 'text': 'ghi 64 byte'}])
+        assert any('panel “intrinsic”' in n and 'no arrow or note' in n for n in nhac)
+
+    def test_khung_co_mui_ten_thi_im(self):
+        spec = CHINH + [{'t': 'code', 'id': 'c', 'x': 0, 'y': 120, 'title': 'intrinsic', 'text': 'ghi 64 byte'},
+                        {'t': 'arrow', 'points': [[50, 118], [50, 56]], 'dashed': True}]
+        _, nhac = _doc(spec)
+        assert not any('panel' in n for n in nhac)
+
+    def test_cap_so_sanh_chi_can_noi_mot_ben(self):
+        spec = CHINH + [{'t': 'code', 'id': 'c1', 'x': 0, 'y': 120, 'w': 140, 'title': 'thường', 'text': 'a'},
+                        {'t': 'code', 'id': 'c2', 'x': 160, 'y': 120, 'w': 140, 'title': 'nhanh', 'text': 'b'},
+                        {'t': 'arrow', 'points': [[230, 118], [230, 56]], 'dashed': True}]
+        _, nhac = _doc(spec)
+        assert not any('panel' in n for n in nhac)
+
+    def test_so_badge_nhay_va_lap(self):
+        spec = [{'t': 'badge', 'x': 0, 'y': 0, 'n': 1}, {'t': 'badge', 'x': 40, 'y': 0, 'n': 3},
+                {'t': 'badge', 'x': 80, 'y': 0, 'n': 3}]
+        _, nhac = _doc(spec)
+        assert any('skip 2' in n for n in nhac) and any('badge 3 is used twice' in n for n in nhac)
+
+    def test_chien_luoc_co_thu_tu_doi_danh_so(self):
+        spec = CHINH + [{'t': 'code', 'id': 'c', 'x': 0, 'y': 120, 'title': 't', 'text': 'x'},
+                        {'t': 'arrow', 'points': [[50, 118], [50, 56]], 'dashed': True}]
+        _, khong = _doc(spec, 'architecture')
+        _, co = _doc(spec, 'incident')
+        assert not any('no badge' in n for n in khong)
+        assert any("strategy 'incident'" in n and 'no badge' in n for n in co)
+
+    def test_payload_cung_khi_la_lo_hong(self):
+        spec = [{'t': 'text', 'x': 0, 'y': 0, 'text': 'input: ' + 'A' * 64 + '='}]
+        cung, _ = _doc(spec, 'vulnerability')
+        _, nhac = _doc(spec, 'mechanism')
+        assert cung and 'attack input' in cung[0]
+        assert any('attack input' in n for n in nhac)
+        cung, nhac = _doc([{'t': 'text', 'x': 0, 'y': 0, 'text': '64 ký tự Base64 + "="'}], 'vulnerability')
+        assert not cung and not any('attack' in n for n in nhac)
+
+    def test_quan_he_phai_co_nhan(self):
+        spec = [{'t': 'box', 'id': 'a', 'x': 0, 'y': 0, 'w': 100, 'h': 50, 'text': 'ngủ ít'},
+                {'t': 'box', 'id': 'b', 'x': 200, 'y': 0, 'w': 100, 'h': 50, 'text': 'cà phê'},
+                {'t': 'arrow', 'from': 'a', 'to': 'b'}, {'t': 'arrow', 'from': 'b', 'to': 'a', 'text': '+', 'bend': 30}]
+        _, nhac = _doc(spec, 'life-problem')
+        assert any('1 of 2 arrows carry no label' in n for n in nhac)
+        _, nhac = _doc(spec, 'mechanism')
+        assert not any('carry no label' in n for n in nhac)
+
+    def test_tong_hop_qua_nhieu_khoi(self):
+        spec = [{'t': 'box', 'id': f'k{i}', 'x': i * 120, 'y': 0, 'w': 100, 'h': 40, 'text': f'ý {i}'} for i in range(11)]
+        _, nhac = _doc(spec, 'knowledge-summary')
+        assert any('11 main shapes, above 9' in n for n in nhac)
+
+    def test_chien_luoc_moi_co_mat(self):
+        for k in ('concept', 'knowledge-summary', 'note', 'life-problem', 'vulnerability', 'incident'):
+            assert k in ve.STRATEGIES
+
+
+class TestSoVoiNguon:
+    def test_chuan_hoa_cach_viet_so(self):
+        assert ve._so('200 000 lần, 200_000, 0,25 giây') == {'200000', '025'}
+        assert ve._so('mask 0xFFFF_FFFF') == {'0XFFFFFFFF'}
+
+    def test_liet_ke_so_khong_co_trong_nguon(self):
+        conv = [{'type': 'text', 'text': 'mảng 50 byte, ghi 64 byte, 17 × 3 - 1 = 50, bước 2'},
+                {'type': 'text', 'text': 'decode() × 200 000'}]
+        nhac = ve.so_voi_nguon(conv, 'allocates a 50-byte array; 64 bytes are written; 200_000 times', 'bai.md')
+        assert len(nhac) == 1 and ': 17.' in nhac[0]
+        assert ve.so_voi_nguon(conv[:1][:0], 'x', 'bai.md') == []

@@ -57,6 +57,10 @@ A figure can be right in every fact and still useless if it assumes the reader k
 For newcomers the skill goes from an everyday example to the mechanism, puts a plain sentence beside each part, and has a ready "explained flow" type (`30-explained-flow`): a number, one line and a small example per step.
 For security topics it draws the mechanism and the defence, and stops before anything that works as attack instructions (details in `SKILL.md`).
 
+Each kind of content has its own strategy (`references/strategies.md`): process flow, interaction, incident, vulnerability, architecture, mechanism, data model, decision, concept, knowledge summary, note, everyday-life problem, rough idea.
+A strategy says how many figures to draw, in what order, which types, and which reading-path rules are mandatory; put `"strategy"` in the spec and the tool checks for that kind.
+Once the tool is clean, the skill hands the PNG to "fresh eyes" (a subagent that knows only the reader level, not the source) with four questions: where the eye starts, what the figure says, which words are unclear, which part seems unrelated.
+
 ## Install
 
 Requirements: Python 3.11+, Playwright Chromium, and the fonts already in `assets/fonts/` (nothing is fetched from the network while rendering).
@@ -131,6 +135,7 @@ python3 scripts/ve.py a.json b.json --page post.html \
     --title "Base64 for newcomers" --caption "Two figures, read in order"   # several figures on one page; .pdf works too
 python3 scripts/ve.py spec.json --extract-labels en          # pull every label into spec.en.labels.json to translate
 python3 scripts/ve.py spec.json --lang en                    # render the English version, spec untouched
+python3 scripts/ve.py spec.json --source post.md             # list numbers in the figure that the source lacks
 ```
 
 A spec's `"caption"` (the step 1 sentence) is printed under its figure on the `--page` page and is translated with the labels.
@@ -152,6 +157,7 @@ Colors accept token names only - the tool refuses hex codes - so a figure can ne
 Hard errors (`✗`): a box expanded by Excalidraw because its text did not fit, text overflowing its frame, text under 8px on screen, colors that are not tokens, spec errors (naming the element: index, `t`, `id`, start of its text).
 Soft reminders (`•`): an arrow crossing a box, a label as long as its arrow, an arrowhead landing on another arrow's start point, more than three accents, a figure that is only boxes and arrows, a figure taller than one screen or wider than the column.
 Many reminders carry the fix: a crossing arrow gets a `route`/`bend` already tested to clear it, overlapping text gets a new `y`, a too-tall figure gets the place where it splits.
+The reading path is checked too: a side panel not joined to what it explains, badge numbers that skip, a multi-part figure with no numbers (for ordered strategies), unlabelled arrows (for knowledge summaries, life problems, ideas), and text that looks like an attack payload (a hard error under `vulnerability`).
 Text in a figure such as `lỗi #1480` is never mistaken for a color code.
 Whether the figure tells the right story is something only a human eye can check - that is step 6, and `evals/` measures it across runs.
 
@@ -178,7 +184,7 @@ docs/               landing page + the four-model comparison
 ## Tests
 
 Setup: `pip install -r requirements.txt pytest` (the golden render additionally needs `playwright install chromium`).
-`python3 -m pytest` runs 100 tests: units for the color system (`engine/theme.py`), the token gate and spec compiler (`scripts/ve.py`), element-naming spec errors, fix suggestions, the flow macro, label translation, the multi-figure page, icon building (`scripts/build_icons.py`), and a golden render that runs the real `ve.py` over all 30 examples, then checks for off-token colors, raw lit hexes and valid `.excalidraw` scenes.
+`python3 -m pytest` runs 111 tests: units for the color system (`engine/theme.py`), the token gate and spec compiler (`scripts/ve.py`), element-naming spec errors, fix suggestions, the flow macro, label translation, the multi-figure page, icon building (`scripts/build_icons.py`), and a golden render that runs the real `ve.py` over all 30 examples, then checks for off-token colors, raw lit hexes and valid `.excalidraw` scenes.
 Skip the render (~80 seconds): `python3 -m pytest -m "not slow"`.
 GitHub Actions runs the whole suite in `.github/workflows/tests.yml`; the bundle and fonts are committed, so CI needs no Node and runs offline.
 
