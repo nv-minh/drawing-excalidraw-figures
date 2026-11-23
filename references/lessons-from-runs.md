@@ -163,3 +163,26 @@ Every fact was right; the review still found what the author could not see:
 
 Rule: run fresh eyes (`references/review.md`) even when the tool is clean and you are sure of the facts.
 
+
+## Thirteen strategies, reviewed to OK, then a held-out test (2026-11-24)
+
+Each of the 13 strategies got a brief and a figure in `docs/images/chien-luoc/`, drawn by four agents and reviewed in rounds.
+Every round used a NEW reviewer that saw only the light PNG and the reader's level, answering the fresh-eyes questions plus a verdict.
+A figure stopped when the last round said OK after at least three rounds; the cap was five.
+
+| | Round 1 OK | Rounds to OK |
+|---|---|---|
+| Gallery, 13 figures | 9 / 13 | 3 to 5; `process-flow` and `interaction` took 5, the Java4Shell figure took 5 |
+
+What the rounds caught, in the order they mattered:
+
+- Facts a specialist reader checks: TCP Reno's cwnd and ssthresh change at RTO expiry, not before; OAuth `state` and `S256`; what `DEFERRABLE` defers. The reviewer had no source, only the reader's expertise, and still caught them, so give a specialist reader as the level when the audience is expert.
+- Polish after an OK can break a figure. `process-flow` was OK in round 3; adding a parallel branch for a reviewer's remark put a blank fork diamond and an out-of-order step number in, and round 4 said CHƯA OK. Re-review after any change to structure, not only after a fix.
+- A reviewer's suggestion can be wrong. Check each against the brief before passing it on: "ghi 2 byte" (it is 0), an invented PostgreSQL capacity, "the attacker chooses the bytes".
+
+Held-out test: four new agents drew 13 new briefs, one per strategy, in one pass, with the skill's own self-review but no fresh-eyes step and no outside feedback.
+A first reviewer prompt that added "CHƯA OK only if the reader would misunderstand or get stuck" passed 13 of 13; the same figures under the round-1 prompt of the gallery passed 8 of 13.
+A softer prompt is a different test: keep the prompt fixed when comparing runs.
+
+So one pass of the skill gets about two thirds of figures past a strict stranger, and the fresh-eyes loop of `references/review.md` is what gets the rest there.
+The five failures were all of the kinds listed under "The four misreads" in `references/review.md`, plus one of tone: a causal loop for three roommates named two of them as the ones who avoid the kitchen, which the readers in the loop would take as blame (`references/strategies.md`, `life-problem`).

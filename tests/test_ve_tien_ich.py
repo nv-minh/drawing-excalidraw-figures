@@ -162,7 +162,7 @@ class TestNhan:
         {'t': 'box', 'id': 'nut', 'x': 0, 'y': 0, 'w': 100, 'h': 40, 'text': 'Gửi đơn', 'color': 'l4', 'fill': 'l4'},
         {'t': 'icon', 'id': 'i', 'name': 'firewall', 'x': 0, 'y': 60, 'h': 40, 'text': 'tường lửa'},
         {'t': 'table', 'id': 't', 'x': 0, 'y': 120, 'cols': [60, 60], 'head': ['id', 'tên'], 'rows': [['1', 'Lan']]},
-        {'t': 'arrow', 'from': 'nut', 'to': 't', 'head': 'many', 'text': 'có'},
+        {'t': 'arrow', 'from': 'nut', 'to': 't', 'head': 'many', 'text': 'có', 'labelColor': 'muted', 'badgeColor': 'l2'},
         {'t': 'cells', 'id': 'c', 'x': 0, 'y': 300, 'cw': 40, 'ch': 40, 'labels': ['', '7', 'k']}]}
 
     def _rut(self):
@@ -175,8 +175,15 @@ class TestNhan:
         for s in ('Câu chú thích', 'Gửi đơn', 'tường lửa', 'id', 'tên', 'Lan', 'có', 'k'):
             assert s in thay
         # id, token màu, tên icon, kiểu đầu mũi tên, chuỗi rỗng và số không phải chữ để dịch
-        for s in ('nut', 'l4', 'firewall', 'many', 'box', '', '7', '1'):
+        for s in ('nut', 'l4', 'firewall', 'many', 'box', '', '7', '1', 'muted', 'l2'):
             assert s not in thay
+
+    def test_so_thap_phan_duoc_rut_de_doi_dau(self):
+        # "16,1" is written "16.1" in English: a bare decimal is a label to translate, a bare integer is not
+        thay = []
+        ve._chu({'elements': [{'t': 'text', 'text': '16,1'}, {'t': 'text', 'text': '200.000'}, {'t': 'text', 'text': '20'}]},
+                lambda s: thay.append(s) or s)
+        assert thay == ['16,1', '200.000']
 
     def test_dich_va_bao_nhan_thieu(self, tmp_path):
         src = tmp_path / 'hinh.json'
@@ -318,6 +325,19 @@ class TestDuongDoc:
         _, nhac = _doc(spec, 'mechanism')
         assert not any('carry no label' in n for n in nhac)
 
+    def test_mau_chu_giai_va_mui_ten_chi_khong_can_nhan(self):
+        spec = [{'t': 'box', 'id': 'a', 'x': 0, 'y': 0, 'w': 100, 'h': 50, 'text': 'biển'},
+                {'t': 'box', 'id': 'b', 'x': 200, 'y': 0, 'w': 100, 'h': 50, 'text': 'mây'},
+                {'t': 'arrow', 'from': 'a', 'to': 'b', 'text': 'bay hơi', 'dashed': True},
+                {'t': 'legend', 'x': 0, 'y': 120, 'items': [{'line': True, 'text': 'nước lỏng'}]},
+                {'t': 'arrow', 'points': [[50, 200], [50, 56]], 'dashed': True, 'color': 'muted', 'weight': 1}]
+        _, nhac = _doc(spec, 'knowledge-summary')
+        assert not any('carry no label' in n for n in nhac)
+        # a dashed arrow drawn at full weight is a relation (vapour), so it still needs its label
+        spec[2] = {'t': 'arrow', 'from': 'a', 'to': 'b', 'dashed': True}
+        _, nhac = _doc(spec, 'knowledge-summary')
+        assert any('1 of 1 arrows carry no label' in n for n in nhac)
+
     def test_tong_hop_qua_nhieu_khoi(self):
         spec = [{'t': 'box', 'id': f'k{i}', 'x': i * 120, 'y': 0, 'w': 100, 'h': 40, 'text': f'ý {i}'} for i in range(11)]
         _, nhac = _doc(spec, 'knowledge-summary')
@@ -339,3 +359,37 @@ class TestSoVoiNguon:
         nhac = ve.so_voi_nguon(conv, 'allocates a 50-byte array; 64 bytes are written; 200_000 times', 'bai.md')
         assert len(nhac) == 1 and ': 17.' in nhac[0]
         assert ve.so_voi_nguon(conv[:1][:0], 'x', 'bai.md') == []
+
+    def test_ten_thang_tieng_anh_khop_ngay_viet(self):
+        conv = [{'type': 'text', 'text': 'bản vá 17/11/2026'}]
+        assert ve.so_voi_nguon(conv, 'Oracle released a patch at 1:00pm PT on Nov 17, 2026.', 'bai.md') == []
+
+    def test_ket_qua_co_phep_tinh_khong_bi_nhac(self):
+        conv = [{'type': 'text', 'text': '40 nhà × 2 lần\n= 80 lượt'}, {'type': 'text', 'text': 'tổng 95 lượt'}]
+        nhac = ve.so_voi_nguon(conv, '40 nhà, mỗi nhà 2 lần', 'bai.md')
+        assert len(nhac) == 1 and ': 95.' in nhac[0] and '80' not in nhac[0]
+
+    def test_don_vi_nghin_trieu_khop_so_day_du(self):
+        # a translated figure spells the source's "200 nghìn" / "3,6 triệu" in full, and the other way round
+        conv = [{'type': 'text', 'text': 'lose 200,000 VND, 3,600,000 VND, 1.5 million'}]
+        assert ve.so_voi_nguon(conv, 'mất 200 nghìn, máy 3,6 triệu, thang 1,5 triệu', 'bai.md') == []
+        conv = [{'type': 'text', 'text': 'mất 200 nghìn, 12 triệu'}]
+        nhac = ve.so_voi_nguon(conv, 'a fee of 200,000 VND', 'bai.md')
+        assert len(nhac) == 1 and ': 12.' in nhac[0]
+
+    def test_so_phien_ban_tach_phan(self):
+        conv = [{'type': 'text', 'text': 'cả bản 21, 25'}]
+        assert ve.so_voi_nguon(conv, 'vulnerable: 17.0.21.0.3, 21.0.13.0.3, 25.0.5.0.3', 'bai.md') == []
+
+
+class TestHinhPhinh:
+    def test_goi_y_hinh_thoi_tinh_theo_nua_giua(self):
+        # a diamond holds text in its middle half: the box formula said 206 for a one-liner that needed about 320
+        sk = [{'id': 'd', 'type': 'diamond', 'x': 0, 'y': 0, 'width': 200, 'height': 80, 'strokeColor': '#000',
+               'label': {'text': 'Có thẻ BHYT không?', 'fontSize': 16}}]
+        conv = [{'id': 'd', 'type': 'diamond', 'x': 0, 'y': 0, 'width': 200, 'height': 150, 'strokeColor': '#000',
+                 'backgroundColor': 'transparent', 'angle': 0}]
+        cung, _ = ve.soat(conv, {}, [], [], sk)
+        assert len(cung) == 1 and 'middle half' in cung[0]
+        can = int(cung[0].split('`w` at least 2 × text width + 24 = ')[1].split(',')[0])
+        assert can >= 320

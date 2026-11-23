@@ -37,6 +37,8 @@ Contents: [File skeleton](#file-skeleton) · [Common properties](#common-propert
 | `weight` | number | Stroke weight, default 2. Use 4 to emphasize one line |
 | `size` | number | Font size. Default 20 for text in shapes, 16 for arrow labels |
 | `opacity` | 0-100 | Rarely needed |
+| `rough` | 0-2 | Hand-drawn roughness, default 1. `0` draws a clean straight stroke: use it for a level reference line (a threshold, an `ssthresh` level, a capacity line) that the hand-drawn wobble would make read as sloping |
+| `ghost` | `true` | A `box` with no border, only its fill: a background band (a data region under a growing area, a highlighted time window). The tool skips it in the overflow and crossing checks, so keep text off its edges yourself |
 | `id` | string | Target for arrows and notes. Must be unique. A free `text` is never a target, even with an `id`: point a `points` arrow at it |
 
 ## Primitive elements
@@ -48,7 +50,7 @@ Contents: [File skeleton](#file-skeleton) · [Common properties](#common-propert
 ```
 
 `x y w h` are required.
-Optional: `text` (line break with `\n`), `sharp` (square corners, `box` only), `align` (`left|center|right`), `valign` (`top|middle|bottom`).
+Optional: `text` (line break with `\n`), `textColor` (text color when it should differ from the border: an accent border on a tinted box keeps `ink` text readable in both themes), `sharp` (square corners, `box` only), `align` (`left|center|right`), `valign` (`top|middle|bottom`).
 
 Excalidraw auto-expands a shape when its text does not fit, which shifts the whole layout, and the tool reports `✗`.
 A diamond or ellipse needs about twice the text width and twice the text height.
@@ -69,10 +71,12 @@ An all-caps label such as a Redis command is wider than the 0.52 rule: count cap
 | `bend` | Offset in units to curve the arrow, negative curves the other way. Two opposite arrows between two shapes: give both the same `bend` |
 | `route` | Orthogonal routing: `hv` `vh` `hvh` `vhv`. Add `shift` to move the middle segment |
 | `points` | Replaces `from`/`to`: a list of absolute coordinates. The path is straight between its points (a flow with corners); add `smooth: true` to round it into a curve |
+| `labelColor` | Color of the label when it should differ from the line (a `muted` amount on a `hot` path) |
 | `text` | Label at the middle of the arrow. Three words at most; an identifier, an endpoint or a step number counts as one word. `\n` gives a second line |
 | `head` `tail` | `arrow` `triangle` `dot` `bar` `none`. ER ends: `one` `many` `one-many` `zero-one` `zero-many` (crow's foot; the two `zero-` ends add the hollow ring of an optional side, which Excalidraw lacks, so Mermaid `|o` and `o{` keep their meaning). On a `dashed` or `dotted` arrow the ER ends and rings stay solid: Excalidraw would dash them into stubs, so the tool draws each ER end on its own solid 40-unit segment. UML ends: `inherit` (hollow triangle) `compose` (filled diamond) `aggregate` (hollow diamond) `circle`. `both: true` gives arrowheads at both ends |
 | `labelAt` `labelDx` `labelDy` | Any of these turns the label into free text beside the line instead of a label that breaks the line. `labelAt` is a position along the whole drawn path, corners included: 0 to 1 is a fraction of its length, above 1 is units from the start (default 0.5). On a routed arrow check which segment that lands on. `labelDx` `labelDy` offset the label centre from that point; the default puts it above a horizontal segment (4 units clear, measured on Excalidraw's real 1.35 line height) and right of a vertical one. A hand-set `labelDy` on a horizontal segment needs at least half the label's height + 4: 15 for one line at size 16, 26 for two lines. Use on short arrows, on routed arrows whose midpoint is a corner, and on ER edges so the feet stay visible |
 | `id` | With an id, a `note` can point at the arrow's midpoint. Declare the arrow before the note |
+| `axis` | `true` marks the arrow as an axis (a scale, not a relation), so the unlabelled-arrow check of strategies `knowledge-summary`, `life-problem`, `idea` skips it. The `axis` and `plot` macros set it |
 
 ### `line`
 
@@ -171,6 +175,9 @@ The `title` sits 28 units above the top-left corner, so an edge entering the top
 {"t":"entity","id":"o","x":300,"y":0,"w":190,"name":"orders","fields":["id  PK","user_id  FK","total"]}
 ```
 
+An entity is `50 + 24 × fields` tall: a 36-unit header, then the fields at size 16, 20 units per line.
+Field i (from 0) is centred `51 + 20 i` units below `y`; to land an edge on that row, `fromAt`/`toAt` = that offset / the height, with `fromSide`/`toSide` set (a held-out run read the `.excalidraw` to find this).
+
 ### `code`: dark-background code block
 
 ```json
@@ -179,6 +186,7 @@ The `title` sits 28 units above the top-left corner, so an edge entering the top
 
 Dark background in both themes, monospace text.
 Width is computed from the longest line, or set `w` (equal `w` lines up several blocks so arrows leave them at one x).
+The computed width is `characters × 0.52 × size × 1.17 + 32`: a 30-character line is 306 units at size 15 and 277 at size 13. Plan two blocks side by side with this before choosing the size; going below 14 to fit trips the small-text nudge in a 666 column.
 The `title` counts as a line: a `w` narrower than the longest line or title stops the tool, since text over the box is free text and no overflow check sees it leave the box.
 `color` (`err` `node` `l4`) draws the border in that accent at weight 2; the text stays light on dark, so the border is the only way to mark one block as the failing run, the silent run or the diff under discussion.
 `size` sets the code font; the `title` follows it down (never above 15), so a size-12 block does not sit under a bigger heading.
@@ -193,6 +201,7 @@ Line i (from 0) of `text` is centred at `y + 38 + 18.75 i + 9.4` with a `title` 
 ```
 
 `dir: "y"` for a vertical axis (arrowhead pointing up).
+A tick labelled `""` draws the mark with no text, for a scale whose every step does not need a number.
 `gap` is the distance between two ticks, counted from the origin: **set it when ticks must line up with the edge of a cell or bar above**, otherwise ticks are spread evenly.
 
 ### `span`: bracket measuring a range
@@ -212,7 +221,7 @@ Line i (from 0) of `text` is centred at `y + 38 + 18.75 i + 9.4` with a `title` 
 ```
 
 - `x`,`y` is the **bottom-left corner** of the plot area (the only exception to the top-left rule).
-- `bars`: `label` below the bar, `text` above the bar. Bars are filled `hachure` with the `fill` color by default (no `fill` means the bar's own `color`); set `"fillStyle":"solid"` per bar for a solid fill.
+- `bars`: `label` below the bar, `text` above the bar. Bars are filled `hachure` with the `fill` color by default (no `fill` means the bar's own `color`); set `"fillStyle":"solid"` per bar for a solid fill. Use solid for bars under about 15 units tall: 27 hachure bars of value 1 at 7 units read as one dashed strip, not as countable bars.
 - `lines`: `[{"points":[[x,y],...],"color":..,"label":..}]`, coordinates in data units. Set `xmax` and `max` to fix the scale.
 - `thresholds`: dashed horizontal lines. The label is drawn to the RIGHT of the plot area, outside `w`: leave room for it. Bar labels and `ylabel` also fall outside the `x`/`w` box.
 - `{"gap": true}` in `bars` leaves one empty slot: put it before a total bar so it does not read as one more part (a `value` 0 bar still draws a 2-unit stub that looks like an unlabelled part).
@@ -303,7 +312,8 @@ Consecutive boxes are joined by straight arrows.
 ```
 
 - `nw` `nh`: default node size. `dx`: distance between two nodes on the same level. `dy`: distance between two levels.
-- Each node: `text`, `shape` (`box` `ellipse` `diamond`), its own `w` `h`, `color` `fill`, `edge` (label on the edge from the parent), `edgeDashed`, `id`.
+- Each node: `text`, `shape` (`box` `ellipse` `diamond`), its own `w` `h`, `color` `fill`, `edge` (label on the edge from the parent), `edgeDashed`, `edgeColor` (that edge's color, for one example's path through the tree), `id`. `edgeColor` on the tree itself sets every edge.
+- A `diamond` holds its text in its middle half: about `2 × text width + 24` wide (a 160-unit one-liner at size 16 needs 320). Break a question into two short lines, or use a rounded box with the question for a non-technical reader.
 - `dir: "right"` for a tree growing sideways. `lines: true` for edges without arrowheads.
 - `nh` must equal the height of the TALLEST node, because level spacing is computed from it.
 
@@ -350,7 +360,8 @@ Place other elements on top using normal coordinates.
 
 - A node sits at the centre of its `lane` column on grid row `row`. `dx` `dy` nudge it. Two nodes may share a row in different lanes.
 - `kind`: `step` (default, rounded box), `decision` (diamond), `merge` (small diamond), `start` (filled dot), `end` (ringed dot).
-- Nodes take `text w h size color fill fillStyle dashed`. Macro defaults: `nw` 150, `nh` 56, `size` 16.
+- Nodes take `text w h size color fill fillStyle dashed textColor`. Macro defaults: `nw` 150, `nh` 56, `size` 16; `nh` is a minimum, a node grows with its lines (two lines at size 15 come out 64 tall), so compute row gaps from the grown height.
+- `n` on a node puts a numbered `badge` on its top-left corner (`badgeColor`, default `l2`; `badgeSize`, default 15, which stays at 12px or more up to about 830 units wide): the step numbers strategy `process-flow` asks for, without writing `1.` into the text.
 - Without `w`/`h` a node sizes itself to its text, including multi-line text. A diamond needs about twice its text width, so keep decision text to two or three words or the diamond outgrows its lane. An explicit `w`/`h` always wins.
 - Two columns in one lane: widen the lane, set `w` on both nodes and give them `dx` (for example lane `w` 320, node `w` 120, `dx` -75 and +75). `fromAt`/`toAt` on an edge are fractions along the chosen side, measured from the left or the top.
 - Edges are arrows and take every `arrow` property. Without `route`/`fromSide`/`toSide`/`bend` the macro routes them: straight between nodes on the same centre line or the same row, `vhv` from a step to a node in another column, `hv` out of the side of a decision that faces the target.
@@ -373,7 +384,7 @@ Both are arrow targets.
 | `t` | Use for | Example |
 |---|---|---|
 | `note` | Free note, can point a dashed line at something. `color` colors the pointer too. Keep the note 45 units or more from its target or the pointer is too short | `{"t":"note","x":330,"y":60,"text":"đụng độ","to":"e2","color":"err"}` |
-| `badge` | Numbered step circle. Disc filled with its color's tint; `muted` and `ink` have no tint and get `soft` (a muted badge stopped the render until the) | `{"t":"badge","x":276,"y":4,"n":1,"color":"node"}` |
+| `badge` | Numbered step circle. Disc filled with its color's tint; `muted` and `ink` have no tint and get `soft` (a muted badge stopped the render until the). Its number's box reaches 6 units left of `x`, so a badge at `x` 0 widens the figure: start it at `x` 6 or more. Put the heading text beside it at `x + d + 6` (36 for the default `d` 30); closer, the text touches the disc | `{"t":"badge","x":276,"y":4,"n":1,"color":"node"}` |
 | `steps` | Numbered step list placed beside the figure | `{"t":"steps","x":400,"y":60,"title":"Khi node C chết","items":["...", {"text":"...","color":"muted"}]}` |
 | `card` | Card with an underlined title: API, requirements, figures | `{"t":"card","x":340,"y":250,"title":"API","text":"POST /orders","mono":true}` |
 | `legend` | Legend for colors and stroke styles | `{"t":"legend","x":560,"y":330,"items":[{"color":"hot","fill":"hot","text":"đường đi"},{"color":"err","line":true,"dashed":true,"text":"lỗi"}]}` |
@@ -505,7 +516,7 @@ There is no browser-free mode: the shapes, the text measuring and the SVG come f
 | `•` / `✗` | Text that works as attack input: 16+ identical characters, `\x..` bytes, a shell command, `${jndi:`. `✗` under strategy `vulnerability` | Write the shape of the input (`64 ký tự + "="`, `<payload>`) |
 | `•` | Strategy `knowledge-summary` `life-problem` `idea`: an arrow with no label (dashed note pointers excepted) | Label it with the relation (`làm tăng`, `cần`) or the sign (`+`, `-`) |
 | `•` | Strategy `knowledge-summary` `note`: more than 9 main shapes | Keep the 4 to 7 on the main claim, or split into overview and zoom |
-| `•` | With `--source` or `"source"`: numbers in the figure that the source does not contain (single digits skipped; `200 000`, `200_000` and `200,000` match). Strategy `incident` or `vulnerability` without a source asks for one | Keep a number only if its arithmetic is in the figure; otherwise take it from the source |
+| `•` | With `--source` or `"source"`: numbers in the figure that the source does not contain (single digits skipped; `200 000`, `200_000` and `200,000` match, and so do `200 nghìn` and `200,000`, `3,6 triệu` and `3,600,000`, in either direction). Strategy `incident` or `vulnerability` without a source asks for one | Keep a number only if its arithmetic is in the figure; otherwise take it from the source |
 | `•` | Figure shows taller than one screen (900px in the column) | Split it: the nudge names an empty band near the middle where the figure can be cut, between which two labels; for a sequence, repeat the actor row in the second figure |
 | `•` | Figure wider than 888 units, so text shrinks below 3/4 | Stack the parts vertically or split: the nudge names an empty vertical band if there is one |
 | `•` | Only rounded boxes joined by arrows, and at least one arrow carries no label (`code` blocks do not count; a figure whose every edge names its relation, like a concept map or causal loop, passes) | Reconsider the figure type, or say on each arrow what flows or changes |

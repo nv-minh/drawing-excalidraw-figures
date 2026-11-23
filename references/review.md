@@ -22,6 +22,12 @@ Pass 1 matters most and is skipped most, because pass 2 and 3 errors are easier 
 - **Stranger**: what can a reader who has not read the source retell after 10 seconds with this figure? If you would have to say "ignore this part", delete that part.
 - Does every arrow answer "what flows here, in which direction"?
 - Is every label true? Check numbers and names against the lesson, do not trust memory.
+- **The four misreads a held-out test caught** (13 figures on new content, one pass, 5 failed a strict fresh-eyes review):
+  - A style in the key used for something outside it: "solid = liquid water", then the sun's heat drawn solid.
+  - A placeholder where the real data belongs: `k → v` in a URL shortener's cache, with no URL anywhere in the figure.
+  - A number that argues for a change but is not measured against today: "180 giờ tập trung" when the figure's own strip showed most of those hours were already free.
+  - A reply dropped although a later step uses its value: `payUrl` appeared with nothing that returned it.
+- **Pointers**: read each note, then follow its line. Does it end on the exact cell, box or edge the note talks about? A Heartbleed note about the claimed length pointed at the real payload cell next to it.
 
 If this pass fails, change the figure type (go back to the table in SKILL.md), do not tweak coordinates.
 
