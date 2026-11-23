@@ -32,6 +32,8 @@ When there is someone to ask, the skill shows the first draft and asks "is this 
 <p align="center"><img src="docs/images/y-tuong/ghi-chu-light.png" alt="A quitting-decision note drawn as a timeline" width="620"></p>
 
 Four non-technical cases live in `evals/`, with results and lessons in `references/lessons-from-runs.md`.
+The `nguoi-moi-mat-khau-salt` case measures whether a newcomer understands the figure: the judge looks at the PNG as a parent who never programmed and answers three questions from the image alone.
+Run it as a controlled comparison (with and without the skill, reported as `Δ`) as described in `evals/README.md`.
 
 ## The rules that carry weight
 
@@ -44,12 +46,16 @@ nothing guessed, every rule has its source recorded in `references/sources.md`.
 
 ## The six-step workflow
 
-1. Write exactly one sentence: "Looking at this figure, the reader SEES ... which the passage does not show." If you cannot write that sentence, do not draw.
+1. Ask who the reader is and what they already know (newcomer, developer, specialist), list the terms the figure must explain, and pick compact or newcomer-explainer mode. Then write exactly one sentence: "Looking at this figure, the reader SEES ... which the passage does not show." If you cannot write that sentence, do not draw.
 2. List the facts: actors, steps, failure branches, real numbers taken verbatim from the source. For a rough idea: concepts, relations, tensions, and what the writer wants the reader to believe.
 3. Pick the figure type by what must be seen (sequence, swimlane, state, ER, byte cells, timeline, threshold...).
 4. Write the JSON spec - copy a template from `examples/`, never start from scratch.
 5. Render with `ve.py`.
-6. Open both PNGs and look until the figure can say the sentence from step 1. A green tool does not yet mean a readable figure.
+6. Open both PNGs and look until the figure can say the sentence from step 1 to that reader. A green tool does not yet mean a readable figure.
+
+A figure can be right in every fact and still useless if it assumes the reader knows Base64, the heap or JIT: that is why step 1 asks about the reader first.
+For newcomers the skill goes from an everyday example to the mechanism, puts a plain sentence beside each part, and has a ready "explained flow" type (`30-explained-flow`): a number, one line and a small example per step.
+For security topics it draws the mechanism and the defence, and stops before anything that works as attack instructions (details in `SKILL.md`).
 
 ## Install
 
@@ -58,13 +64,18 @@ Requirements: Python 3.11+, Playwright Chromium, and the fonts already in `asset
 ```bash
 git clone https://github.com/nv-minh/drawing-excalidraw-figures.git
 cd drawing-excalidraw-figures
-pip install -r requirements.txt
-python3 -m playwright install chromium
+python3 -m pip install -r requirements.txt && python3 -m playwright install chromium
 
-# try a bundled example right away
-python3 scripts/ve.py examples/03-byte-cells.json --out /tmp/fig
-open /tmp/fig/03-byte-cells-light.png
+# check the environment: Python, Playwright, Chromium; prints the install command for anything missing
+python3 scripts/ve.py --check
+
+# try a bundled example right away and open what it rendered
+python3 scripts/ve.py examples/03-byte-cells.json --out /tmp/fig --open
 ```
+
+A missing Playwright makes `ve.py` print the one command that installs it, not a traceback.
+Without Playwright's Chromium, `ve.py` uses the Chrome or Edge already installed (identical SVG); it asks you to install Chromium only when there is no browser at all.
+There is no browser-free mode: the shapes, the text measuring and the SVG all come from the real Excalidraw library running in a browser.
 
 For Claude Code to use it as a skill, put the whole folder into your skills directory:
 
@@ -112,11 +123,23 @@ A text-only model can still draw - you just open the PNGs yourself.
 Run `python3 scripts/ve.py spec.json` and the four files appear.
 Full syntax of every element: `references/spec.md`.
 
-## Twenty-nine figure types with ready templates
+A few utilities come with it:
 
-`examples/` holds 29 templates: request flow, anatomy, byte cells, timeline, threshold, before/after, two views, physical metaphor, failure branch, decision tree, sequence (including alt/opt/loop), state machine, ER table, hash ring, code evidence, layer lanes, progressive series, layer stack, curve, icon, swimlane, composite state, ER crow's foot, system two flows, causal loop, 2x2 matrix, funnel, concept map.
+```bash
+python3 scripts/ve.py spec.json --open                       # render, then open both PNGs
+python3 scripts/ve.py a.json b.json --page post.html \
+    --title "Base64 for newcomers" --caption "Two figures, read in order"   # several figures on one page; .pdf works too
+python3 scripts/ve.py spec.json --extract-labels en          # pull every label into spec.en.labels.json to translate
+python3 scripts/ve.py spec.json --lang en                    # render the English version, spec untouched
+```
 
-Each template is a runnable JSON spec with English labels.
+A spec's `"caption"` (the step 1 sentence) is printed under its figure on the `--page` page and is translated with the labels.
+
+## Thirty figure types with ready templates
+
+`examples/` holds 30 templates: request flow, anatomy, byte cells, timeline, threshold, before/after, two views, physical metaphor, failure branch, decision tree, sequence (including alt/opt/loop), state machine, ER table, hash ring, code evidence, layer lanes, progressive series, layer stack, curve, icon, swimlane, composite state, ER crow's foot, system two flows, causal loop, 2x2 matrix, funnel, concept map, explained step-by-step flow.
+
+Each template is a runnable JSON spec with Vietnamese labels; `--extract-labels en` and `--lang en` render it in English without editing it.
 
 ## Color is meaning
 
@@ -126,9 +149,11 @@ Colors accept token names only - the tool refuses hex codes - so a figure can ne
 
 ## What the tool checks by itself
 
-Hard errors (`✗`): a box expanded by Excalidraw because its text did not fit, text overflowing its frame, text under 8px on screen, colors that are not tokens.
-Soft reminders (`•`): an arrow crossing a box, a label as long as its arrow, an arrowhead landing on another arrow's start point, more than three accents, a figure that is only boxes and arrows.
-Whether the figure tells the right story is something only a human eye can check - that is step 6.
+Hard errors (`✗`): a box expanded by Excalidraw because its text did not fit, text overflowing its frame, text under 8px on screen, colors that are not tokens, spec errors (naming the element: index, `t`, `id`, start of its text).
+Soft reminders (`•`): an arrow crossing a box, a label as long as its arrow, an arrowhead landing on another arrow's start point, more than three accents, a figure that is only boxes and arrows, a figure taller than one screen or wider than the column.
+Many reminders carry the fix: a crossing arrow gets a `route`/`bend` already tested to clear it, overlapping text gets a new `y`, a too-tall figure gets the place where it splits.
+Text in a figure such as `lỗi #1480` is never mistaken for a color code.
+Whether the figure tells the right story is something only a human eye can check - that is step 6, and `evals/` measures it across runs.
 
 ## Four models, one brief
 
@@ -144,16 +169,16 @@ engine/             the real render engine (Excalidraw + Playwright Chromium)
 .cache/             prebuilt Excalidraw bundle; rebuild with scripts/excalidraw-bundle.mjs
 assets/             icons.json 188 icons + Nunito, Patrick Hand, IBM Plex Mono fonts
 references/         figure-type rules, spec syntax, visual language, review checklist
-examples/           29 template spec JSONs
+examples/           30 template spec JSONs
 evals/              evaluation briefs
-tests/              unit tests for theme/renderer + a golden render of all 29 examples
+tests/              unit tests for theme/renderer + a golden render of all 30 examples
 docs/               landing page + the four-model comparison
 ```
 
 ## Tests
 
 Setup: `pip install -r requirements.txt pytest` (the golden render additionally needs `playwright install chromium`).
-`python3 -m pytest` runs 69 tests: units for the color system (`engine/theme.py`), the token gate and spec compiler (`scripts/ve.py`), icon building (`scripts/build_icons.py`), and a golden render that runs the real `ve.py` over all 29 examples, then checks for off-token colors, raw lit hexes and valid `.excalidraw` scenes.
+`python3 -m pytest` runs 100 tests: units for the color system (`engine/theme.py`), the token gate and spec compiler (`scripts/ve.py`), element-naming spec errors, fix suggestions, the flow macro, label translation, the multi-figure page, icon building (`scripts/build_icons.py`), and a golden render that runs the real `ve.py` over all 30 examples, then checks for off-token colors, raw lit hexes and valid `.excalidraw` scenes.
 Skip the render (~80 seconds): `python3 -m pytest -m "not slow"`.
 GitHub Actions runs the whole suite in `.github/workflows/tests.yml`; the bundle and fonts are committed, so CI needs no Node and runs offline.
 

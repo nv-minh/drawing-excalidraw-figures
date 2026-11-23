@@ -1,15 +1,15 @@
 {"_": "Business flow with swimlanes: one column per role, steps placed by (lane,row), decisions are diamonds with labelled branches, every branch converges on one shared step (Lưu quyết định) before the flow continues.",
  "elements": [
- {"t":"swimlane","x":0,"y":0,"laneW":175,"rowH":122,
+ {"t":"swimlane","x":0,"y":0,"laneW":175,"rowH":108,
   "lanes":[{"id":"nv","label":"Nhân viên"},{"id":"ql","label":"Quản lý"},{"id":"hr","label":"HR"},{"id":"sys","label":"Hệ thống","w":215}],
   "nodes":[
    {"id":"s","lane":"nv","row":0,"kind":"start","dy":16},
    {"id":"gui","lane":"nv","row":1,"text":"Gửi đơn nghỉ"},
    {"id":"kt","lane":"sys","row":1,"text":"Kiểm tra số ngày còn","w":180},
-   {"id":"du","lane":"sys","row":2,"kind":"decision","text":"đủ ngày?"},
+   {"id":"du","lane":"sys","row":2,"kind":"decision","text":"đủ ngày?","h":76},
    {"id":"tc","lane":"sys","row":3,"text":"Tự từ chối","color":"err","dashed":true,"w":130},
    {"id":"xet","lane":"ql","row":3,"text":"Xét duyệt","w":130},
-   {"id":"n5","lane":"ql","row":4,"kind":"decision","text":"> 5 ngày?","w":170},
+   {"id":"n5","lane":"ql","row":4,"kind":"decision","text":"> 5 ngày?","w":170,"h":76},
    {"id":"hrx","lane":"hr","row":5,"text":"HR duyệt lần cuối","w":160},
    {"id":"luu","lane":"sys","row":6,"text":"Lưu quyết định","color":"l4","fill":"l4"},
    {"id":"mail","lane":"sys","row":7,"text":"Gửi email kết quả","w":170},

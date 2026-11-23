@@ -7,6 +7,7 @@ Contents: [File skeleton](#file-skeleton) · [Common properties](#common-propert
 ```json
 {
   "_": "ghi chú tự do, công cụ bỏ qua",
+  "caption": "câu 'người đọc THẤY ...' của bước 1",
   "extends": "buoc-1.json",
   "dimBase": true,
   "remove": ["id-cũ"],
@@ -18,6 +19,7 @@ Contents: [File skeleton](#file-skeleton) · [Common properties](#common-propert
 - `x`,`y` of every element is its **top-left corner**. Negative coordinates work, the frame fits the content tightly.
 - Order in `elements` is draw order: a later element sits on top of an earlier one.
 - `extends`, `dimBase`, `remove` are only for progressive figure series, see [Layout and reuse](#layout-and-reuse).
+- `caption` is optional: the step 1 sentence. `--page` prints it under the figure; it is translated with the labels.
 
 ## Common properties
 
@@ -62,7 +64,7 @@ An all-caps label such as a Redis command is wider than the 0.52 rule: count cap
 | `fromAt` `toAt` | Position along the edge, 0 to 1, default 0.5. Always name the side too (`fromSide`/`toSide`) when you pin a position: with `fromAt` alone the tool picks the side itself and the arrow can leave from a different edge than planned (three arrows left a container frame from mid-bottom at wrong x and one crossed a neighbouring label) Use when several arrows share one edge. When only one end is pinned, the free end aims at that pinned point, so `toSide: "left"` + `toAt` on a tall target gives a level arrow from a box at that height (before this rule the free end aimed at the target's centre and the arrow sloped) |
 | `bend` | Offset in units to curve the arrow, negative curves the other way. Two opposite arrows between two shapes: give both the same `bend` |
 | `route` | Orthogonal routing: `hv` `vh` `hvh` `vhv`. Add `shift` to move the middle segment |
-| `points` | Replaces `from`/`to`: a list of absolute coordinates. Three or more points make a curve, add `sharp` to keep sharp corners |
+| `points` | Replaces `from`/`to`: a list of absolute coordinates. The path is straight between its points (a flow with corners); add `smooth: true` to round it into a curve |
 | `text` | Label at the middle of the arrow. Three words at most; an identifier, an endpoint or a step number counts as one word. `\n` gives a second line |
 | `head` `tail` | `arrow` `triangle` `dot` `bar` `none`. ER ends: `one` `many` `one-many` `zero-one` `zero-many` (crow's foot; the two `zero-` ends add the hollow ring of an optional side, which Excalidraw lacks, so Mermaid `|o` and `o{` keep their meaning). On a `dashed` or `dotted` arrow the ER ends and rings stay solid: Excalidraw would dash them into stubs, so the tool draws each ER end on its own solid 40-unit segment. UML ends: `inherit` (hollow triangle) `compose` (filled diamond) `aggregate` (hollow diamond) `circle`. `both: true` gives arrowheads at both ends |
 | `labelAt` `labelDx` `labelDy` | Any of these turns the label into free text beside the line instead of a label that breaks the line. `labelAt` is a position along the whole drawn path, corners included: 0 to 1 is a fraction of its length, above 1 is units from the start (default 0.5). On a routed arrow check which segment that lands on. `labelDx` `labelDy` offset the label centre from that point; the default puts it above a horizontal segment (4 units clear, measured on Excalidraw's real 1.35 line height) and right of a vertical one. A hand-set `labelDy` on a horizontal segment needs at least half the label's height + 4: 15 for one line at size 16, 26 for two lines. Use on short arrows, on routed arrows whose midpoint is a corner, and on ER edges so the feet stay visible |
@@ -76,9 +78,8 @@ An all-caps label such as a Redis command is wider than the 0.52 rule: count cap
 
 A stroke without arrowheads.
 `closed: true` makes a closed, fillable polygon: a bucket, a funnel, a trapezoid, a block arrow.
-`smooth: true` rounds it into a curve.
-An open line of three or more points is ALREADY smoothed by default (`ve.py` sets `smooth` unless `sharp` or `closed`), so add `sharp: true` for straight segments.
-A `[` bracket drawn as four points without it came out as a parenthesis that bulged into the table beside it.
+Straight between its points by default; `smooth: true` rounds it into a curve.
+A `[` bracket drawn as four points used to come out as a parenthesis that bulged into the table beside it, back when open lines were smoothed by default.
 
 ### `text`
 
@@ -270,6 +271,24 @@ Fragments and separators are entries in the same `messages` list:
   Its width comes from `over`, not from the text: over one actor it is only 80 wide, so a longer note needs a second actor in `over`.
   Note text may take `\n`: the box grows by 15 × 1.35 per line and the next message moves down with it (before the aws1 run it stayed 34 tall and Excalidraw grew it over the next message).
 
+### `flow`: explained step-by-step flow
+
+```json
+{"t":"flow","id":"b64","x":0,"y":0,"title":"Base64 mã hoá chữ \"Man\"",
+ "steps":[
+   {"title":"Lấy 3 byte","text":"mỗi lần đọc 3 ký tự\n= 24 bit","example":"M→77  a→97\nn→110"},
+   {"title":"Ghép lại","text":"3 byte thành 4 ký tự","example":"\"TWFu\"","color":"node","edge":"đủ 24 bit"}]}
+```
+
+Steps run top to bottom, one row each: a numbered `badge`, a box with `title`, the `text` line beside it, the `example` card at the right.
+Consecutive boxes are joined by straight arrows.
+
+- A step takes `title` (required), `text`, `example`, `color`, `fill`, `dashed`, `edge` (label on the arrow coming into this step), `edgeColor`, `edgeDashed`, `badgeColor`, `textColor`.
+- `example` is a string (a dashed `l2` mono card) or a `card` object: `{"text":..,"title":"ví dụ","mono":false,"color":"l4"}`. `exampleMono: false` on the flow makes every example plain text, for everyday examples.
+- Flow options: `title`, `w` (box width, default fits the longest title), `gap` (between rows, default 44), `size` (title, 17), `textSize` (15), `exampleX` (x of the example column), `start` (first number, default 1).
+- Step i is the box with id `<id>.<i>`: notes and other arrows can point at it.
+- A colored step (`node`, `err`, `l4`) fills its box with that tint and colors its badge; the others stay `ink` with an `l2` badge.
+
 ### `tree`
 
 ```json
@@ -414,18 +433,39 @@ Do not move old elements: a fixed position is what lets the reader see what is n
 ## Command line
 
 ```bash
+python3 scripts/ve.py --check                  # environment: Python, Playwright, Chromium, with the fix command for each
 python3 scripts/ve.py a.json b.json            # outputs next to the spec
 python3 scripts/ve.py a.json --out /tmp/figs   # outputs elsewhere
+python3 scripts/ve.py a.json --open            # render, then open both PNGs in the system viewer
 python3 scripts/ve.py a.json --lib aws.excalidrawlib
 python3 scripts/ve.py --icons
 python3 scripts/ve.py a.json --col 1100          # preview and font check at another column width
+python3 scripts/ve.py a.json b.json --page bai.html --title "Base64" --caption "Hai hình cho người mới"
+python3 scripts/ve.py a.json --extract-labels en # writes a.en.labels.json
+python3 scripts/ve.py a.json --lang en           # renders a.en.svg, a.en-light.png ... from that file
 ```
 
 `--col` is for figures that will not sit in the default 666px reading column (a business document, a slide, a wiki page).
 Never use it to silence the font check on a figure meant for the site.
 
+`--page out.html` writes one self-contained page (fonts and color tokens inlined, follows the system light or dark theme) with every figure of the run in order, each under "Hình n." and its spec's `caption`, the whole under `--title` and `--caption`.
+A `.pdf` name prints the same page to A4 PDF in the light theme.
+
+`--extract-labels LANG` writes `<spec>.<LANG>.labels.json`: a JSON object whose keys are every reader-visible string in the spec (and its `extends` base) and whose values start as the same string.
+Translate the values and keep the keys; running it again keeps translations already made and adds new labels.
+`--lang LANG` renders with that file, so the spec stays in one language and the output is `<spec>.<LANG>.*`.
+Ids, colors, sides and icon names are never translated.
+A translated label is often longer: the usual checks (overflow, lifeline crossing) flag it, so widen in the spec, which serves both languages.
+
+`--open` opens the two PNGs of every figure (or the `--page` file) with `open` on macOS, `xdg-open` on Linux, the default app on Windows.
+
 Each figure prints one summary line, its `✗` and `•` lines, then a `→ LOOK:` block with the two PNG paths to open.
-Exit code 1 when there is at least one `✗` line.
+Exit code 1 when there is at least one `✗` line, a spec error, or a missing dependency.
+
+A missing Playwright prints the one command that installs it, never a traceback.
+Without Playwright's Chromium the tool uses the Chrome or Edge already installed (same SVG; PNG antialiasing may differ by a pixel); only when neither exists does it ask to install Chromium.
+The page loads the repo's bundle and fonts through request interception, not a local server, so it renders where binding a port is forbidden (the plugin-eval sandbox).
+There is no browser-free mode: the shapes, the text measuring and the SVG come from the real Excalidraw library, which runs in a browser.
 
 ## What the tool checks
 
@@ -437,15 +477,15 @@ Exit code 1 when there is at least one `✗` line.
 | `✗` | Smallest text below 8px on screen | Figure too wide: stack vertically or split the figure |
 | `✗` | A `code` block's `w` is narrower than its longest line or title | Raise `w` or shorten the line |
 | `✗` | A non-token color remains | Only happens with unknown icons: report it |
-| `✗` | Spec error: unknown color or fill token, unknown `t`, missing property, duplicate id, arrow end or swimlane node that matches no id, unknown `head`/`tail`, unclosed or stray fragment entry, multi-line message text, unknown icon, circular `extends` | The message names the element and the valid values |
+| `✗` | Spec error: invalid JSON, unknown color or fill token, unknown `t`, missing property, a property of the wrong type (`"w": "120"`), `points` that are not `[x, y]` pairs, duplicate id, arrow end or swimlane node that matches no id, unknown `head`/`tail`, unclosed or stray fragment entry, multi-line message text, unknown icon, circular `extends` | The message names the element (index, `t`, `id`, start of its text) and the valid values |
 | `•` | Smallest text below 12px | Compact the figure if possible |
-| `•` | Arrow passes through a shape that is not one of its two ends. A `points` arrow counts too: the shapes its first and last points touch are its ends. A `badge` without an `id` counts too (it gets the auto id `badge@x,y`; an id-less badge sitting on an arrow used to be skipped) | `bend`, `route`, or move the shape |
+| `•` | Arrow passes through a shape that is not one of its two ends. A `points` arrow counts too: the shapes its first and last points touch are its ends. A `badge` without an `id` counts too (it gets the auto id `badge@x,y`; an id-less badge sitting on an arrow used to be skipped) | For a `from`/`to` arrow the nudge names the first `route`, `bend` or `shift` that clears every shape by 10 units; otherwise `bend`, `route`, or move the shape |
 | `•` | One arrow's head lands where another arrow starts (a pair `a → b`, `b → a` is exempt, and so is a chain of two `points` arrows that turns at a joint off every shape border, such as a timeline V where a request reaches the DB lane and the reply leaves at once: 22 such nudges hid the real ones in the) | `fromAt`/`toAt`, another side, or different `points` so in and out have separate spots |
 | `•` | Two arrows leave the same spot, or reach the same spot, in the same direction, so their first or last segments share one stroke for more than 12 units (a swimlane `vhv` edge and a straight edge both leaving the bottom centre of one node, dbi3 hero run) | `fromSide`/`fromAt` on one of them, or `toAt` for two arriving |
 | `•` | An arrowhead is cut by the border of a box it does not land on: its tip is inside an enclosing `frame` and its base outside, or the reverse (an arrow entering a frame to a shape 14 units inside the border). The base is probed 26 units behind the tip, Excalidraw's ~25-unit head plus the rough stroke: a frame bottom 24 units under the tip cut the head of an arrow coming up from below and a 20-unit probe missed it (infra2 hero run) | Move the frame border 30 or more units clear of the tip, or move the target |
 | `•` | Arrow shorter than 22 units, or 64 with `both` or a `tail` (a 50-long two-headed arrow still reads as a diamond): the heads hide the line. A `dot` tail is a pointer's origin and counts as no head, here and in the cut-arrowhead check above, so a `ptr` arrow may start inside its own cell | Move the two shapes apart |
 | `•` | Label nearly as long as the arrow carrying it, measured along the arrow (its width on a horizontal arrow, its height on a vertical one) | Move the two shapes apart, shorten the label, or turn it into a `note` |
-| `•` | Free text overlaps other text or straddles a box border. Two texts also count as overlapping when their drawn glyphs collide by 6+ units both ways, even under the 18% area share: a 47-char `mono` line ran 13 units into a short table title and the tool was silent. Free `mono` text is measured at the width the SVG draws (IBM Plex Mono, 0.6 × size per character), about 20% wider than Excalidraw reports | Move the text, or shorten the `mono` line |
+| `•` | Free text overlaps other text or straddles a box border. Two texts also count as overlapping when their drawn glyphs collide by 6+ units both ways, even under the 18% area share: a 47-char `mono` line ran 13 units into a short table title and the tool was silent. Free `mono` text is measured at the width the SVG draws (IBM Plex Mono, 0.6 × size per character), about 20% wider than Excalidraw reports | The nudge gives the `y` (or `x`) that puts it clear: above, below or inside. Or shorten the `mono` line |
 | `•` | Free text sits inside a frame-sized shape (3x the text or larger) less than 4 units from its edge: the rough stroke runs through the glyphs and the straddle test misses it | Keep 6+ units clear of the edge, or grow the frame |
 | `•` | An arrow's line runs through a free text (a `vh` arrow leaving the bottom of a `cells` strip ran down through the strip's caption). A plain `line` counts too, except sequence lifelines (checked by the lifeline row below) and lines inside a 30-unit square (`cross`, `check`): a dashed time guide across every block of a timeline ran through the outcome text placed past its x. A plain `line` is also checked against text inside a shape, such as a `cells` label: a deadline guide ran down through the label of the strip under it; a filled shape drawn after the line hides it and is skipped, so a lane baseline under a filled box stays silent | Move the text beside the strip, or leave from another side; for a guide, end the text 6+ units before the guide's x or end the guide above it |
 | `•` | A detached arrow label (`labelAt`/`labelDx`/`labelDy`) rests on an arrow's line, its own or another's, within 1 unit (a two-line label at `labelDy` -22 hung over its own line and the shrunk-box check above hid it) | Raise `labelDy` to the value the message gives (half the label's height + 4) |
@@ -454,10 +494,14 @@ Exit code 1 when there is at least one `✗` line.
 | `•` | A free label touches the bar or crow of an ER end (the last ~24 units of the edge, ~8 units either side of the line) | Slide it with `labelAt` toward the middle, raise it with `labelDy` (-22 on a horizontal edge under ~130 units), or lengthen the edge |
 | `•` | A `sequence` message or self-message label runs across a lifeline (measured on Excalidraw's Nunito box, ~20% wider than the drawn glyphs). Fragment guard labels count too (an `else` guard sat on the first lifeline of template 21 and this check missed it) | Shorten the label, drop `n` numbers the text does not cite, or raise `gap` to the width the message gives |
 | `•` | More than three accent colors | Remove some colors |
-| `•` | Only rounded boxes joined by arrows (`code` blocks do not count, and at least one arrow must exist) | Reconsider the figure type |
+| `•` | Figure shows taller than one screen (900px in the column) | Split it: the nudge names an empty band near the middle where the figure can be cut, between which two labels; for a sequence, repeat the actor row in the second figure |
+| `•` | Figure wider than 888 units, so text shrinks below 3/4 | Stack the parts vertically or split: the nudge names an empty vertical band if there is one |
+| `•` | Only rounded boxes joined by arrows, and at least one arrow carries no label (`code` blocks do not count; a figure whose every edge names its relation, like a concept map or causal loop, passes) | Reconsider the figure type, or say on each arrow what flows or changes |
 
-The tool cannot check: whether the figure says the right thing, whether the layout is balanced, whether labels are true.
-Those three must be checked by eye.
+The tool cannot check: whether the figure says the right thing, whether the reader understands it, whether the layout is balanced, whether labels are true.
+Those must be checked by eye and by the retell test in `references/review.md`; `evals/` measures the first two across runs.
+
+Text in a figure is never read as a color: `lỗi #1480` or `issue #123` stay as written (they used to crash the render or turn into `var(--ink)`).
 
 An arrow `text` label cuts a gap in its line with an SVG `<mask>`.
 The tool writes the shapes inside that mask as `<path>`, not `<rect>`: `precheck.py` reads every `<rect>` as a possible background, mask content included, and failed every dark-mode text under a labelled arrow's box at about 1.2:1.

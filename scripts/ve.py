@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """Draw REAL Excalidraw figures from a short JSON spec file.
 
-    python3 scripts/ve.py <spec.json> [spec2.json ...] [--out DIR] [--col N] [--lib file.excalidrawlib]
+    python3 scripts/ve.py <spec.json> [spec2.json ...] [--out DIR] [--col N] [--lib file.excalidrawlib] [--open]
+    python3 scripts/ve.py --check            check Python, Playwright, Chromium; prints the fix command for each
     python3 scripts/ve.py --icons            list the available icons
+    python3 scripts/ve.py a.json b.json --page out.html|out.pdf [--title T] [--caption C]
+                                             every figure on one page, each under its spec's "caption"
+    python3 scripts/ve.py a.json --extract-labels en   write a.en.labels.json (label -> translation)
+    python3 scripts/ve.py a.json --lang en             render a.en.* with those labels, spec unchanged
 
 Each spec produces four files with the same name:
     <name>.excalidraw   source scene; drop it on excalidraw.com to keep editing
@@ -12,9 +17,9 @@ Each spec produces four files with the same name:
 
 Full spec syntax: references/spec.md. Uses the same @excalidraw/excalidraw library as the
 site build (.cache/exca.bundle.js). Only READS engine/; changes nothing in the repo.
-Exits 1 on a hard error (✗ lines), 0 when there are only reminders (• lines).
+Exits 1 on a hard error (✗ lines) or a missing dependency, 0 when there are only reminders (• lines).
 """
-import copy, json, math, pathlib, re, sys
+import copy, json, math, os, pathlib, re, sys
 
 SKILL = pathlib.Path(__file__).resolve().parents[1]
 # Tìm thư mục gốc chứa engine/: đứng ở repo riêng (engine/ nằm cạnh SKILL.md)
@@ -22,8 +27,12 @@ SKILL = pathlib.Path(__file__).resolve().parents[1]
 ROOT = next((p for p in (SKILL, *SKILL.parents) if (p / 'engine' / 'excalidraw.py').exists()),
             SKILL.parents[2])
 sys.path.insert(0, str(ROOT / 'engine'))
-import excalidraw as X   # noqa: E402  only borrows serve(), PAGE, _fix_mask_luminance
 import theme as T        # noqa: E402
+X = None                 # engine/excalidraw.py, loaded by _engine(): it imports Playwright at the top
+
+
+# One command, with THIS interpreter: `pip` on PATH often belongs to another Python than `python3`.
+INSTALL = f'{sys.executable} -m pip install -r "{SKILL / "requirements.txt"}" && {sys.executable} -m playwright install chromium'
 
 COT = 666            # content column width at the viewport precheck.py measures
 CHU_MIN = 8.0        # px on screen, same threshold as the precheck.py gate
@@ -69,6 +78,75 @@ class Loi(SystemExit):
 
 def chet(msg):
     raise Loi(f'✗ {msg}')
+
+
+def _engine():
+    """Load engine/excalidraw.py on first use, so --help, --icons, --check and --extract-labels work
+    without Playwright, and a missing Playwright gives the install command instead of a traceback."""
+    global X
+    if X is None:
+        try:
+            import excalidraw
+        except ModuleNotFoundError as e:
+            if (e.name or '').split('.')[0] != 'playwright':
+                raise
+            raise Loi(f'✗ Playwright is not installed for {sys.executable}. Install it with one command:\n'
+                      f'    {INSTALL}\n  Then run `ve.py --check` to confirm.')
+        X = excalidraw
+    return X
+
+
+def _launch(p):
+    """Start Playwright's Chromium; without it, the Chrome or Edge already installed on the machine.
+    Only when neither exists, say how to install Chromium. A system browser renders the same figure: the fonts
+    and the Excalidraw bundle come from this repo, not from the browser.
+    A browser that exists but dies at start (a sandbox that forbids it) is named in one line, not a traceback."""
+    try:
+        return p.chromium.launch()
+    except Exception as e:
+        if "Executable doesn't exist" not in str(e) and 'playwright install' not in str(e):
+            _khong_chay(e)
+    for kenh in ('chrome', 'msedge'):
+        try:
+            b = p.chromium.launch(channel=kenh)
+            print(f'  • Playwright has no Chromium, so this run uses the installed {kenh}')
+            return b
+        except Exception:
+            continue
+    raise Loi(f'✗ No browser to render with: Playwright has no Chromium, and no Chrome or Edge starts. Install it with:\n'
+              f'    {sys.executable} -m playwright install chromium')
+
+
+def _khong_chay(e):
+    """Chromium is installed but exits at launch. Seen in the plugin-eval sandbox on macOS:
+    `bootstrap_check_in ... MachPortRendezvousServer: Permission denied`, which no Chromium survives."""
+    ly_do = next((l.strip() for l in str(e).splitlines() if 'Permission denied' in l or 'Operation not permitted' in l),
+                 str(e).splitlines()[0][:200])
+    raise Loi(f'✗ The browser is installed but could not start: {ly_do[:220]}\n'
+              f'  A sandbox that forbids the browser\'s system calls causes this; rendering needs to run outside it.')
+
+
+GOC_WEB = 'http://ve.local'      # pages load from here; no request leaves the browser, see _phuc_vu
+
+
+def _phuc_vu(pg):
+    """Serve the repo's files (Excalidraw bundle, fonts, tokens) to the page by intercepting its requests.
+    The old local HTTP server needed a port, and sandboxes that forbid binding one (the plugin-eval sandbox)
+    could not render at all."""
+    import mimetypes
+    from urllib.parse import unquote, urlparse
+    goc = ROOT.resolve()
+
+    def tra(route):
+        f = (goc / unquote(urlparse(route.request.url).path).lstrip('/')).resolve()
+        if f.is_file() and goc in f.parents:
+            kieu = mimetypes.guess_type(f.name)[0] or 'application/octet-stream'
+            if f.suffix in ('.js', '.mjs'):
+                kieu = 'text/javascript'
+            route.fulfill(body=f.read_bytes(), content_type=kieu)
+        else:
+            route.fulfill(status=404, body='')
+    pg.route(GOC_WEB + '/**', tra)
 
 
 # ───────────────────────── colors ─────────────────────────
@@ -763,6 +841,57 @@ def m_check(e):
              'color': e.get('color', 'node'), 'weight': 4}]
 
 
+def m_flow(e):
+    """Explained step-by-step flow: numbered steps top to bottom, each with a short line on what happens and a small
+    real example beside it. The answer to "draw the flow" that still carries values, not boxes that only name things."""
+    steps, fid = e['steps'], e['id']
+    ts, ds = e.get('size', 17), e.get('textSize', 15)
+    x, y, gap, out = e['x'], e['y'], e.get('gap', 44), []
+    if e.get('title'):
+        out.append({'t': 'text', 'x': x, 'y': y, 'text': e['title'], 'size': 17, 'color': 'muted'})
+        y += 36
+    bw = e.get('w') or max([150] + [rong_chu(st['title'], ts) + 36 for st in steps])
+    dw = max([rong_chu(st.get('text', ''), ds) for st in steps] + [0])
+    xb = x + 44                                    # 30-unit badge, 14 clear of the box
+    xd = xb + bw + 18
+    xe = e.get('exampleX') or xd + dw + (26 if dw else 0)
+
+    def vi_du(st):
+        v = st.get('example')
+        if v is None:
+            return None
+        v = {'text': v} if isinstance(v, str) else dict(v)
+        v.setdefault('mono', e.get('exampleMono', True))
+        v.setdefault('color', 'l2')
+        v.setdefault('dashed', True)
+        return v
+    for i, st in enumerate(steps):
+        c = st.get('color', e.get('color', 'ink'))
+        bh = max(52, round((str(st['title']).count('\n') + 1) * ts * 1.35 + 22))
+        dh = cao_chu(st['text'], ds) if st.get('text') else 0
+        ex = vi_du(st)
+        eh = ((34 if ex.get('title') else 10) + cao_chu(ex['text'], ex.get('size', 15)) + 14) if ex else 0
+        rh = max(bh, dh, eh)
+        by = y + (rh - bh) / 2
+        if i:
+            a = {'t': 'arrow', 'from': f'{fid}.{i - 1}', 'to': f'{fid}.{i}', 'fromSide': 'bottom', 'toSide': 'top',
+                 'color': st.get('edgeColor', 'ink'), 'dashed': st.get('edgeDashed')}
+            if st.get('edge'):
+                a.update(text=st['edge'], labelAt=0.5, size=15)
+            out.append(a)
+        out.append({'t': 'badge', 'x': x, 'y': by + bh / 2 - 15, 'n': i + e.get('start', 1),
+                    'color': st.get('badgeColor', c if c in ACCENT else 'l2')})
+        out.append({'t': 'box', 'id': f'{fid}.{i}', 'x': xb, 'y': by, 'w': bw, 'h': bh, 'text': st['title'], 'size': ts,
+                    'color': c, 'fill': st.get('fill', c if c in ACCENT else 'soft'), 'dashed': st.get('dashed')})
+        if st.get('text'):
+            out.append({'t': 'text', 'x': xd, 'y': y + (rh - dh) / 2, 'text': st['text'], 'size': ds,
+                        'color': st.get('textColor', 'ink')})
+        if ex:
+            out.append(dict(ex, t='card', x=xe, y=y + (rh - eh) / 2))
+        y += rh + gap
+    return out
+
+
 def m_badge(e):
     d, c = e.get('d', 30), e.get('color', 'l4')
     # Text sits in a ghost box, not bound to the ellipse: an ellipse with bound text grows into an egg.
@@ -1130,23 +1259,60 @@ MACRO = {'frame': m_frame, 'cells': m_cells, 'grid': m_grid, 'table': m_table, '
          'tree': m_tree, 'ring': m_ring, 'lanes': m_lanes, 'swimlane': m_swimlane, 'start': m_start, 'end': m_end, 'stack': m_stack, 'cross': m_cross,
          'check': m_check, 'badge': m_badge, 'note': m_note, 'legend': m_legend, 'db': m_db,
          'queue': m_queue, 'pipe': m_pipe, 'steps': m_steps, 'card': m_card, 'person': m_person, 'cloud': m_cloud, 'doc': m_doc, 'window': m_window,
-         'group': m_group, 'row': m_row, 'col': m_row, 'icon': m_icon}
+         'group': m_group, 'row': m_row, 'col': m_row, 'icon': m_icon, 'flow': m_flow}
 GOC = SHAPES + ('arrow', 'line', 'text', 'anchor', 'raw')
+
+
+def _ten(e, i):
+    """Name an element the way its author can find it in the spec: index, type, id, start of its text."""
+    if not isinstance(e, dict):
+        return f'element {i} ({json.dumps(e, ensure_ascii=False)[:40]})'
+    bits = [f"t='{e.get('t')}'"] + [f"{k}='{e[k]}'" for k in ('id', 'from', 'to') if e.get(k)]
+    txt = e.get('text') or e.get('title') or e.get('name')
+    if isinstance(txt, str) and txt:
+        bits.append(f'text “{txt[:24]}”')
+    return f"element {i} ({', '.join(bits)})"
+
+
+CAN = {'box': 'x y w h', 'ellipse': 'x y w h', 'diamond': 'x y w h', 'text': 'x y text'}
+
+
+def _kiem_goc(e, i):
+    """Check a primitive before it is built, so a missing or wrong-typed property names its element
+    instead of surfacing as a bare KeyError/TypeError from deep inside the builder."""
+    for k in CAN.get(e['t'], '').split():
+        if k not in e:
+            chet(f'{_ten(e, i)}: missing property {k}. See references/spec.md')
+    for k in ('x', 'y', 'w', 'h', 'size', 'weight', 'bend', 'opacity'):
+        if k in e and e[k] is not None and (isinstance(e[k], bool) or not isinstance(e[k], (int, float))):
+            chet(f'{_ten(e, i)}: {k} must be a number, got {json.dumps(e[k], ensure_ascii=False)}')
+    if e['t'] in ('arrow', 'line'):
+        if 'points' in e:
+            pts = e['points']
+            if (not isinstance(pts, list) or len(pts) < 2
+                    or not all(isinstance(q, (list, tuple)) and len(q) == 2 and all(isinstance(c, (int, float)) for c in q) for q in pts)):
+                chet(f'{_ten(e, i)}: points must be a list of two or more [x, y] pairs')
+        elif e['t'] == 'line' or not ('from' in e and 'to' in e):
+            chet(f"{_ten(e, i)}: needs `points`" + ('' if e['t'] == 'line' else ", or both `from` and `to`"))
 
 
 def bung(els):
     out = []
     for i, e in enumerate(els):
-        t = e.get('t')
+        t = e.get('t') if isinstance(e, dict) else None
         if t in MACRO:
             try:
                 out.extend(bung(MACRO[t](e)))
             except KeyError as k:
-                chet(f"element {i} (t='{t}'): missing property {k}. See references/spec.md")
+                chet(f"{_ten(e, i)}: missing property {k}. See references/spec.md")
+            except (TypeError, ValueError, AttributeError, IndexError, ZeroDivisionError) as x:
+                chet(f"{_ten(e, i)}: a property has the wrong type or value ({type(x).__name__}: {x}). "
+                     f"Compare it with references/spec.md")
         elif t in GOC:
+            _kiem_goc(e, i)
             out.append(e)
         else:
-            chet(f"element {i}: t='{t}' is not supported. Available: {' '.join(GOC[:6])} {' '.join(MACRO)}")
+            chet(f"{_ten(e, i)}: t='{t}' is not supported. Available: {' '.join(GOC[:6])} {' '.join(MACRO)}")
     return out
 
 
@@ -1201,6 +1367,43 @@ def _hachure_ro(e, o):
     return None
 
 
+def _duong(e, a, b):
+    """Points of a `from`/`to` arrow between shapes a and b, and whether its corners must stay sharp."""
+    if e['from'] == e['to']:                       # self-loop: loop at the top-right corner
+        x, y, w = a['x'], a['y'], a['w']
+        return [(x + w * .62, y - 4), (x + w * .7, y - 34), (x + w + 30, y - 30), (x + w + 34, y + 6),
+                (x + w + 6, y + a['h'] * .3)], False
+    ca, cb = tam(a), tam(b)
+    # a pinned end (side + At) is what the free end aims at, not the other shape's centre:
+    # aiming at the centre turned a row-level arrow into a slope toward a tall target
+    p = mep(a, e['fromSide'], e.get('fromAt', .5)) if e.get('fromSide') else None
+    q = mep(b, e['toSide'], e.get('toAt', .5)) if e.get('toSide') else None
+    if p is None:
+        p = cat(a, *(q or cb))
+    if q is None:
+        q = cat(b, *p) if e.get('fromSide') else cat(b, *ca)
+    r = e.get('route')
+    if r in ('hv', 'vh', 'hvh', 'vhv'):
+        if r == 'hv':
+            mid = [(q[0], p[1])]
+        elif r == 'vh':
+            mid = [(p[0], q[1])]
+        elif r == 'hvh':
+            mx = (p[0] + q[0]) / 2 + e.get('shift', 0)
+            mid = [(mx, p[1]), (mx, q[1])]
+        else:
+            my = (p[1] + q[1]) / 2 + e.get('shift', 0)
+            mid = [(p[0], my), (q[0], my)]
+        p, q = lui(p, mid[0]), lui(q, mid[-1])
+        return [p] + mid + [q], True
+    p, q = lui(p, q), lui(q, p)
+    if e.get('bend'):
+        L = math.hypot(q[0] - p[0], q[1] - p[1]) or 1
+        nx, ny = -(q[1] - p[1]) / L, (q[0] - p[0]) / L
+        return [p, ((p[0] + q[0]) / 2 + nx * e['bend'], (p[1] + q[1]) / 2 + ny * e['bend']), q], False
+    return [p, q], False
+
+
 def dung(spec_els):
     els = bung(spec_els)
     hinh = {}
@@ -1240,59 +1443,28 @@ def dung(spec_els):
             if 'points' in e:
                 pts = [tuple(p) for p in e['points']]
                 if t == 'arrow':                           # free-routed arrows get the same crossing check
-                    lint_arrows.append((None, None, pts, _dau(e)))
+                    lint_arrows.append((None, None, pts, _dau(e), e))
             else:
                 for k in ('from', 'to'):
                     if e.get(k) not in hinh:
                         if any(x['t'] == 'text' and x.get('id') == e.get(k) for x in els):   # dbi4 run
-                            chet(f"arrow {i}: {k}='{e.get(k)}' is a free `text`, which is not an arrow target: "
+                            chet(f"{_ten(e, i)}: {k}='{e.get(k)}' is a free `text`, which is not an arrow target: "
                                  f"draw the arrow with `points` ending about 6 units short of the text, or make it a box")
-                        chet(f"arrow {i}: {k}='{e.get(k)}' matches no id. Existing ids: {' '.join(sorted(hinh))[:300]}")
-                a, b = hinh[e['from']], hinh[e['to']]
-                if e['from'] == e['to']:                       # self-loop: loop at the top-right corner
-                    x, y, w = a['x'], a['y'], a['w']
-                    pts = [(x + w * .62, y - 4), (x + w * .7, y - 34), (x + w + 30, y - 30), (x + w + 34, y + 6),
-                           (x + w + 6, y + a['h'] * .3)]
-                else:
-                    ca, cb = tam(a), tam(b)
-                    # a pinned end (side + At) is what the free end aims at, not the other shape's centre:
-                    # aiming at the centre turned a row-level arrow into a slope toward a tall target
-                    p = mep(a, e['fromSide'], e.get('fromAt', .5)) if e.get('fromSide') else None
-                    q = mep(b, e['toSide'], e.get('toAt', .5)) if e.get('toSide') else None
-                    if p is None:
-                        p = cat(a, *(q or cb))
-                    if q is None:
-                        q = cat(b, *p) if e.get('fromSide') else cat(b, *ca)
-                    r = e.get('route')
-                    if r in ('hv', 'vh', 'hvh', 'vhv'):
-                        if r == 'hv':
-                            mid = [(q[0], p[1])]
-                        elif r == 'vh':
-                            mid = [(p[0], q[1])]
-                        elif r == 'hvh':
-                            mx = (p[0] + q[0]) / 2 + e.get('shift', 0)
-                            mid = [(mx, p[1]), (mx, q[1])]
-                        else:
-                            my = (p[1] + q[1]) / 2 + e.get('shift', 0)
-                            mid = [(p[0], my), (q[0], my)]
-                        p, q = lui(p, mid[0]), lui(q, mid[-1])
-                        pts = [p] + mid + [q]
-                        e = dict(e, sharp=True)
-                    else:
-                        p, q = lui(p, q), lui(q, p)
-                        pts = [p, q]
-                        if e.get('bend'):
-                            L = math.hypot(q[0] - p[0], q[1] - p[1]) or 1
-                            nx, ny = -(q[1] - p[1]) / L, (q[0] - p[0]) / L
-                            pts = [p, ((p[0] + q[0]) / 2 + nx * e['bend'], (p[1] + q[1]) / 2 + ny * e['bend']), q]
-                    lint_arrows.append((e.get('from'), e.get('to'), pts, _dau(e)))
+                        chet(f"{_ten(e, i)}: {k}='{e.get(k)}' matches no id. Existing ids: {' '.join(sorted(hinh))[:300]}")
+                pts, sharp = _duong(e, hinh[e['from']], hinh[e['to']])
+                if sharp:
+                    e = dict(e, sharp=True)
+                lint_arrows.append((e.get('from'), e.get('to'), pts, _dau(e), e))
             if e.get('id') and t == 'arrow':            # arrow with an id: a note can point at its middle
                 mx, my = pts[len(pts) // 2] if len(pts) > 2 else ((pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2)
                 hinh[e['id']] = {'t': 'anchor', 'id': e['id'], 'x': mx - 8, 'y': my - 8, 'w': 16, 'h': 16}
             x0, y0 = pts[0]
             o = {'type': t, 'id': e.get('id') or f'_{t}{i}', 'x': x0, 'y': y0,
                  'points': [[px - x0, py - y0] for px, py in pts], **chung}
-            cong = e.get('smooth', len(pts) > 2 and not e.get('sharp') and not e.get('closed'))
+            # A `points` path is straight between its points unless it asks for `smooth`: an author who lists
+            # corners means corners, and a 3-point flow arrow drawn as a curve needed `sharp` to read as a flow.
+            # A `from`/`to` arrow with 3+ points comes from `bend` or a self-loop, which are curves by design.
+            cong = e.get('smooth', 'points' not in e and len(pts) > 2 and not e.get('sharp'))
             o['roundness'] = {'type': 2} if cong else None
             if t == 'line' and e.get('closed'):
                 o['points'].append([0, 0])
@@ -1301,7 +1473,7 @@ def dung(spec_els):
             if t == 'arrow':
                 for k in ('head', 'tail'):
                     if e.get(k) is not None and e[k] not in HEAD:
-                        chet(f"arrow {i}: {k}='{e[k]}' is not a head name. Use: {' '.join(HEAD)}")
+                        chet(f"{_ten(e, i)}: {k}='{e[k]}' is not a head name. Use: {' '.join(HEAD)}")
                 o['endArrowhead'] = HEAD.get(e.get('head', 'arrow'), 'arrow')
                 o['startArrowhead'] = HEAD.get(e.get('tail', 'arrow' if e.get('both') else 'none'))
                 tu_do = any(k in e for k in ('labelAt', 'labelDx', 'labelDy'))
@@ -1403,6 +1575,47 @@ def _cat_doan_hcn(p, q, r, co=6):
     return t1 - t0 > 0.02
 
 
+def _xuyen(pts, A, B, than, co=6):
+    """First shape the path pts runs through that is not one of its ends A, B nor a frame holding one of them."""
+    for h in than:
+        if h is A or h is B:
+            continue
+        chua = lambda o: (h['x'] - 4 <= o['x'] and h['y'] - 4 <= o['y'] and h['x'] + h['w'] + 4 >= o['x'] + o['w']
+                          and h['y'] + h['h'] + 4 >= o['y'] + o['h'])
+        if chua(A) or chua(B):          # enclosing frame, or the shape a `points` arrow starts or ends on
+            continue
+        if any(_cat_doan_hcn(pts[k], pts[k + 1], h, co) for k in range(len(pts) - 1)):
+            return h
+    return None
+
+
+def _goi_y_duong(e, A, B, than):
+    """Try the usual detours on a crossing `from`/`to` arrow and name the first one that crosses nothing,
+    as the exact spec text to add, so the nudge says where the fix is instead of only that there is a problem."""
+    goc = {k: v for k, v in e.items() if k not in ('route', 'shift', 'bend')}
+    thu = [{'route': r} for r in ('hvh', 'vhv', 'hv', 'vh')]
+    thu += [{'bend': d} for d in (40, -40, 80, -80, 140, -140)]
+    thu += [{'route': r, 'shift': d} for r in ('hvh', 'vhv') for d in (-60, 60, -120, 120)]
+    for t in thu:
+        pts, _ = _duong(dict(goc, **t), A, B)
+        if not _xuyen(pts, A, B, than, co=-10):     # a detour must clear the border, not graze it
+            return ', '.join(f'"{k}": {json.dumps(v)}' for k, v in t.items())
+    return None
+
+
+def _ra_vao(f, s):
+    """Where free text f can go to sit fully inside or fully outside the shape s whose border it crosses."""
+    m = 6
+    if f['y'] < s['y'] < f['y'] + f['height']:
+        return f"y≈{s['y'] - f['height'] - m:.0f} puts it above, y≈{s['y'] + m:.0f} inside"
+    yb = s['y'] + s['height']
+    if f['y'] < yb < f['y'] + f['height']:
+        return f"y≈{yb + m:.0f} puts it below, y≈{yb - f['height'] - m:.0f} inside"
+    if f['x'] < s['x'] < f['x'] + f['width']:
+        return f"x≈{s['x'] - f['width'] - m:.0f} puts it left, x≈{s['x'] + m:.0f} inside"
+    return f"x≈{s['x'] + s['width'] + m:.0f} puts it right, x≈{s['x'] + s['width'] - f['width'] - m:.0f} inside"
+
+
 def _dau(e):
     """Number of drawn arrowheads (0-2) on an arrow spec. A `dot` tail is a pointer's origin, a small disc
     meant to sit inside the cell that holds the pointer: it hides no shaft and no border cuts it, so it is
@@ -1478,7 +1691,7 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
     # 2 · arrow passes through a shape that is not one of its two ends
     than = [h for h in hinh.values() if h['t'] in SHAPES and not h.get('ghost') and not h.get('under')
             and '~' not in str(h.get('id'))]
-    for a, b, pts, dau in lint_arrows:
+    for a, b, pts, dau, spec in lint_arrows:
         if a is None:                       # `points` arrow: its ends are the two points, not two shapes
             A = {'x': pts[0][0], 'y': pts[0][1], 'w': 0, 'h': 0}
             B = {'x': pts[-1][0], 'y': pts[-1][1], 'w': 0, 'h': 0}
@@ -1488,16 +1701,11 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
         dai = sum(math.hypot(pts[k + 1][0] - pts[k][0], pts[k + 1][1] - pts[k][1]) for k in range(len(pts) - 1))
         if a != b and dai < (22 if dau < 2 else 64):     # two heads (`both`, a `tail`) need room for a visible shaft: 36- and 50-long `both` arrows read as a diamond (aws1)
             nhac.append(f"arrow {a} → {b} is only {dai:.0f} long for {dau} head(s), the heads hide the line: move the two shapes apart")
-        for h in than:
-            if h is A or h is B:
-                continue
-            chua = lambda o: (h['x'] - 4 <= o['x'] and h['y'] - 4 <= o['y'] and h['x'] + h['w'] + 4 >= o['x'] + o['w']
-                              and h['y'] + h['h'] + 4 >= o['y'] + o['h'])
-            if chua(A) or chua(B):          # enclosing frame, or the shape a `points` arrow starts or ends on
-                continue
-            if any(_cat_doan_hcn(pts[k], pts[k + 1], h) for k in range(len(pts) - 1)):
-                nhac.append(f"arrow {a} → {b} crosses shape '{h.get('id')}': use bend, route, or move the shape")
-                break
+        h = _xuyen(pts, A, B, than)
+        if h:
+            goi = _goi_y_duong(spec, A, B, than) if spec.get('from') and spec['from'] != spec.get('to') else None
+            nhac.append(f"arrow {a} → {b} crosses shape '{h.get('id')}': "
+                        + (f"{goi} clears it" if goi else "use bend, route, or move the shape"))
     # 2a · one arrow's head lands where another arrow starts: in and out share a spot and read as one line crossing
     #      the shape (A6 roadmap, `ba6-duong-mac-dinh-14-chang`). Axes sharing an origin and a pair a→b, b→a are fine.
     #      So is a chain of two `points` arrows that turns at a joint off every shape border: a timeline V where a
@@ -1511,8 +1719,8 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
         v = (p2[1][0] - p2[0][0], p2[1][1] - p2[0][1])
         L = math.hypot(*u) * math.hypot(*v)
         return (u[0] * v[0] + u[1] * v[1]) / L if L else 1
-    for i, (a1, b1, p1, _) in enumerate(lint_arrows):
-        for j, (a2, b2, p2, _) in enumerate(lint_arrows):
+    for i, (a1, b1, p1, *_) in enumerate(lint_arrows):
+        for j, (a2, b2, p2, *_) in enumerate(lint_arrows):
             if i == j or len(p1) < 2 or len(p2) < 2 or (a1 is not None and a1 == b2 and b1 == a2):
                 continue
             (hx, hy), (sx, sy) = p1[-1], p2[0]
@@ -1527,9 +1735,9 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
     def _dir(p, q):
         L = math.hypot(q[0] - p[0], q[1] - p[1])
         return ((q[0] - p[0]) / L, (q[1] - p[1]) / L, L) if L else (0, 0, 0)
-    for i, (a1, b1, p1, _) in enumerate(lint_arrows):
+    for i, (a1, b1, p1, *_) in enumerate(lint_arrows):
         for j in range(i + 1, len(lint_arrows)):
-            a2, b2, p2, _ = lint_arrows[j]
+            a2, b2, p2, *_ = lint_arrows[j]
             if len(p1) < 2 or len(p2) < 2:
                 continue
             for k1, k2, n1, n2, ten in ((p1[0], p2[0], p1[1], p2[1], 'leave'), (p1[-1], p2[-1], p1[-2], p2[-2], 'reach')):
@@ -1552,7 +1760,7 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
     # 2c · an arrowhead straddles the border of a box it does not land on: the head ends a few units inside an
     #      enclosing frame, so the border cuts the head in two (DBI3 O2N/N2O run: roll_ptr head 14 units inside
     #      the undo-log frame). A head that ends ON a border is the target (or the strip holding it): skipped.
-    for a, b, pts, dau in lint_arrows:
+    for a, b, pts, dau, _ in lint_arrows:
         ends = ([(pts[-1], pts[-2])] if dau >= 1 else []) + ([(pts[0], pts[1])] if dau >= 2 else [])
         for (px, py), (qx, qy) in ends:
             L = math.hypot(qx - px, qy - py) or 1
@@ -1607,7 +1815,9 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
                 continue
             if giao(f, o) > 0.18 * min(f['width'] * f['height'], o['width'] * o['height']) or dung_chu(f, o):
                 seen.add((f['id'], o['id']))
-                nhac.append(f"text “{f['text'][:22]}” overlaps text “{o['text'][:22]}”")
+                xuong, len_ = o['y'] + o['height'] + 4 - f['y'], f['y'] + f['height'] + 4 - o['y']
+                nhac.append(f"text “{f['text'][:22]}” overlaps text “{o['text'][:22]}”: move it to y≈{f['y'] + xuong:.0f} "
+                            f"(down {xuong:.0f}) or y≈{f['y'] - len_:.0f} (up {len_:.0f})")
         for s in conv:
             if s['type'] != 'rectangle' or s.get('strokeColor') == 'transparent':   # ellipse/diamond: the bounding box is not the real border
                 continue
@@ -1617,7 +1827,7 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
                 # so give its box: the DBI3 hero note sat under a swimlane whose bottom edge was not in the spec
                 bx = (f" (box x {s['x']:.0f}-{s['x'] + s['width']:.0f}, y {s['y']:.0f}-{s['y'] + s['height']:.0f})"
                       if str(s['id']).startswith('_') else '')
-                nhac.append(f"text “{f['text'][:22]}” straddles the border of shape '{s['id']}'{bx}")
+                nhac.append(f"text “{f['text'][:22]}” straddles the border of shape '{s['id']}'{bx}: {_ra_vao(f, s)}")
             elif g >= 0.88 * dt and s['width'] >= 3 * f['width'] and s['height'] >= 3 * f['height'] \
                     and not str(f['id']).startswith(f"{s['id']}."):
                 # inside a frame-sized shape but touching its edge: a two-line note ended 2.5 units above a frame's
@@ -1740,9 +1950,14 @@ def soat(conv, hinh, lint_arrows, goc, sk=()):
     #     A `code` block is a rectangle too, but it is evidence, not a component: a figure of
     #     seven code blocks and no arrow got this nudge (infra2 run). So code blocks do not count,
     #     and a figure needs at least one arrow to be "joined by arrows".
+    #     An arrow with a label names its relation (a concept map's verb, a causal loop's +/-, a flow's condition),
+    #     which is what the rule asks for; only arrows that say nothing make "A calls B" figures. Templates
+    #     26 and 29 got this nudge although every one of their edges is labelled.
+    cam = [x[4] for x in lint_arrows]
     loai = {e['type'] for e in conv}
     hop = [e for e in conv if e['type'] == 'rectangle' and e.get('backgroundColor') != CANH_NEN]
     if loai <= {'rectangle', 'arrow', 'text'} and len(hop) >= 4 and 'arrow' in loai \
+            and not (cam and all(a.get('text') for a in cam)) \
             and not any(e.get('strokeStyle') == 'dashed' or (e['type'] == 'rectangle' and e.get('roundness') is None) for e in conv):
         nhac.append('figure is only rounded boxes joined by arrows: check references/figure-types.md for a figure type '
                     'that SHOWS the mechanism better')
@@ -1866,9 +2081,68 @@ def digits_to_tspans(svg):
     return _HAND_TEXT_RE.sub(split, svg)
 
 
-def ve(pg, base, src, ra):
-    ten = src.stem
-    sk, raw, hinh, lint_arrows, goc = dung(nap(src))
+# ───────────────────────── size ─────────────────────────
+MAN_CAO = 900        # px on screen: one laptop screen. Taller and the reader scrolls away from the top of the figure
+MAN_RONG = 888       # units: COT / 0.75, past "about 800" by enough that text shrinks to 3/4
+
+
+def _cat(conv, truc):
+    """Empty bands across the middle half of the figure along axis 'x' or 'y', nearest the middle first: [(centre, width)].
+    A cut there crosses no element, so the figure splits there without redrawing anything.
+    Lifelines are skipped: they run the whole height by design, and a sequence splits between two messages."""
+    hop = []
+    for e in conv:
+        if e.get('isDeleted') or '~life~' in str(e.get('id')):
+            continue
+        k = 0 if truc == 'x' else 1
+        vs = ([e[truc] + p[k] for p in e['points']] if e.get('points')
+              else [e[truc], e[truc] + e.get('width' if truc == 'x' else 'height', 0)])
+        hop.append((min(vs), max(vs)))
+    if not hop:
+        return []
+    hop.sort()
+    lo, hi = hop[0][0], max(b for _, b in hop)
+    a0, a1 = lo + (hi - lo) * .25, lo + (hi - lo) * .75
+    bang, toi = [], hop[0][1]
+    for a, b in hop[1:]:
+        if a - toi >= 24 and a0 <= (a + toi) / 2 <= a1:
+            bang.append(((a + toi) / 2, a - toi))
+        toi = max(toi, b)
+    giua = (lo + hi) / 2
+    return sorted(bang, key=lambda t: abs(t[0] - giua))      # nearest the middle: two halves of similar size
+
+
+def kich_thuoc(conv, w, h, cot):
+    """• nudges for a figure taller than one screen or too wide for the column, each saying WHERE it can split."""
+    nhac, ty = [], min(cot / w, 1.0)
+    chu = [e for e in conv if e['type'] == 'text' and not e.get('isDeleted')]
+    if h * ty > MAN_CAO:
+        cuts = _cat(conv, 'y')
+        seq = any('~life~' in str(e.get('id')) for e in conv)
+        if cuts:
+            y = cuts[0][0]
+            tren = [t for t in chu if t['y'] + t['height'] < y]
+            duoi = [t for t in chu if t['y'] > y]
+            o = f": an empty band runs across at y≈{y:.0f}"
+            if tren and duoi:
+                o += (f", between “{max(tren, key=lambda t: t['y'] + t['height'])['text'][:24]}” and "
+                      f"“{min(duoi, key=lambda t: t['y'])['text'][:24]}”")
+            if seq:
+                o += "; repeat the actor row at the top of the second figure"
+        else:
+            o = ": no empty band crosses its middle, so regroup it (progressive series, or overview plus zoom)"
+        nhac.append(f"figure shows {h * ty:.0f}px tall in the {cot}px column, more than one screen ({MAN_CAO}px): "
+                    f"split it into {math.ceil(h * ty / 800)} figures{o}")
+    if w > MAN_RONG:
+        cuts = _cat(conv, 'x')
+        o = (f": an empty band runs down at x≈{cuts[0][0]:.0f}, so the two halves can stack or become two figures"
+             if cuts else ": stack its parts vertically, or split it")
+        nhac.append(f"figure is {w:.0f} units wide, so its text shrinks to {ty:.2f}× in the {cot}px column{o}")
+    return nhac
+
+
+def ve(pg, base, ten, els, ra):
+    sk, raw, hinh, lint_arrows, goc = dung(els)
     sk0 = copy.deepcopy(sk)
     r = pg.evaluate(JS, [sk, raw])
     svg = re.sub(r'<style.*?</style>', '', r['svg'], flags=re.S)
@@ -1881,7 +2155,7 @@ def ve(pg, base, src, ra):
     svg = re.sub(re.escape(CANH_CHU), 'var(--pre-fg)', svg, flags=re.I)
     for k, hx in LIT.items():
         svg = re.sub(re.escape(hx), f'var(--{k})', svg, flags=re.I)
-    svg = X._fix_mask_luminance(T.tokenize(svg))      # same as the engine's PATCH 8 (VÁ 8): masks do not flip with the theme
+    svg = _engine()._fix_mask_luminance(T.tokenize(svg))      # same as the engine's PATCH 8 (VÁ 8): masks do not flip with the theme
     svg = digits_to_tspans(code_bg_rects(mask_rects_to_paths(svg)))
     sot = T.audit(svg)
     (ra / f'{ten}.excalidraw').write_text(json.dumps(
@@ -1913,6 +2187,7 @@ def ve(pg, base, src, ra):
         nhac.append(f"smallest text {do['nho']}px (“{do['nhoTxt']}”): readable but tight. Figure is {w:.0f} wide, try to make it narrower")
     if sot:
         cung.append(f'non-token colors left: {sorted(sot)}')
+    nhac += kich_thuoc(r['els'], w, h, COT)
     print(f"{'✗' if cung else '✓'} {ten}: {len(r['els'])} elements · {w:.0f}×{h:.0f} · scale {ty:.2f}× · smallest text {do['nho']}px")
     for c in cung:
         print('  ✗', c)
@@ -1920,7 +2195,185 @@ def ve(pg, base, src, ra):
         print('  •', c)
     print(f'  → LOOK: {ra / (ten + "-light.png")}')
     print(f'          {ra / (ten + "-dark.png")}')
-    return not cung
+    return not cung, svg, w
+
+
+
+
+# ───────────────────────── labels in another language ─────────────────────────
+# Keys whose string value is structure (an id, a token, a side), never words the reader sees.
+CAU_TRUC = {'t', 'id', 'from', 'to', 'color', 'fill', 'fillStyle', 'titleColor', 'textColor', 'numColor', 'edgeColor',
+            'kind', 'shape', 'lane', 'over', 'extends', 'remove', 'route', 'align', 'valign', 'dir', 'fromSide', 'toSide',
+            'tail', 'labelPos', 'prefix', 'side', '_'}
+
+
+def _chu(v, f, key=None, owner=None):
+    """Map every reader-visible string of a spec through f. Same walk for extracting and for translating,
+    so a label the extractor lists is always a label the renderer replaces."""
+    if isinstance(v, dict):
+        return {k: (x if k in CAU_TRUC or (k == 'name' and v.get('t') == 'icon') or (k == 'head' and isinstance(x, str))
+                    else _chu(x, f, k, v)) for k, x in v.items()}
+    if isinstance(v, list):
+        return [_chu(x, f, key, owner) for x in v]
+    if isinstance(v, str) and any(c.isalpha() for c in v):
+        return f(v)
+    return v
+
+
+def file_nhan(src, lang):
+    return src.with_name(f'{src.stem}.{lang}.labels.json')
+
+
+def rut_nhan(src, lang):
+    """Write <spec>.<lang>.labels.json: {"label in the spec": "its translation"}, every value starting as the
+    label itself. Re-running keeps translations already made and adds new labels."""
+    spec = json.loads(src.read_text(encoding='utf-8'))
+    thay = []
+    _chu({'caption': spec.get('caption'), 'elements': nap(src)}, lambda s: thay.append(s) or s)
+    f = file_nhan(src, lang)
+    cu = json.loads(f.read_text(encoding='utf-8')) if f.exists() else {}
+    moi = {k: cu.get(k, k) for k in dict.fromkeys(thay)}
+    f.write_text(json.dumps(moi, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+    them = sum(k not in cu for k in moi)
+    print(f'✓ {f}: {len(moi)} labels ({them} new). Translate the values, keep the keys, then render with --lang {lang}')
+
+
+def dich(src, lang, els, caption):
+    f = file_nhan(src, lang)
+    if not f.exists():
+        chet(f'no labels file {f.name}: create it with `ve.py {src.name} --extract-labels {lang}` and translate its values')
+    try:
+        bang = json.loads(f.read_text(encoding='utf-8'))
+    except json.JSONDecodeError as e:
+        chet(f'{f.name} is not valid JSON: {e}')
+    thieu = []
+
+    def tra(s):
+        if s not in bang:
+            thieu.append(s)
+        return bang.get(s, s)
+    els, cap = _chu(els, tra), _chu(caption, tra)
+    return els, cap, list(dict.fromkeys(thieu))
+
+
+# ───────────────────────── several figures on one page ─────────────────────────
+def _font_css():
+    """fonts.css with every font inlined, so the page stays one self-contained file."""
+    import base64
+    d = ROOT / 'assets' / 'fonts'
+    css = (d / 'fonts.css').read_text(encoding='utf-8')
+    return re.sub(r'url\(([^)]+\.woff2)\)', lambda m: 'url(data:font/woff2;base64,'
+                  + base64.b64encode((d / m.group(1)).read_bytes()).decode() + ')', css)
+
+
+TRANG = """<!doctype html><html lang="%(lang)s"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>%(title)s</title>
+<style>%(tokens)s
+%(fonts)s
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif;line-height:1.5}
+main{max-width:%(col)dpx;margin:0 auto;padding:32px 16px}
+h1{font-size:26px;margin:0 0 6px}
+.lead{color:var(--muted);margin:0 0 8px}
+figure{margin:24px 0 0;padding:16px;background:var(--paper);border:1px solid var(--line);border-radius:12px;break-inside:avoid}
+figure svg{display:block;width:100%%;height:auto;margin:0 auto}
+figcaption{margin-top:10px;font-size:15px;color:var(--muted)}
+figcaption b{color:var(--ink)}
+@media print{body{background:var(--card)}main{padding:0;max-width:none}}
+</style></head><body><main>
+%(head)s%(figs)s
+</main></body></html>"""
+
+
+def trang(hinh, out, title, caption, lang):
+    """One HTML page holding every rendered figure, each with its own caption, under a shared title and caption.
+    Ids are prefixed per figure: two inline SVGs from Excalidraw both carry `mask-_arrow3` and would share it."""
+    import html
+    figs = []
+    for n, (ten, svg, w, cap) in enumerate(hinh, 1):
+        svg = re.sub(r'(\bid="|url\(#|href="#)', lambda m, n=n: f'{m.group(1)}h{n}-', svg)
+        svg = svg.replace('<svg ', f'<svg style="max-width:{w:.0f}px" ', 1)
+        nhan = f'<b>{"Hình" if lang == "vi" else "Figure"} {n}.</b> ' + html.escape(cap) if cap else ''
+        figs.append(f'<figure id="{html.escape(ten)}">{svg}' + (f'<figcaption>{nhan}</figcaption>' if nhan else '') + '</figure>')
+    head = (f'<h1>{html.escape(title)}</h1>\n' if title else '') + (f'<p class="lead">{html.escape(caption)}</p>\n' if caption else '')
+    return TRANG % {'lang': lang, 'title': html.escape(title or out.stem), 'col': COT + 66,
+                    'tokens': (ROOT / 'dist' / 'assets' / 'tokens.css').read_text(encoding='utf-8'),
+                    'fonts': _font_css(), 'head': head, 'figs': '\n'.join(figs)}
+
+
+def mo(paths):
+    """Open files in the system viewer: `open` on macOS, `xdg-open` on Linux, the default app on Windows."""
+    import subprocess
+    for f in paths:
+        if sys.platform == 'darwin':
+            subprocess.run(['open', str(f)], check=False)
+        elif os.name == 'nt':
+            os.startfile(str(f))
+        else:
+            subprocess.run(['xdg-open', str(f)], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+# ───────────────────────── environment check ─────────────────────────
+def kiem_tra():
+    """`ve.py --check`: each requirement on one line, with the exact command that fixes a missing one."""
+    tot = True
+
+    def dong(ok, msg, fix=''):
+        nonlocal tot
+        tot = tot and ok
+        print(('✓ ' if ok else '✗ ') + msg + (f'\n    fix: {fix}' if fix and not ok else ''))
+    dong(sys.version_info >= (3, 11), f'Python {sys.version.split()[0]} at {sys.executable} (3.11+)',
+         'install Python 3.11 or newer')
+    for f, ten in ((ROOT / '.cache' / 'exca.bundle.js', 'Excalidraw bundle'), (ROOT / 'assets' / 'fonts' / 'fonts.css', 'fonts'),
+                   (ROOT / 'dist' / 'assets' / 'tokens.css', 'color tokens')):
+        dong(f.exists(), f'{ten}: {f}', 'these ship with the repo: clone it again or `git checkout -- .`')
+    try:
+        from importlib.metadata import version
+        import playwright  # noqa: F401
+        dong(True, f'Playwright {version("playwright")}')
+    except ImportError:
+        dong(False, 'Playwright is not installed for this Python', INSTALL)
+        return 1
+    from playwright.sync_api import sync_playwright
+    try:
+        with sync_playwright() as p:
+            _launch(p).close()
+        dong(True, 'a browser starts (Playwright Chromium, else the installed Chrome or Edge)')
+    except Loi:
+        dong(False, 'no browser: Playwright has no Chromium and no Chrome or Edge is installed',
+             f'{sys.executable} -m playwright install chromium')
+    except Exception as e:
+        dong(False, f'Chromium does not start: {str(e)[:200]}',
+             f'{sys.executable} -m playwright install --with-deps chromium   (Linux: needs sudo for system libraries)')
+    print('ready: render with `ve.py <spec.json>`' if tot else 'not ready: run the fix lines above, then `ve.py --check` again')
+    return 0 if tot else 1
+
+
+# ───────────────────────── command line ─────────────────────────
+CO = {'--out': 1, '--col': 1, '--lib': 1, '--lang': 1, '--extract-labels': 1, '--page': 1, '--title': 1, '--caption': 1,
+      '--icons': 0, '--check': 0, '--open': 0}
+
+
+def doc_co(args):
+    """Split argv into (flags, spec paths). Unknown flags and missing values are errors, not tracebacks."""
+    co, specs, i = {'--lib': []}, [], 0
+    while i < len(args):
+        a = args[i]
+        if not a.startswith('--'):
+            specs.append(a)
+        elif a not in CO:
+            chet(f"unknown option {a}. Options: {' '.join(CO)}")
+        elif CO[a]:
+            if i + 1 >= len(args) or args[i + 1].startswith('--'):
+                chet(f'{a} needs a value')
+            i += 1
+            if a == '--lib':
+                co[a].append(args[i])
+            else:
+                co[a] = args[i]
+        else:
+            co[a] = True
+        i += 1
+    return co, specs
 
 
 def main():
@@ -1928,47 +2381,95 @@ def main():
     if not args or '-h' in args or '--help' in args:
         print(__doc__)
         return 0
-    ra = None
-    if '--out' in args:
-        i = args.index('--out')
-        ra = pathlib.Path(args[i + 1]).resolve()
-        del args[i:i + 2]
-    if '--col' in args:
-        global COT
-        i = args.index('--col')
-        COT = int(args[i + 1])
-        del args[i:i + 2]
-    while '--lib' in args:
-        i = args.index('--lib')
-        LIBS.append(args[i + 1])
-        del args[i:i + 2]
-    if '--icons' in args:
+    try:
+        return chay(*doc_co(args))
+    except Loi as e:
+        print(e)
+        return 1
+
+
+def chay(co, specs):
+    global COT
+    if co.get('--col'):
+        if not co['--col'].isdigit():
+            chet(f"--col takes a width in px, got '{co['--col']}'")
+        COT = int(co['--col'])
+    LIBS.extend(co['--lib'])
+    if co.get('--icons'):
         ic = _nap_icon()
         print(f'{len(ic)} icons:\n' + '\n'.join(f"  {k:28} {v.get('src', '')}" for k, v in sorted(ic.items())))
         return 0
+    if co.get('--check'):
+        return kiem_tra()
+    if not specs:
+        chet('no spec file given: ve.py <spec.json> [...]')
+    for a in specs:
+        if not pathlib.Path(a).is_file():
+            chet(f'spec file not found: {a}')
+    if co.get('--extract-labels'):
+        for a in specs:
+            rut_nhan(pathlib.Path(a).resolve(), co['--extract-labels'])
+        return 0
+    X = _engine()
     from playwright.sync_api import sync_playwright
     X._ensure_bundle()
-    ok = True
-    with X.serve(ROOT) as base, sync_playwright() as p:
-        b = p.chromium.launch()
+    lang = co.get('--lang')
+    ra = pathlib.Path(co['--out']).resolve() if co.get('--out') else None
+    ok, hinh, xem = True, [], []
+    base = GOC_WEB
+    with sync_playwright() as p:
+        b = _launch(p)
         pg = b.new_page()
+        _phuc_vu(pg)            # first route: the page routes below are registered later, so they win
         loi = []
         pg.on('pageerror', lambda e: loi.append(str(e)))
         pg.route('**/__ve.html', lambda r: r.fulfill(body=X.PAGE, content_type='text/html'))
-        for a in args:
+        for a in specs:
             src = pathlib.Path(a).resolve()
             out = ra or src.parent
             out.mkdir(parents=True, exist_ok=True)
+            ten = f'{src.stem}.{lang}' if lang else src.stem
             pg.goto(base + '/__ve.html')
             pg.wait_for_function('window.__ready === true', timeout=90000)
             try:
-                ok = ve(pg, base, src, out) and ok
+                try:
+                    spec = json.loads(src.read_text(encoding='utf-8'))
+                except json.JSONDecodeError as e:
+                    chet(f'not valid JSON: {e}')
+                if not isinstance(spec, dict) or not ('elements' in spec or 'extends' in spec):
+                    chet('not a spec: it has no "elements" (a *.labels.json file goes to --lang, not to the renderer)')
+                els, cap = nap(src), spec.get('caption')
+                if lang:
+                    els, cap, thieu = dich(src, lang, els, cap)
+                    if thieu:
+                        print(f"  • {len(thieu)} labels have no translation in {file_nhan(src, lang).name}, kept as written: "
+                              + ', '.join(f'“{t[:20]}”' for t in thieu[:5]) + (' …' if len(thieu) > 5 else ''))
+                good, svg, w = ve(pg, base, ten, els, out)
+                ok = good and ok
+                hinh.append((ten, svg, w, cap))
+                xem += [out / f'{ten}-light.png', out / f'{ten}-dark.png']
             except Loi as e:
-                print(f'✗ {src.stem}: {str(e)[2:]}')
+                print(f'✗ {ten}: {str(e)[2:]}')
                 ok = False
             except Exception as e:
-                print(f'✗ {src.stem}: {type(e).__name__}: {str(e)[:300]}' + (f' | {loi[-1][:200]}' if loi else ''))
+                print(f'✗ {ten}: {type(e).__name__}: {str(e)[:300]}' + (f' | {loi[-1][:200]}' if loi else ''))
                 ok = False
+        if co.get('--page') and hinh:
+            f = pathlib.Path(co['--page']).resolve()
+            f.parent.mkdir(parents=True, exist_ok=True)
+            doc = trang(hinh, f, co.get('--title'), co.get('--caption'), lang or 'vi')
+            if f.suffix.lower() == '.pdf':
+                pg.set_content(doc.replace('<html ', '<html data-theme="light" ', 1))
+                pg.evaluate('document.fonts.ready')
+                pg.pdf(path=str(f), format='A4', print_background=True,
+                       margin={'top': '14mm', 'bottom': '14mm', 'left': '12mm', 'right': '12mm'})
+            else:
+                f.write_text(doc, encoding='utf-8')
+            print(f'✓ page with {len(hinh)} figure{"s" if len(hinh) > 1 else ""}: {f}')
+            xem = [f]
+        b.close()
+    if co.get('--open') and xem:
+        mo(xem)
     return 0 if ok else 1
 
 

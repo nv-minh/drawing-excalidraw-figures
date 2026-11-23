@@ -40,6 +40,36 @@ class TestCanon:
 
 
 # ── _is_id_ref: `#abc` là tham chiếu id, không phải màu ───────────
+    def test_hex_4_ky_tu_la_rgba(self):
+        hx, a = T._canon('#1234')
+        assert hx == '#112233'
+        assert abs(a - 0x44 / 255) < 1e-6
+
+
+class TestChuKhongPhaiMau:
+    # "lỗi #1480" trong nhãn từng làm render chết (int('', 16)), "issue #123"
+    # từng bị đổi âm thầm thành "issue var(--ink)". Chữ là nội dung, không là màu.
+    SVG = '<svg><text x="1" fill="#111A2B">issue #123 · lỗi #1480 · #ff0000</text><path fill="#111A2B"/></svg>'
+
+    def test_tokenize_khong_dung_vao_chu(self):
+        out = T.tokenize(self.SVG)
+        assert 'issue #123 · lỗi #1480 · #ff0000' in out
+        assert 'fill="var(--ink)"' in out
+        assert '#111A2B' not in out
+
+    def test_audit_bo_qua_chu(self):
+        assert T.audit(T.tokenize(self.SVG)) == []
+
+    def test_mau_trong_tspan_van_bat(self):
+        svg = '<text>a<tspan fill="#ff0000">b</tspan> #abc</text>'
+        assert T.audit(svg) == ['#ff0000']
+
+    def test_5_va_7_ky_tu_khong_phai_mau(self):
+        assert not T._COLOR_RE.fullmatch('#14801')
+        assert not T._COLOR_RE.fullmatch('#1480123')
+        assert T._COLOR_RE.fullmatch('#1480')
+
+
 class TestIsIdRef:
     def test_url_marker(self):
         # '#f2c' trong url(#f2c-arw) la tham chieu marker, khong duoc remap

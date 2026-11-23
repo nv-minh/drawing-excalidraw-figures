@@ -32,6 +32,8 @@ Nếu có người để hỏi, skill đưa bản nháp đầu tiên và hỏi "
 <p align="center"><img src="docs/images/y-tuong/ghi-chu-light.png" alt="Note về quyết định nghỉ việc vẽ thành timeline" width="620"></p>
 
 Bốn đề phi kỹ thuật nằm trong `evals/`, kết quả và bài học trong `references/lessons-from-runs.md`.
+Đề `nguoi-moi-mat-khau-salt` đo thẳng việc người mới có hiểu hình không: giám khảo xem PNG, đóng vai phụ huynh chưa biết lập trình và trả lời ba câu hỏi chỉ từ hình.
+Chạy có đối chứng (có skill và không skill, báo `Δ`) theo `evals/README.md`.
 
 ## Luật chịu lực
 
@@ -44,12 +46,16 @@ không đoán, mọi luật đều có nguồn ghi trong `references/sources.md`
 
 ## Quy trình sáu bước
 
-1. Viết đúng một câu: "Nhìn hình này, người đọc THẤY ... mà đoạn văn không cho thấy." Không viết được câu đó thì không vẽ.
+1. Hỏi người đọc là ai và đã biết gì (người mới, dev, chuyên gia), liệt kê thuật ngữ cần giải thích ngay trong hình, chọn chế độ cô đọng hay giải thích cho người mới. Rồi viết đúng một câu: "Nhìn hình này, người đọc THẤY ... mà đoạn văn không cho thấy." Không viết được câu đó thì không vẽ.
 2. Ghi danh sách sự thật: actor, bước, nhánh lỗi, số thật lấy nguyên từ nguồn. Với ý tưởng thô: khái niệm, quan hệ, chỗ căng thẳng và điều người viết muốn người đọc tin.
 3. Chọn loại hình theo cái cần thấy (sequence, swimlane, state, ER, byte cells, timeline, threshold...).
 4. Viết spec JSON - chép template từ `examples/`, không viết từ đầu.
 5. Render bằng `ve.py`.
-6. Mở cả hai PNG ra soi, sửa tới khi hình nói được câu của bước 1. Tool xanh chưa có nghĩa là hình đọc được.
+6. Mở cả hai PNG ra soi, sửa tới khi hình nói được câu của bước 1 với đúng người đọc đó. Tool xanh chưa có nghĩa là hình đọc được.
+
+Hình đúng dữ kiện vẫn có thể vô dụng nếu giả định người đọc đã biết Base64, heap hay JIT: vì vậy bước 1 hỏi trình độ trước tiên.
+Với người mới, skill đi từ ví dụ đời thường sang cơ chế, ghi một câu bằng lời bên cạnh từng phần, và có sẵn loại hình "flow giải thích từng bước" (`30-explained-flow`): số bước, một dòng mô tả, một ví dụ nhỏ bên cạnh.
+Chủ đề bảo mật thì vẽ cơ chế và cách phòng thủ, dừng trước mọi thứ dùng được như hướng dẫn tấn công (chi tiết trong `SKILL.md`).
 
 ## Cài đặt
 
@@ -58,13 +64,18 @@ Yêu cầu: Python 3.11+, Playwright Chromium, và font nằm sẵn trong `asset
 ```bash
 git clone https://github.com/nv-minh/drawing-excalidraw-figures.git
 cd drawing-excalidraw-figures
-pip install -r requirements.txt
-python3 -m playwright install chromium
+python3 -m pip install -r requirements.txt && python3 -m playwright install chromium
 
-# chạy thử ngay một ví dụ có sẵn
-python3 scripts/ve.py examples/03-byte-cells.json --out /tmp/fig
-open /tmp/fig/03-byte-cells-light.png
+# tự kiểm môi trường: Python, Playwright, Chromium; thiếu gì thì in đúng lệnh cài
+python3 scripts/ve.py --check
+
+# chạy thử ngay một ví dụ có sẵn và mở ảnh vừa render
+python3 scripts/ve.py examples/03-byte-cells.json --out /tmp/fig --open
 ```
+
+Thiếu Playwright thì `ve.py` in đúng một lệnh cài, không in traceback.
+Chưa cài Chromium của Playwright thì `ve.py` tự dùng Chrome hoặc Edge có sẵn trên máy (SVG giống hệt), chỉ khi không có trình duyệt nào mới bảo cài.
+Không có chế độ bỏ trình duyệt: hình, phép đo chữ và SVG đều do thư viện Excalidraw thật dựng trong trình duyệt.
 
 Để Claude Code dùng như skill, đặt cả thư mục vào thư mục skill của bạn:
 
@@ -112,9 +123,21 @@ Model không đa phương tiện vẫn vẽ được, chỉ cần bạn tự m�
 Chạy `python3 scripts/ve.py spec.json` là ra bốn file.
 Cú pháp đầy đủ của mọi phần tử: `references/spec.md`.
 
-## Hai mươi chín loại hình có template sẵn
+Vài tiện ích đi kèm:
 
-`examples/` chứa 29 template: request flow, anatomy, byte cells, timeline, threshold, before/after, two views, ẩn dụ vật lý, failure branch, decision tree, sequence (kể cả alt/opt/loop), state machine, ER table, hash ring, code evidence, layer lanes, progressive series, layer stack, curve, icon, swimlane, composite state, ER crow's foot, system two flows, vòng nhân quả, ma trận 2x2, phễu, concept map.
+```bash
+python3 scripts/ve.py spec.json --open                       # render xong mở luôn hai PNG
+python3 scripts/ve.py a.json b.json --page bai.html \
+    --title "Base64 cho người mới" --caption "Hai hình đọc liền nhau"   # nhiều hình một trang, .pdf cũng được
+python3 scripts/ve.py spec.json --extract-labels en          # tách nhãn ra spec.en.labels.json để dịch
+python3 scripts/ve.py spec.json --lang en                    # render bản tiếng Anh, spec giữ nguyên
+```
+
+`"caption"` trong spec (câu của bước 1) được in dưới mỗi hình trên trang `--page` và được dịch cùng nhãn.
+
+## Ba mươi loại hình có template sẵn
+
+`examples/` chứa 30 template: request flow, anatomy, byte cells, timeline, threshold, before/after, two views, ẩn dụ vật lý, failure branch, decision tree, sequence (kể cả alt/opt/loop), state machine, ER table, hash ring, code evidence, layer lanes, progressive series, layer stack, curve, icon, swimlane, composite state, ER crow's foot, system two flows, vòng nhân quả, ma trận 2x2, phễu, concept map, flow giải thích từng bước.
 
 Mỗi template là một spec JSON chạy được, nhãn tiếng Việt.
 
@@ -126,9 +149,11 @@ Màu chỉ nhận tên token, công cụ từ chối mã hex - nhờ vậy hình
 
 ## Tool tự kiểm những gì
 
-Lỗi cứng (`✗`): hộp bị Excalidraw phình vì chữ không vừa, chữ tràn khung, chữ nhỏ hơn 8px trên màn hình, màu không phải token.
-Nhắc nhẹ (`•`): mũi tên xuyên hộp, nhãn dài bằng mũi tên, đầu mũi tên trùng điểm xuất phát của mũi tên khác, hơn ba màu nhấn, hình toàn hộp nối mũi tên.
-Còn hình có nói đúng chuyện hay không thì chỉ mắt người kiểm tra được - đó là bước 6.
+Lỗi cứng (`✗`): hộp bị Excalidraw phình vì chữ không vừa, chữ tràn khung, chữ nhỏ hơn 8px trên màn hình, màu không phải token, lỗi spec (báo đích danh element: thứ tự, `t`, `id`, đầu dòng chữ).
+Nhắc nhẹ (`•`): mũi tên xuyên hộp, nhãn dài bằng mũi tên, đầu mũi tên trùng điểm xuất phát của mũi tên khác, hơn ba màu nhấn, hình toàn hộp nối mũi tên, hình cao quá một màn hình hoặc rộng quá cột.
+Nhiều nhắc nhẹ kèm luôn chỗ sửa: mũi tên xuyên hộp thì gợi ý `route`/`bend` cụ thể đã thử là thoát, chữ đè nhau thì gợi ý `y` mới, hình quá cao thì chỉ ra chỗ cắt đôi.
+Chữ trong hình như `lỗi #1480` không bao giờ bị hiểu thành mã màu.
+Còn hình có nói đúng chuyện hay không thì chỉ mắt người kiểm tra được - đó là bước 6, và `evals/` đo nó qua nhiều lần chạy.
 
 ## Bốn model vẽ cùng một bộ đề
 
@@ -144,16 +169,16 @@ engine/             engine render thật (Excalidraw + Playwright Chromium)
 .cache/             bundle Excalidraw dựng sẵn; dựng lại bằng scripts/excalidraw-bundle.mjs
 assets/             icons.json 188 icon + font Nunito, Patrick Hand, IBM Plex Mono
 references/         luật loại hình, cú pháp spec, ngôn ngữ hình, checklist soi hình
-examples/           29 template spec JSON
+examples/           30 template spec JSON
 evals/              bộ đề đánh giá
-tests/              unit cho theme/renderer + golden render cả 29 ví dụ
+tests/              unit cho theme/renderer + golden render cả 30 ví dụ
 docs/               landing page + bộ so sánh bốn model
 ```
 
 ## Tests
 
 Chuẩn bị: `pip install -r requirements.txt pytest` (riêng golden render cần `playwright install chromium`).
-`python3 -m pytest` chạy 69 phép thử: unit cho hệ màu (`engine/theme.py`), cổng token và biên dịch spec (`scripts/ve.py`), dựng icon (`scripts/build_icons.py`), và một golden render chạy `ve.py` thật trên cả 29 ví dụ rồi soát màu ngoài token, hex lit thô, cảnh `.excalidraw` hợp lệ.
+`python3 -m pytest` chạy 100 phép thử: unit cho hệ màu (`engine/theme.py`), cổng token và biên dịch spec (`scripts/ve.py`), lỗi spec chỉ đích danh element, gợi ý chỗ sửa, flow, tách nhãn để dịch, trang nhiều hình, dựng icon (`scripts/build_icons.py`), và một golden render chạy `ve.py` thật trên cả 30 ví dụ rồi soát màu ngoài token, hex lit thô, cảnh `.excalidraw` hợp lệ.
 Muốn bỏ bước render (~80 giây): `python3 -m pytest -m "not slow"`.
 GitHub Actions chạy đủ cả bộ ở `.github/workflows/tests.yml`; bundle và font đã commit trong repo nên CI không cần Node và chạy offline.
 

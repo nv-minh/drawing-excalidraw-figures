@@ -1,15 +1,15 @@
 {"_": "English variant of 22-swimlane: one column per role, steps placed by (lane,row), decisions are diamonds with labelled branches, every branch converges on one shared step (Save decision) before the flow continues.",
  "elements": [
- {"t":"swimlane","x":0,"y":0,"laneW":175,"rowH":122,
+ {"t":"swimlane","x":0,"y":0,"laneW":175,"rowH":108,
   "lanes":[{"id":"nv","label":"Employee"},{"id":"ql","label":"Manager"},{"id":"hr","label":"HR"},{"id":"sys","label":"System","w":215}],
   "nodes":[
    {"id":"s","lane":"nv","row":0,"kind":"start","dy":16},
    {"id":"gui","lane":"nv","row":1,"text":"Submit leave form","w":165},
    {"id":"kt","lane":"sys","row":1,"text":"Check days left","w":180},
-   {"id":"du","lane":"sys","row":2,"kind":"decision","text":"enough days?"},
+   {"id":"du","lane":"sys","row":2,"kind":"decision","text":"enough days?","h":76},
    {"id":"tc","lane":"sys","row":3,"text":"Auto-reject","color":"err","dashed":true,"w":130},
    {"id":"xet","lane":"ql","row":3,"text":"Review","w":130},
-   {"id":"n5","lane":"ql","row":4,"kind":"decision","text":"> 5 days?","w":170},
+   {"id":"n5","lane":"ql","row":4,"kind":"decision","text":"> 5 days?","w":170,"h":76},
    {"id":"hrx","lane":"hr","row":5,"text":"HR final approval","w":165},
    {"id":"luu","lane":"sys","row":6,"text":"Save decision","color":"l4","fill":"l4"},
    {"id":"mail","lane":"sys","row":7,"text":"Email the result","w":170},
