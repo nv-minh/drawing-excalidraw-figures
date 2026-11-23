@@ -1,0 +1,23 @@
+{
+ "Nội dung của một bài báo đi qua tối đa 4 trạm, nhưng 9 trên 10 lượt đọc dừng ở bản chép nhanh trong bộ nhớ (khoảng 1 ms), nên trong 2 triệu lượt mỗi giờ chỉ khoảng 200 nghìn lượt xuống kho bài gốc trên đĩa (khoảng 30 ms); ảnh đi một nhánh riêng qua trạm gần nhà.": "The text of one article passes through at most 4 stations, but 9 in 10 reads stop at the quick copy in memory (about 1 ms), so of 2 million reads an hour only about 200 thousand reach the master store on disk (about 30 ms); images take a separate branch through a nearby station.",
+ "Hà mở một bài trên báo điện tử VnTin (2 triệu lượt đọc mỗi giờ)": "Hà opens an article on the VnTin news site (2 million reads an hour)",
+ "trạm gần nhà": "nearby station",
+ "CDN: nhánh riêng cho ảnh và tệp giao\ndiện, bản sao đặt sẵn ở Hà Nội,\nĐà Nẵng, TP.HCM": "CDN: separate branch for images and\nlayout files, copies kept in Hà Nội,\nĐà Nẵng, TP.HCM",
+ "điện thoại\ncủa Hà": "Hà's\nphone",
+ "ảnh + tệp\ngiao diện": "images +\nlayout files",
+ "người chia việc": "job splitter",
+ "load balancer:\nchia đều lượt đọc\ncho 4 máy": "load balancer:\nsplits reads evenly\nacross 4 machines",
+ "nội dung": "text",
+ "máy chủ web": "web server",
+ "web server: 4\nmáy giống hệt,\nlấy nội dung bài": "web server:\n4 identical\nmachines",
+ "bản chép\nnhanh": "quick\ncopy",
+ "Redis: bộ nhớ\nRAM, đọc rất\nnhanh, ~1 ms": "Redis: RAM\nmemory, very\nfast, ~1 ms",
+ "hỏi trước": "asks first",
+ "9/10 có sẵn": "9/10 found",
+ "kho bài gốc": "master store",
+ "PostgreSQL:\nlưu trên đĩa,\nchậm hơn, ~30 ms": "PostgreSQL:\nkept on disk,\nslower, ~30 ms",
+ "1/10, chỉ khi bản\nchép nhanh chưa\ncó bài": "1/10, only when the\nquick copy does not\nhave the article",
+ "máy chủ\nchép vào,\ngiữ 5 phút": "server\ncopies,\nfor 5 min",
+ "9 trên 10 lượt đọc dừng ở bản chép nhanh:\n2 triệu lượt/giờ × 1/10 = 200 nghìn lượt/giờ\nxuống kho bài gốc.": "9 in 10 reads stop at the quick copy:\n2 million reads/hour × 1/10 = 200 thousand/hour\nreach the master store.",
+ "mỗi chấm = 1 lượt đọc: 9 chấm xanh dừng ở bản chép\nnhanh, 1 chấm cam đi tiếp · ms: một phần nghìn giây": "each dot = 1 read: 9 green dots stop at the quick\ncopy, 1 orange dot goes on · ms: a thousandth of a second"
+}

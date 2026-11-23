@@ -1,0 +1,17 @@
+{
+ "Cả ba định luật đều trả lời câu hỏi lực làm gì: hợp lực bằng 0 thì vận tốc giữ nguyên (I), khác 0 thì sinh gia tốc a = F / m (II), và mỗi lực đều có một lực đi cặp với nó, đặt lên vật kia (III); định luật I chỉ là trường hợp riêng của định luật II khi hợp lực bằng 0.": "All three laws answer what a force does: with zero net force the velocity stays the same (I), with a non-zero net force there is an acceleration a = F / m (II), and every force has a partner force acting on the other body (III); Law I is just the special case of Law II where the net force is 0.",
+ "Lực F\n(đơn vị N)": "Force F\n(unit: N)",
+ "hợp lực = tổng vectơ\ncác lực tác dụng lên vật": "net force = vector sum\nof the forces on a body",
+ "Định luật I (định luật quán tính)": "Law I (the law of inertia)",
+ "vận tốc giữ nguyên: đứng yên, hoặc thẳng đều\nvd: xe chạy thẳng đều 60 km/h: lực kéo và\nlực cản cùng đặt lên xe nên triệt tiêu,\nhợp lực = 0": "velocity stays the same: at rest, or straight\nat constant speed. e.g. a car at a steady\n60 km/h: driving force and drag both act on\nthe car, so they cancel: net force = 0",
+ "Định luật II: a = F / m  (F = hợp lực)": "Law II: a = F / m  (F = net force)",
+ "gia tốc a cùng hướng với hợp lực\nvd: lực đẩy 10 N, bỏ qua ma sát (nên hợp lực\n= 10 N), xe 2 kg → a = 10 / 2 = 5 m/s²,\ntức vận tốc thay đổi 5 m/s mỗi giây": "a points the same way as the net force\ne.g. a 10 N push, no friction (so net force\n= 10 N), 2 kg cart → a = 10 / 2 = 5 m/s²,\nso velocity changes by 5 m/s each second",
+ "Khối lượng m": "Mass m",
+ "Định luật III: lực và phản lực": "Law III: action and reaction",
+ "(từng lực trong cặp, không phải hợp lực)\nA tác dụng lực lên B thì B tác dụng lại A:\ncùng giá (cùng đường thẳng),\ncùng độ lớn, ngược chiều\nvd: đạp thành bể, thành bể đẩy người ra\nlưu ý: hai lực đặt lên hai vật khác nhau\nnên không triệt tiêu (khác ví dụ ở định luật I)": "(each force of the pair, not the net force)\nif A pushes on B, B pushes back on A:\nsame line of action,\nsame size, opposite direction\ne.g. push off the pool wall: it pushes you away\nnote: the two forces act on two different\nbodies, so they do not cancel (unlike Law I)",
+ "hợp lực = 0": "net force = 0",
+ "hợp lực ≠ 0": "net force ≠ 0",
+ "mỗi lực đều có\nmột lực đi cặp với nó": "every force has\na partner force",
+ "cùng một hợp lực,\nm càng lớn, a càng nhỏ": "same net force:\nlarger m, smaller a",
+ "trường hợp riêng:\nhợp lực = 0 thì a = 0": "special case:\nnet force = 0 so a = 0"
+}

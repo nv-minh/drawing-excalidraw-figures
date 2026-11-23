@@ -1,0 +1,43 @@
+{"_": "Kiến trúc đọc bài của báo VnTin cho người mới: nhãn chính là chữ thường ngày, thuật ngữ trong ngoặc; đường chữ của bài đánh số 1-4 (4 chỉ khi Redis chưa có), nhánh ảnh qua CDN tách riêng không đánh số; 10 chấm có khoá: 9 dừng ở Redis, 1 đi tiếp.",
+ "strategy": "architecture",
+ "source": "de-bai.md",
+ "caption": "Nội dung của một bài báo đi qua tối đa 4 trạm, nhưng 9 trên 10 lượt đọc dừng ở bản chép nhanh trong bộ nhớ (khoảng 1 ms), nên trong 2 triệu lượt mỗi giờ chỉ khoảng 200 nghìn lượt xuống kho bài gốc trên đĩa (khoảng 30 ms); ảnh đi một nhánh riêng qua trạm gần nhà.",
+ "elements": [
+ {"t":"text","x":0,"y":0,"text":"Hà mở một bài trên báo điện tử VnTin (2 triệu lượt đọc mỗi giờ)","size":17},
+
+ {"t":"cloud","id":"cdn","x":140,"y":36,"w":180,"h":96,"text":"trạm gần nhà","size":15,"color":"muted"},
+ {"t":"text","x":334,"y":58,"text":"CDN: nhánh riêng cho ảnh và tệp giao\ndiện, bản sao đặt sẵn ở Hà Nội,\nĐà Nẵng, TP.HCM","size":15,"color":"muted"},
+ {"t":"window","id":"ph","x":0,"y":196,"w":100,"h":90,"title":"","text":"điện thoại\ncủa Hà","size":15},
+ {"t":"arrow","from":"ph","to":"cdn","fromSide":"top","toSide":"left","route":"vh","text":"ảnh + tệp\ngiao diện","size":15,"labelAt":0.22,"color":"muted"},
+
+ {"t":"badge","x":138,"y":184,"n":1,"color":"l2"},
+ {"t":"box","id":"lb","x":156,"y":206,"w":130,"h":64,"text":"người chia việc","size":15},
+ {"t":"text","x":160,"y":282,"text":"load balancer:\nchia đều lượt đọc\ncho 4 máy","size":15,"color":"muted"},
+ {"t":"arrow","from":"ph","to":"lb","text":"nội dung","size":15,"labelDy":-14},
+
+ {"t":"badge","x":316,"y":184,"n":2,"color":"l2"},
+ {"t":"stack","id":"web","x":334,"y":206,"w":120,"h":64,"n":4,"text":"máy chủ web","size":15},
+ {"t":"text","x":334,"y":282,"text":"web server: 4\nmáy giống hệt,\nlấy nội dung bài","size":15,"color":"muted"},
+ {"t":"arrow","from":"lb","to":"web"},
+
+ {"t":"badge","x":580,"y":170,"n":3,"color":"l4"},
+ {"t":"db","id":"rd","x":600,"y":186,"w":120,"h":104,"text":"bản chép\nnhanh","color":"l4","fill":"l4","size":15},
+ {"t":"text","x":586,"y":300,"text":"Redis: bộ nhớ\nRAM, đọc rất\nnhanh, ~1 ms","size":15,"color":"muted"},
+ {"t":"arrow","id":"a_rd","from":"web","to":"rd","toSide":"left","text":"hỏi trước","size":15,"color":"l4","weight":3,"labelDy":-16},
+ {"t":"row","x":472,"y":252,"gap":2,"elements":[
+   {"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},{"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},{"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},
+   {"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},{"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},{"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},
+   {"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},{"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},{"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"}]},
+ {"t":"text","x":472,"y":270,"text":"9/10 có sẵn","size":15,"color":"node"},
+
+ {"t":"badge","x":580,"y":402,"n":4,"color":"l2"},
+ {"t":"db","id":"pg","x":600,"y":420,"w":120,"h":96,"kind":"sql","text":"kho bài gốc","size":15},
+ {"t":"text","x":600,"y":548,"text":"PostgreSQL:\nlưu trên đĩa,\nchậm hơn, ~30 ms","size":15,"color":"muted"},
+ {"t":"arrow","from":"web","to":"pg","fromSide":"bottom","fromAt":0.88,"toSide":"left","route":"vh","color":"warn","dashed":true},
+ {"t":"ellipse","x":434,"y":372,"w":12,"h":12,"color":"warn","fill":"warn"},
+ {"t":"text","x":456,"y":358,"text":"1/10, chỉ khi bản\nchép nhanh chưa\ncó bài","size":15},
+
+ {"t":"arrow","from":"pg","to":"rd","fromSide":"top","toSide":"bottom","fromAt":0.8,"toAt":0.8,"color":"muted","dashed":true,"text":"máy chủ\nchép vào,\ngiữ 5 phút","size":15,"labelAt":0.5},
+ {"t":"text","x":0,"y":540,"text":"9 trên 10 lượt đọc dừng ở bản chép nhanh:\n2 triệu lượt/giờ × 1/10 = 200 nghìn lượt/giờ\nxuống kho bài gốc.","size":16},
+ {"t":"text","x":0,"y":620,"text":"mỗi chấm = 1 lượt đọc: 9 chấm xanh dừng ở bản chép\nnhanh, 1 chấm cam đi tiếp · ms: một phần nghìn giây","size":15,"color":"muted"}
+]}

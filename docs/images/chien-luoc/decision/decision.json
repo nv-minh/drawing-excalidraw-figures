@@ -1,0 +1,31 @@
+{
+ "strategy": "decision",
+ "source": "de-bai.md",
+ "_": "Ba câu hỏi theo thứ tự (bậc thang): đi ngang sang phải là câu trả lời, đi xuống là phần tiền còn dư. Đường của chị Lan tô hot; các lá (câu trả lời) tô node.",
+ "caption": "Tiền thưởng đi qua ba câu hỏi theo thứ tự, và 50 triệu của chị Lan dừng ở câu 2: 20 triệu trả hết nợ thẻ (vì lãi thẻ 28% ăn 5,6 triệu mỗi năm), 30 triệu làm quỹ dự phòng.",
+ "elements": [
+  {"t": "box", "id": "s", "x": 0, "y": 0, "w": 300, "h": 48, "text": "tiền thưởng Tết của chị Lan: 50 triệu", "size": 16, "color": "hot"},
+  {"t": "arrow", "from": "s", "to": "q1", "color": "hot", "weight": 3},
+  {"t": "badge", "x": 8, "y": 104, "n": 1, "color": "l2"},
+  {"t": "box", "id": "q1", "x": 0, "y": 96, "w": 300, "h": 70, "size": 16, "text": "Đang nợ lãi trên 20%/năm không?\n(thẻ tín dụng, vay tiêu dùng)"},
+  {"t": "box", "id": "l1", "x": 380, "y": 106, "w": 290, "h": 50, "size": 16, "color": "node", "fill": "node", "text": "Trả hết khoản nợ đó trước"},
+  {"t": "text", "x": 380, "y": 162, "text": "chị Lan: trả 20 triệu nợ thẻ,\ncòn 30 triệu đi tiếp xuống câu 2", "size": 16, "color": "hot"},
+  {"t": "arrow", "from": "q1", "to": "l1", "text": "có", "color": "hot", "weight": 3},
+  {"t": "card", "id": "why", "x": 380, "y": 222, "title": "vì sao trả nợ trước?", "text": "nợ thẻ 20 triệu, lãi 28%/năm\n→ mất 5,6 triệu tiền lãi mỗi năm\ngửi có kỳ hạn 20 triệu, lãi 5%/năm\n→ chỉ được 1 triệu mỗi năm", "size": 15},
+  {"t": "arrow", "points": [[652, 220], [652, 160]], "color": "muted", "dashed": true, "head": "none"},
+  {"t": "arrow", "from": "q1", "to": "q2", "color": "hot", "weight": 3, "text": "không (nợ dưới 20%,\nvd vay mua nhà), hoặc\ncòn dư tiền sau khi\ntrả nợ", "labelColor": "muted", "labelDx": 96, "labelDy": 0, "size": 15},
+  {"t": "badge", "x": 8, "y": 368, "n": 2, "color": "l2"},
+  {"t": "box", "id": "q2", "x": 0, "y": 360, "w": 300, "h": 84, "size": 16, "text": "Đã có quỹ dự phòng chưa?\n(tiền để riêng cho lúc mất việc,\nốm đau: 3 đến 6 tháng chi tiêu)"},
+  {"t": "box", "id": "l2", "x": 380, "y": 370, "w": 290, "h": 64, "size": 16, "color": "node", "fill": "node", "text": "Gửi tiết kiệm rút được ngay\ncho tới khi đủ quỹ"},
+  {"t": "arrow", "from": "q2", "to": "l2", "text": "chưa", "color": "hot", "weight": 3},
+  {"t": "arrow", "from": "q2", "to": "q3", "text": "rồi, hoặc còn dư tiền\nsau khi đủ quỹ", "labelColor": "muted", "labelDx": 90, "size": 15, "labelDy": 0},
+  {"t": "text", "x": 380, "y": 442, "text": "chị Lan: gửi 30 triệu\n= 3 tháng × chi tiêu 10 triệu/tháng;\ncòn 0 đồng, dừng ở đây", "size": 16, "color": "hot"},
+  {"t": "badge", "x": 8, "y": 568, "n": 3, "color": "l2"},
+  {"t": "box", "id": "q3", "x": 0, "y": 560, "w": 300, "h": 64, "size": 16, "text": "Tiền còn lại có cần dùng\ntrong 3 năm tới không?"},
+  {"t": "box", "id": "l3a", "x": 380, "y": 560, "w": 290, "h": 64, "size": 16, "color": "node", "fill": "node", "text": "Gửi tiết kiệm có kỳ hạn\n(khoảng 5%/năm)"},
+  {"t": "arrow", "from": "q3", "to": "l3a", "text": "có"},
+  {"t": "box", "id": "l3b", "x": 0, "y": 716, "w": 330, "h": 104, "size": 16, "color": "node", "fill": "node", "text": "Đầu tư dài hạn, vd: chứng chỉ quỹ mở\n(góp tiền vào quỹ, công ty quản lý\nquỹ đầu tư hộ; mua qua ngân hàng)\nchấp nhận giá lên xuống vài năm"},
+  {"t": "arrow", "from": "q3", "to": "l3b", "text": "không"},
+  {"t": "legend", "x": 380, "y": 660, "items": [{"color": "ink", "line": true, "text": "quy tắc chung, cho mọi người"}, {"color": "hot", "line": true, "weight": 3, "text": "đường đi của 50 triệu của chị Lan"}, {"color": "node", "fill": "node", "text": "câu trả lời: làm gì với tiền"}]}
+ ]
+}

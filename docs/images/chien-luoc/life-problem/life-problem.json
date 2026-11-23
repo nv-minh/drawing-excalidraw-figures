@@ -1,0 +1,175 @@
+{
+ "strategy": "life-problem",
+ "source": "de-bai.md",
+ "caption": "Nhìn hình, vợ chồng chị Lan thấy cái vòng thiếu → bị lãi → càng thiếu: tháng nào trả thẻ không đủ thì mất khoảng 200 nghìn, tháng sau hụt thêm; tách 3 triệu vào một tài khoản chỉ để trả thẻ ngay ngày 5 thì khỏi mất 200 nghìn đó, dù tiêu vẫn như cũ.",
+ "_": "Bản 5 (vòng cuối): một lời khẳng định khiêm tốn ở mọi chỗ: cái vòng được nuôi bằng khoản lãi và phí khoảng 200 nghìn; trả đủ thẻ từ 3 triệu tách riêng thì khoản đó mất, tháng sau không hụt thêm. Hai câu hỏi người đọc hỏi ngay được trả lời bằng số trong đề bài.",
+ "elements": [
+  {
+   "t": "frame",
+   "id": "khung2",
+   "x": -12,
+   "y": 396,
+   "w": 766,
+   "h": 266,
+   "color": "l4",
+   "dashed": true
+  },
+  {
+   "t": "badge",
+   "x": 0,
+   "y": 0,
+   "n": 1,
+   "color": "l2"
+  },
+  {
+   "t": "text",
+   "x": 40,
+   "y": 2,
+   "text": "cái vòng: thiếu → bị lãi → càng thiếu",
+   "size": 22
+  },
+  {
+   "t": "box",
+   "id": "het",
+   "x": 0,
+   "y": 50,
+   "w": 250,
+   "h": 86,
+   "size": 18,
+   "text": "hết tiền sớm\nngày 20, có tháng ngày 17"
+  },
+  {
+   "t": "box",
+   "id": "quet",
+   "x": 500,
+   "y": 50,
+   "w": 250,
+   "h": 86,
+   "size": 18,
+   "text": "quẹt thẻ tín dụng\nkhoảng 3 triệu mỗi tháng\n(tiền chợ, học thêm)"
+  },
+  {
+   "t": "box",
+   "id": "tra",
+   "x": 500,
+   "y": 260,
+   "w": 250,
+   "h": 86,
+   "size": 18,
+   "text": "lương về: đóng tiền nhà\ntrước, còn bao nhiêu\nmới trả thẻ"
+  },
+  {
+   "t": "box",
+   "id": "con",
+   "x": 0,
+   "y": 260,
+   "w": 250,
+   "h": 86,
+   "size": 18,
+   "text": "tiền còn lại\nít hơn tháng trước"
+  },
+  {
+   "t": "arrow",
+   "from": "het",
+   "to": "quet",
+   "text": "lại phải quẹt"
+  },
+  {
+   "t": "arrow",
+   "from": "quet",
+   "to": "tra",
+   "text": "tháng sau phải trả",
+   "labelDx": -76
+  },
+  {
+   "t": "arrow",
+   "id": "lai",
+   "from": "tra",
+   "to": "con",
+   "text": "có tháng không đủ:\nbị tính lãi và phí\nkhoảng 200 nghìn",
+   "labelAt": 0.28,
+   "labelDy": -36,
+   "weight": 3
+  },
+  {
+   "t": "arrow",
+   "from": "con",
+   "to": "het",
+   "text": "nên hết sớm hơn",
+   "labelDx": 66
+  },
+  {
+   "t": "arrow",
+   "points": [
+    [
+     425,
+     394
+    ],
+    [
+     425,
+     310
+    ]
+   ],
+   "color": "l4",
+   "dashed": true,
+   "weight": 1
+  },
+  {
+   "t": "text",
+   "x": 412,
+   "y": 318,
+   "text": "từ giờ không mất\n200 nghìn này",
+   "color": "l4",
+   "size": 18,
+   "align": "right"
+  },
+  {
+   "t": "badge",
+   "x": 0,
+   "y": 408,
+   "n": 2,
+   "color": "l4"
+  },
+  {
+   "t": "text",
+   "x": 40,
+   "y": 410,
+   "text": "cách chặn: một tài khoản chỉ để trả thẻ",
+   "size": 22
+  },
+  {
+   "t": "box",
+   "id": "fix",
+   "x": 0,
+   "y": 448,
+   "w": 740,
+   "h": 86,
+   "color": "l4",
+   "weight": 3,
+   "size": 17,
+   "text": "ngày 5 lương về (khoảng 22 triệu): chuyển ngay 3 triệu sang một tài khoản\nchỉ để trả thẻ, trước cả tiền nhà → thẻ luôn được trả đủ,\nkhỏi mất tiền lãi và phí trả chậm"
+  },
+  {
+   "t": "text",
+   "x": 0,
+   "y": 574,
+   "text": "Đủ tiền nhà không? Đủ: 22 - 3 = 19 triệu, tiền nhà 6 triệu.",
+   "size": 17
+  },
+  {
+   "t": "text",
+   "x": 0,
+   "y": 604,
+   "text": "Còn hết tiền ngày 20 không? Tiêu vẫn như cũ nên cuối tháng có thể vẫn eo hẹp,\nnhưng tháng sau không bị hụt thêm 200 nghìn, không còn tệ hơn tháng trước.",
+   "size": 17
+  },
+  {
+   "t": "text",
+   "x": 0,
+   "y": 546,
+   "text": "kiểm tra lại:",
+   "color": "muted",
+   "size": 16
+  }
+ ]
+}

@@ -1,0 +1,15 @@
+{
+ "Hai kiểu mất gói để lại hai vết khác nhau trên cùng một đường cwnd: 3 dup ACK chỉ cắt 85 xuống 42 rồi leo tiếp ngay, còn timeout bắt chờ 10 RTT không gửi gì, rồi rơi về 1 segment và tới RTT 30 mới leo lại được 25.": "Two kinds of loss leave two different marks on the same cwnd line: 3 dup ACKs only cut 85 to 42 and the climb resumes at once, while a timeout forces 10 RTTs of sending nothing, then a fall to 1 segment, and by RTT 30 cwnd is only back to 25.",
+ "TCP Reno, không SACK · RTT = 100 ms · đơn vị: segment": "TCP Reno, no SACK · RTT = 100 ms · unit: segment",
+ "cwnd": "cwnd",
+ "cwnd giữ nguyên, không gửi": "cwnd unchanged, nothing sent",
+ "ssthresh (giả định: ban đầu 80)": "ssthresh (assumed: starts at 80)",
+ "chờ RTO 1 s = 10 RTT,\nkhông gửi gì\n(RTO tối thiểu, RFC 6298)": "waiting for RTO: 1 s = 10 RTT,\nnothing sent\n(minimum RTO, RFC 6298)",
+ "3 dup ACK → fast retransmit, không chờ\nssthresh = FlightSize/2 = 85/2 ≈ 42, cwnd = 42": "3 dup ACKs → fast retransmit, no wait\nssthresh = FlightSize/2 = 85/2 ≈ 42, cwnd = 42",
+ "đường truyền đứt ngắn, mất cả cửa sổ\n47 gói: không gói nào tới nơi → không\ncó dup ACK nào → chờ RTO": "brief link outage loses the whole\nwindow of 47: nothing arrives → no\ndup ACKs at all → wait for RTO",
+ "RTO hết hạn:\ncwnd = 1\nssthresh = 23 (*)": "RTO expires:\ncwnd = 1\nssthresh = 23 (*)",
+ "IW10 (RFC 6928)": "IW10 (RFC 6928)",
+ "(*) ssthresh = max(FlightSize/2, 2 SMSS) = 47/2 ≈ 23: cả cửa sổ 47 gói chưa được ACK (RFC 5681)": "(*) ssthresh = max(FlightSize/2, 2 SMSS) = 47/2 ≈ 23: none of the 47 segments was ACKed (RFC 5681)",
+ "đơn giản hoá: ở ① cwnd rơi thẳng xuống 42, bỏ bước tạm cwnd = ssthresh + 3 của fast recovery": "simplified: at ① cwnd drops straight to 42, skipping fast recovery's temporary cwnd = ssthresh + 3",
+ "RTT": "RTT"
+}

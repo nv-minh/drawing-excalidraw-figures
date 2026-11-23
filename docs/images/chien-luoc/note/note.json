@@ -1,0 +1,281 @@
+{
+ "strategy": "note",
+ "source": "de-bai.md",
+ "_": "Note cá nhân: giờ đi ngủ từng đêm là cột (cao = muộn), đêm T4 là đêm duy nhất mang điện thoại vào; quyết định là điểm nhấn duy nhất (l4).",
+ "caption": "Đêm ngủ muộn nhất tuần (1h15) chính là đêm mang điện thoại vào để đặt báo thức, nên quyết định là mua hẳn đồng hồ báo thức riêng và giữ điện thoại ngoài phòng khách.",
+ "elements": [
+  {
+   "t": "text",
+   "x": 0,
+   "y": 0,
+   "text": "6 đêm thử cho điện thoại ngủ ngoài phòng khách (T2-T7)",
+   "size": 22
+  },
+  {
+   "t": "plot",
+   "id": "p",
+   "x": 60,
+   "y": 420,
+   "w": 360,
+   "h": 240,
+   "max": 210,
+   "bars": [
+    {
+     "label": "T2",
+     "value": 150,
+     "text": "0h30",
+     "color": "l2",
+     "fill": "l2"
+    },
+    {
+     "label": "T3",
+     "value": 105,
+     "text": "23h45",
+     "color": "l2",
+     "fill": "l2"
+    },
+    {
+     "label": "T4",
+     "value": 195,
+     "text": "1h15",
+     "color": "ink",
+     "fill": "l2",
+     "fillStyle": "solid"
+    },
+    {
+     "label": "T5",
+     "value": 80,
+     "text": "23h20",
+     "color": "l2",
+     "fill": "l2"
+    },
+    {
+     "label": "T6",
+     "value": 70,
+     "text": "23h10",
+     "color": "l2",
+     "fill": "l2"
+    },
+    {
+     "label": "T7",
+     "value": 120,
+     "text": "0h",
+     "color": "l2",
+     "fill": "l2"
+    }
+   ]
+  },
+  {
+   "t": "line",
+   "points": [
+    [
+     55,
+     351.42857142857144
+    ],
+    [
+     65,
+     351.42857142857144
+    ]
+   ]
+  },
+  {
+   "t": "text",
+   "x": 50,
+   "y": 341,
+   "text": "23h",
+   "size": 15,
+   "color": "muted",
+   "align": "right"
+  },
+  {
+   "t": "line",
+   "points": [
+    [
+     55,
+     282.8571428571429
+    ],
+    [
+     65,
+     282.8571428571429
+    ]
+   ]
+  },
+  {
+   "t": "text",
+   "x": 50,
+   "y": 273,
+   "text": "0h (nửa đêm)",
+   "size": 15,
+   "color": "muted",
+   "align": "right"
+  },
+  {
+   "t": "line",
+   "points": [
+    [
+     55,
+     214.28571428571428
+    ],
+    [
+     65,
+     214.28571428571428
+    ]
+   ]
+  },
+  {
+   "t": "text",
+   "x": 50,
+   "y": 204,
+   "text": "1h",
+   "size": 15,
+   "color": "muted",
+   "align": "right"
+  },
+  {
+   "t": "text",
+   "x": 0,
+   "y": 110,
+   "text": "giờ đi ngủ\n(cột cao = ngủ muộn)",
+   "size": 15,
+   "color": "muted"
+  },
+  {
+   "t": "note",
+   "x": 0,
+   "y": 50,
+   "size": 16,
+   "color": "ink",
+   "text": "T4: mang điện thoại vào phòng ngủ vì cần đặt báo thức 6h,\nxong lướt TikTok tới 1h15. Sáng như zombie."
+  },
+  {
+   "t": "span",
+   "x1": 246,
+   "x2": 294,
+   "y": 464
+  },
+  {
+   "t": "text",
+   "x": 270.0,
+   "y": 476,
+   "size": 15,
+   "color": "muted",
+   "align": "center",
+   "text": "mượn đồng hồ báo thức của mẹ:\ncó báo thức riêng, ngủ 23h20"
+  },
+  {
+   "t": "arrow",
+   "points": [
+    [
+     160,
+     96
+    ],
+    [
+     189,
+     232
+    ]
+   ],
+   "color": "ink",
+   "dashed": true,
+   "weight": 1
+  },
+  {
+   "t": "text",
+   "x": 84,
+   "y": 182,
+   "text": "đêm đầu\nbứt rứt",
+   "size": 15,
+   "color": "muted"
+  },
+  {
+   "t": "text",
+   "x": 390.0,
+   "y": 172,
+   "text": "đám cưới\nvề muộn,\nkhông đụng\nđiện thoại",
+   "size": 15,
+   "color": "muted",
+   "align": "center"
+  },
+  {
+   "t": "legend",
+   "x": 60,
+   "y": 524,
+   "dir": "x",
+   "items": [
+    {
+     "text": "điện thoại ngủ ngoài phòng khách",
+     "color": "l2",
+     "fill": "l2",
+     "fillStyle": "hachure"
+    },
+    {
+     "text": "mang điện thoại vào phòng ngủ",
+     "color": "ink",
+     "fill": "l2"
+    }
+   ]
+  },
+  {
+   "t": "box",
+   "id": "nr",
+   "x": 474,
+   "y": 100,
+   "w": 256,
+   "h": 96,
+   "dashed": true,
+   "color": "muted",
+   "size": 17,
+   "text": "Nhận ra: lý do duy nhất\nmình mang điện thoại vào\nphòng là cái báo thức"
+  },
+  {
+   "t": "box",
+   "id": "qd",
+   "x": 474,
+   "y": 280,
+   "w": 256,
+   "h": 130,
+   "color": "l4",
+   "fill": "l4",
+   "weight": 3,
+   "size": 17,
+   "text": "Quyết định:\nmua hẳn đồng hồ báo thức\nriêng (tầm 150k), giữ luật\nđiện thoại ngủ ngoài\nphòng khách"
+  },
+  {
+   "t": "arrow",
+   "from": "p.2",
+   "to": "nr",
+   "fromSide": "right",
+   "fromAt": 0.03,
+   "toSide": "left",
+   "toAt": 0.2
+  },
+  {
+   "t": "arrow",
+   "from": "nr",
+   "to": "qd",
+   "text": "nên"
+  },
+  {
+   "t": "arrow",
+   "points": [
+    [
+     388,
+     486
+    ],
+    [
+     456,
+     486
+    ],
+    [
+     456,
+     180
+    ],
+    [
+     472,
+     180
+    ]
+   ],
+   "color": "muted",
+   "weight": 2
+  }
+ ]
+}

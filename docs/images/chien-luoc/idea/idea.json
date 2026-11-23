@@ -1,0 +1,317 @@
+{
+ "strategy": "idea",
+ "source": "de-bai.md",
+ "caption": "Nhìn hình, ban quản trị thấy tủ đồ chung chỉ đáng làm ở một góc, đồ đắt mà cả năm dùng 2 lần như máy khoan, thang nhôm: ở đó 40 máy khoan riêng (48 triệu) có thể thay bằng 3 máy chung (khoảng 3,6 triệu).",
+ "_": "Bản 3 sau review vòng 2: câu đề xuất ở trên cùng, ô xanh định nghĩa tủ chung (phòng trống tầng 1, quét mã căn hộ mượn, dùng xong trả), ô 'nhà nào cũng phải tự có' để muted cho nhẹ, 320 tách khỏi lưới 40 ô.",
+ "elements": [
+  {
+   "t": "text",
+   "x": 0,
+   "y": 0,
+   "text": "Đề xuất: mở tủ đồ chung ở phòng trống tầng 1, chỉ cho đồ đắt mà ít dùng",
+   "size": 18
+  },
+  {
+   "t": "box",
+   "id": "q12",
+   "x": 110,
+   "y": 80,
+   "w": 420,
+   "h": 84,
+   "color": "muted"
+  },
+  {
+   "t": "box",
+   "id": "q3",
+   "x": 110,
+   "y": 174,
+   "w": 205,
+   "h": 180
+  },
+  {
+   "t": "box",
+   "id": "q4",
+   "x": 325,
+   "y": 174,
+   "w": 205,
+   "h": 180,
+   "color": "l4",
+   "weight": 3
+  },
+  {
+   "t": "text",
+   "x": 126,
+   "y": 92,
+   "text": "nhà nào cũng phải tự có",
+   "color": "muted",
+   "size": 18
+  },
+  {
+   "t": "text",
+   "x": 126,
+   "y": 128,
+   "text": "• rẻ: nồi cơm, cái chổi",
+   "color": "muted",
+   "size": 16
+  },
+  {
+   "t": "text",
+   "x": 341,
+   "y": 128,
+   "text": "• đắt: máy giặt",
+   "color": "muted",
+   "size": 16
+  },
+  {
+   "t": "text",
+   "x": 126,
+   "y": 188,
+   "text": "không cần tủ:\nhỏi hàng xóm",
+   "size": 20
+  },
+  {
+   "t": "text",
+   "x": 126,
+   "y": 252,
+   "text": "• cái kìm\n• bộ tua vít",
+   "size": 16
+  },
+  {
+   "t": "text",
+   "x": 341,
+   "y": 188,
+   "text": "để vào tủ chung",
+   "color": "l4",
+   "size": 20
+  },
+  {
+   "t": "text",
+   "x": 341,
+   "y": 220,
+   "text": "phòng trống tầng 1;\nghi số căn hộ khi mượn,\ndùng xong trả",
+   "color": "muted",
+   "size": 16
+  },
+  {
+   "t": "text",
+   "x": 341,
+   "y": 294,
+   "text": "• máy khoan 1,2 triệu\n• thang nhôm 1,5 triệu",
+   "size": 16
+  },
+  {
+   "t": "arrow",
+   "points": [
+    [
+     95,
+     364
+    ],
+    [
+     95,
+     50
+    ]
+   ],
+   "weight": 2,
+   "axis": true
+  },
+  {
+   "t": "arrow",
+   "points": [
+    [
+     95,
+     364
+    ],
+    [
+     545,
+     364
+    ]
+   ],
+   "weight": 2,
+   "axis": true
+  },
+  {
+   "t": "text",
+   "x": 85,
+   "y": 90,
+   "text": "hằng\nngày",
+   "align": "right",
+   "color": "muted",
+   "size": 16
+  },
+  {
+   "t": "text",
+   "x": 85,
+   "y": 304,
+   "text": "cả năm\n2 lần",
+   "align": "right",
+   "color": "muted",
+   "size": 16
+  },
+  {
+   "t": "text",
+   "x": 110,
+   "y": 376,
+   "text": "rẻ",
+   "size": 16,
+   "color": "muted"
+  },
+  {
+   "t": "text",
+   "x": 530,
+   "y": 376,
+   "text": "đắt",
+   "align": "right",
+   "size": 16,
+   "color": "muted"
+  },
+  {
+   "t": "frame",
+   "id": "f",
+   "x": 570,
+   "y": 80,
+   "w": 186,
+   "h": 404,
+   "title": "máy khoan",
+   "dashed": true,
+   "color": "muted"
+  },
+  {
+   "t": "text",
+   "x": 584,
+   "y": 118,
+   "text": "mỗi ô = 1 máy khoan",
+   "color": "muted",
+   "size": 16
+  },
+  {
+   "t": "grid",
+   "id": "g40",
+   "x": 584,
+   "y": 146,
+   "cw": 16,
+   "ch": 16,
+   "rows": [
+    [
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "t": "text",
+   "x": 584,
+   "y": 218,
+   "text": "40 trong 320 căn\nđã mua riêng:\n48 triệu nằm im\ntrong tủ từng nhà",
+   "size": 16
+  },
+  {
+   "t": "grid",
+   "id": "g3",
+   "x": 584,
+   "y": 316,
+   "cw": 16,
+   "ch": 16,
+   "rows": [
+    [
+     "",
+     "",
+     ""
+    ]
+   ],
+   "color": "l4",
+   "fill": "l4"
+  },
+  {
+   "t": "text",
+   "x": 584,
+   "y": 338,
+   "text": "tủ chung: 3 máy\nkhoảng 3,6 triệu",
+   "color": "l4",
+   "size": 16
+  },
+  {
+   "t": "arrow",
+   "points": [
+    [
+     568,
+     324
+    ],
+    [
+     536,
+     324
+    ]
+   ],
+   "color": "l4",
+   "dashed": true,
+   "weight": 1
+  },
+  {
+   "t": "text",
+   "x": 108,
+   "y": 50,
+   "text": "bao lâu dùng một lần (↑ dùng thường xuyên hơn)",
+   "align": "left",
+   "size": 16
+  },
+  {
+   "t": "text",
+   "x": 320,
+   "y": 376,
+   "text": "giá",
+   "align": "center",
+   "size": 18
+  },
+  {
+   "t": "text",
+   "x": 584,
+   "y": 384,
+   "text": "40 nhà × 2 lần = 80\nlượt mượn mỗi năm,\nchừng 1-2 lượt/tuần:\n3 máy là đủ",
+   "color": "ink",
+   "size": 16
+  }
+ ]
+}
