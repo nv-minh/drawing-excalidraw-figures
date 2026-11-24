@@ -73,7 +73,7 @@ An all-caps label such as a Redis command is wider than the 0.52 rule: count cap
 | `points` | Replaces `from`/`to`: a list of absolute coordinates. The path is straight between its points (a flow with corners); add `smooth: true` to round it into a curve |
 | `labelColor` | Color of the label when it should differ from the line (a `muted` amount on a `hot` path) |
 | `text` | Label at the middle of the arrow. Three words at most; an identifier, an endpoint or a step number counts as one word. `\n` gives a second line |
-| `head` `tail` | `arrow` `triangle` `dot` `bar` `none`. ER ends: `one` `many` `one-many` `zero-one` `zero-many` (crow's foot; the two `zero-` ends add the hollow ring of an optional side, which Excalidraw lacks, so Mermaid `|o` and `o{` keep their meaning). On a `dashed` or `dotted` arrow the ER ends and rings stay solid: Excalidraw would dash them into stubs, so the tool draws each ER end on its own solid 40-unit segment. UML ends: `inherit` (hollow triangle) `compose` (filled diamond) `aggregate` (hollow diamond) `circle`. `both: true` gives arrowheads at both ends |
+| `head` `tail` | `arrow` `triangle` `dot` `bar` `none`. ER ends: `one` `many` `one-many` `zero-one` `zero-many` `exactly-one` (crow's foot; `exactly-one` is Mermaid `||`: Excalidraw has only one bar for "one", so the tool lays a second bar `barGap`, default 22, units inside it; the two `zero-` ends add the hollow ring of an optional side, which Excalidraw lacks, so Mermaid `|o` and `o{` keep their meaning). On a `dashed` or `dotted` arrow the ER ends and rings stay solid: Excalidraw would dash them into stubs, so the tool draws each ER end on its own solid 40-unit segment. UML ends: `inherit` (hollow triangle) `compose` (filled diamond) `aggregate` (hollow diamond) `circle`. `both: true` gives arrowheads at both ends |
 | `labelAt` `labelDx` `labelDy` | Any of these turns the label into free text beside the line instead of a label that breaks the line. `labelAt` is a position along the whole drawn path, corners included: 0 to 1 is a fraction of its length, above 1 is units from the start (default 0.5). On a routed arrow check which segment that lands on. `labelDx` `labelDy` offset the label centre from that point; the default puts it above a horizontal segment (4 units clear, measured on Excalidraw's real 1.35 line height) and right of a vertical one. A hand-set `labelDy` on a horizontal segment needs at least half the label's height + 4: 15 for one line at size 16, 26 for two lines. Use on short arrows, on routed arrows whose midpoint is a corner, and on ER edges so the feet stay visible |
 | `id` | With an id, a `note` can point at the arrow's midpoint. Declare the arrow before the note |
 | `axis` | `true` marks the arrow as an axis (a scale, not a relation), so the unlabelled-arrow check of strategies `knowledge-summary`, `life-problem`, `idea` skips it. The `axis` and `plot` macros set it |
@@ -211,6 +211,7 @@ A tick labelled `""` draws the mark with no text, for a scale whose every step d
 ```
 
 `side: "above"` puts the text above.
+Vertical: `{"t":"span","dir":"y","x":340,"y1":60,"y2":260,"text":"200 ms"}` measures a height; the text goes to the right, `side: "left"` to the left.
 
 ### `plot`: chart
 
@@ -228,6 +229,7 @@ A tick labelled `""` draws the mark with no text, for a scale whose every step d
 - Each bar is an arrow target with id `<plot id>.<i>`; the plot id itself is not.
 - Lines are smoothed by default; `"smooth": false` on a line keeps straight segments (use it for a flat-then-ramp shape).
 - `xticks`: `[{"at":0.5,"label":"p50"}]`, `at` from 0 to 1.
+- `yticks`: `[{"value":50,"label":"50"},{"at":1,"label":"100"}]`, a mark and a label left of the y axis. `value` is in the same units as `bars` and `max`; `at` is a 0 to 1 fraction of the height. Set `max` so the top tick is a round number.
 
 ## Prebuilt diagrams
 
@@ -359,7 +361,8 @@ Place other elements on top using normal coordinates.
 ```
 
 - A node sits at the centre of its `lane` column on grid row `row`. `dx` `dy` nudge it. Two nodes may share a row in different lanes.
-- `kind`: `step` (default, rounded box), `decision` (diamond), `merge` (small diamond), `start` (filled dot), `end` (ringed dot).
+- `kind`: `step` (default, rounded box), `decision` (diamond), `merge` (small diamond), `start` (filled dot), `end` (ringed dot), `bar` (a solid fork/join bar, 90 × 8 unless `w` `h` say otherwise).
+- A `bar` marks work that runs in parallel: one edge into it and several out is a fork, several in and one out is a join. Centre it on the middle of the branches with `dx` and widen it with `w` so it spans them. Edges that meet at a bar share the trunk on purpose, so the same-direction nudge skips them.
 - Nodes take `text w h size color fill fillStyle dashed textColor`. Macro defaults: `nw` 150, `nh` 56, `size` 16; `nh` is a minimum, a node grows with its lines (two lines at size 15 come out 64 tall), so compute row gaps from the grown height.
 - `n` on a node puts a numbered `badge` on its top-left corner (`badgeColor`, default `l2`; `badgeSize`, default 15, which stays at 12px or more up to about 830 units wide): the step numbers strategy `process-flow` asks for, without writing `1.` into the text.
 - Without `w`/`h` a node sizes itself to its text, including multi-line text. A diamond needs about twice its text width, so keep decision text to two or three words or the diamond outgrows its lane. An explicit `w`/`h` always wins.
@@ -506,6 +509,9 @@ There is no browser-free mode: the shapes, the text measuring and the SVG come f
 | `•` | An arrow's line runs through a free text (a `vh` arrow leaving the bottom of a `cells` strip ran down through the strip's caption). A plain `line` counts too, except sequence lifelines (checked by the lifeline row below) and lines inside a 30-unit square (`cross`, `check`): a dashed time guide across every block of a timeline ran through the outcome text placed past its x. A plain `line` is also checked against text inside a shape, such as a `cells` label: a deadline guide ran down through the label of the strip under it; a filled shape drawn after the line hides it and is skipped, so a lane baseline under a filled box stays silent | Move the text beside the strip, or leave from another side; for a guide, end the text 6+ units before the guide's x or end the guide above it |
 | `•` | A detached arrow label (`labelAt`/`labelDx`/`labelDy`) rests on an arrow's line, its own or another's, within 1 unit (a two-line label at `labelDy` -22 hung over its own line and the shrunk-box check above hid it) | Raise `labelDy` to the value the message gives (half the label's height + 4) |
 | `•` | A hand-placed `cross` or `check` lies on free text (the sequence `fail` X is exempt, it sits in its label's box on purpose) | Move the mark to another corner, or move or shorten the text |
+| `•` | Two arrows cross (axes, legend, fork/join bars, arrows into the same shape and muted free lines such as a timeline are exempt) | Reroute one with `bend`, `route` or `fromSide`, or move a shape so the paths do not meet; keep a crossing only when no layout avoids it, and then it is the one thing the reader must not follow by mistake |
+| `•` | Free text crosses a shape's border by 3+ units, even when most of it is inside or outside (a table cell's edge through the end of a number) | The nudge gives the `x` or `y` that puts it clear; widen the cell or shorten the text |
+| `•` | `--lang`: a translation is 30%+ (and 30+ units) wider than the label it replaces | The English figure shares the Vietnamese layout, so shorten it or give the shape more room |
 | `•` | A label lies within 3 units of the hollow ring of a `zero-one`/`zero-many` end | Raise it with `labelDy`, slide it with `labelAt`, or lengthen the edge |
 | `•` | A free label touches the bar or crow of an ER end (the last ~24 units of the edge, ~8 units either side of the line) | Slide it with `labelAt` toward the middle, raise it with `labelDy` (-22 on a horizontal edge under ~130 units), or lengthen the edge |
 | `•` | A `sequence` message or self-message label runs across a lifeline (measured on Excalidraw's Nunito box, ~20% wider than the drawn glyphs). Fragment guard labels count too (an `else` guard sat on the first lifeline of template 21 and this check missed it) | Shorten the label, drop `n` numbers the text does not cite, or raise `gap` to the width the message gives |

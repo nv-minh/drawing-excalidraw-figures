@@ -195,7 +195,7 @@ class TestNhan:
         bang['Gửi đơn'] = 'Submit'
         del bang['tường lửa']
         f.write_text(json.dumps(bang, ensure_ascii=False), encoding='utf-8')
-        els, _, thieu = ve.dich(src, 'en', ve.nap(src), self.SPEC['caption'])
+        els, _, thieu, _ = ve.dich(src, 'en', ve.nap(src), self.SPEC['caption'])
         assert els[0]['text'] == 'Submit' and els[0]['id'] == 'nut'
         assert els[1]['name'] == 'firewall'
         assert thieu == ['tường lửa']
@@ -393,3 +393,55 @@ class TestHinhPhinh:
         assert len(cung) == 1 and 'middle half' in cung[0]
         can = int(cung[0].split('`w` at least 2 × text width + 24 = ')[1].split(',')[0])
         assert can >= 320
+
+
+# ── sáu chỗ hở còn mở sau bộ 13 hình mẫu ────────────────────────────
+class TestChoHoCuoi:
+    def test_yticks_ve_nhan_truc_y(self):
+        sk, *_ = ve.dung([{'t': 'plot', 'x': 60, 'y': 260, 'w': 200, 'h': 200, 'max': 100,
+                           'bars': [{'value': 40}], 'yticks': [{'value': 50, 'label': '50'}, {'at': 1, 'label': '100'}]}])
+        ys = {o['text']: o['y'] for o in sk if o['type'] == 'text' and o['text'] in ('50', '100')}
+        assert set(ys) == {'50', '100'} and ys['100'] < ys['50']       # 100 sits above 50
+
+    def test_span_doc(self):
+        sk, *_ = ve.dung([{'t': 'span', 'dir': 'y', 'x': 300, 'y1': 60, 'y2': 260, 'text': '200 ms'}])
+        main = next(o for o in sk if o['type'] == 'line' and o.get('points') and o['points'][1][0] == 0)
+        assert main['points'][1][1] == 200                              # vertical, 200 long
+        txt = next(o for o in sk if o['type'] == 'text')
+        assert txt['x'] > 300                                           # label on the right by default
+
+    def test_er_dung_mot_hai_vach(self):
+        sk, *_ = ve.dung([{'t': 'box', 'id': 'a', 'x': 0, 'y': 0, 'w': 100, 'h': 50},
+                          {'t': 'box', 'id': 'b', 'x': 0, 'y': 200, 'w': 100, 'h': 50},
+                          {'t': 'arrow', 'from': 'a', 'to': 'b', 'tail': 'exactly-one', 'head': 'many'}])
+        assert any(str(o.get('id', '')).startswith('_bar') for o in sk)
+        ar = next(o for o in sk if o['type'] == 'arrow' and o.get('startArrowhead'))
+        assert ar['startArrowhead'] == 'crowfoot_one'
+
+    def test_swimlane_thanh_re_nhanh(self):
+        spec = [{'t': 'swimlane', 'x': 0, 'y': 0, 'lanes': [{'id': 'a', 'label': 'A'}, {'id': 'b', 'label': 'B'}],
+                 'nodes': [{'id': 's', 'lane': 'a', 'row': 0, 'text': 'S'},
+                           {'id': 'f', 'lane': 'a', 'row': 1, 'kind': 'bar', 'w': 200},
+                           {'id': 'x', 'lane': 'a', 'row': 2, 'text': 'X'},
+                           {'id': 'y', 'lane': 'b', 'row': 2, 'text': 'Y'}],
+                 'edges': [{'from': 's', 'to': 'f'}, {'from': 'f', 'to': 'x'}, {'from': 'f', 'to': 'y'}]}]
+        sk, _, hinh, lint, _ = ve.dung(spec)
+        assert hinh['f']['h'] == 8
+        cung, nhac = ve.soat([], hinh, lint, [], sk)
+        assert not any('same direction' in n for n in nhac)             # the shared trunk of a fork is the point
+
+    def test_mui_ten_cat_mui_ten(self):
+        def pts(a, b):
+            return (None, None, [a, b], 1, {'t': 'arrow'})
+        _, nhac = ve.soat([], {}, [pts((0, 0), (100, 100)), pts((0, 100), (100, 0))], [])
+        assert any('crosses arrow' in n for n in nhac)
+        gio = (None, None, [(0, 100), (100, 0)], 1, {'t': 'arrow', 'color': 'muted'})
+        _, nhac = ve.soat([], {}, [pts((0, 0), (100, 100)), gio], [])
+        assert not any('crosses arrow' in n for n in nhac)
+
+    def test_chu_de_len_vien_o_bang(self):
+        o = {'type': 'rectangle', 'id': 'c1', 'x': 0, 'y': 0, 'width': 100, 'height': 40, 'strokeColor': '#000',
+             'backgroundColor': 'transparent'}
+        chu = {'type': 'text', 'id': 't1', 'x': 90, 'y': 8, 'width': 40, 'height': 22, 'text': '1,234', 'fontSize': 16}
+        _, nhac = ve.soat([o, chu], {}, [], [])
+        assert any('crosses the border' in n or 'straddles' in n for n in nhac)

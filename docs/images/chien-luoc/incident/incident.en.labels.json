@@ -9,7 +9,7 @@
  "log +10 GB/giờ": "logs +10 GB/hour",
  "20:00 cảnh báo 95% kêu:\ncòn 10 GB = 1 giờ; người\ntrực đang tìm nguyên\nnhân thì đĩa đầy": "20:00 the 95% alert fires:\n10 GB left = 1 hour; the\non-call is still looking\nfor the cause when it fills",
  "↑ nguyên nhân gốc (vì sao chuyện nhỏ thành sự cố):\nlog nằm chung đĩa với dữ liệu, không giới hạn dung lượng": "↑ root cause (why a small change became an outage):\nlogs share the disk with the data, with no size limit",
- "21:00 đĩa đầy, Postgres không ghi\nđược WAL nên dừng 40 phút: không\nnhận đơn hàng, ~1 800 đơn lỗi 500": "21:00 disk full: Postgres cannot\nwrite its WAL and stops for 40 min:\nno orders taken, ~1 800 fail with 500",
+ "21:00 đĩa đầy, Postgres không ghi\nđược WAL nên dừng 40 phút: không\nnhận đơn hàng, ~1 800 đơn lỗi 500": "21:00 disk full: Postgres\ncannot write WAL, down 40 min:\nno orders, ~1 800 fail (500)",
  "(WAL: nhật ký Postgres phải\nghi trước mỗi thay đổi)": "(WAL: the journal Postgres must\nwrite before every change)",
  "dữ liệu Postgres: 120 GB, gần như không đổi": "Postgres data: 120 GB, nearly constant",
  "21:25 xoá 70 GB log cũ (còn 130 GB),\ntrả cấu hình về 1000; 21:40 chạy lại": "21:25 delete 70 GB of old logs (130 GB\nleft), setting back to 1000; 21:40 up again",

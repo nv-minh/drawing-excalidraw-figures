@@ -60,7 +60,7 @@
    "boundElements": [
     {
      "type": "text",
-     "id": "p26oTwlH2sBVQtoXLT4kh"
+     "id": "valJ2e0LOgkXhTqSrvMrg"
     }
    ],
    "updated": 1,
@@ -904,7 +904,7 @@
    "boundElements": [
     {
      "type": "text",
-     "id": "-VRhDGTOd9tV_41kEezJy"
+     "id": "92VtJEs7YsK7GCNpGJA7o"
     }
    ],
    "updated": 1,
@@ -1045,7 +1045,7 @@
    "boundElements": [
     {
      "type": "text",
-     "id": "L6dFN56cQiquqsig9pqO4"
+     "id": "kjuha5y5Wf2E8KaS9O1Fu"
     }
    ],
    "updated": 1,
@@ -1058,7 +1058,7 @@
    "type": "text",
    "x": 396,
    "y": 400,
-   "width": 266.6397399902344,
+   "width": 236.89578247070312,
    "height": 64.80000000000001,
    "angle": 0,
    "strokeColor": "#D6294B",
@@ -1081,13 +1081,13 @@
    "link": null,
    "locked": false,
    "customData": null,
-   "text": "21:00 disk full: Postgres cannot\nwrite its WAL and stops for 40 min:\nno orders taken, ~1 800 fail with 500",
+   "text": "21:00 disk full: Postgres\ncannot write WAL, down 40 min:\nno orders, ~1 800 fail (500)",
    "fontSize": 16,
    "fontFamily": 6,
    "textAlign": "left",
    "verticalAlign": "top",
    "containerId": null,
-   "originalText": "21:00 disk full: Postgres cannot\nwrite its WAL and stops for 40 min:\nno orders taken, ~1 800 fail with 500",
+   "originalText": "21:00 disk full: Postgres\ncannot write WAL, down 40 min:\nno orders, ~1 800 fail (500)",
    "autoResize": true,
    "lineHeight": 1.35
   },
@@ -1224,7 +1224,7 @@
    "boundElements": [
     {
      "type": "text",
-     "id": "BrjInEaiQGTPG_dm8a-8X"
+     "id": "m5zXeF9UkU_KYZGFzzFvQ"
     }
    ],
    "updated": 1,
@@ -2231,7 +2231,7 @@
    "lineHeight": 1.35
   },
   {
-   "id": "p26oTwlH2sBVQtoXLT4kh",
+   "id": "valJ2e0LOgkXhTqSrvMrg",
    "type": "text",
    "x": 90.20000457763672,
    "y": 5.199999999999999,
@@ -2269,7 +2269,7 @@
    "lineHeight": 1.35
   },
   {
-   "id": "-VRhDGTOd9tV_41kEezJy",
+   "id": "92VtJEs7YsK7GCNpGJA7o",
    "type": "text",
    "x": 428.2000045776367,
    "y": 243.2,
@@ -2307,7 +2307,7 @@
    "lineHeight": 1.35
   },
   {
-   "id": "L6dFN56cQiquqsig9pqO4",
+   "id": "kjuha5y5Wf2E8KaS9O1Fu",
    "type": "text",
    "x": 372.2000045776367,
    "y": 403.2,
@@ -2345,7 +2345,7 @@
    "lineHeight": 1.35
   },
   {
-   "id": "BrjInEaiQGTPG_dm8a-8X",
+   "id": "m5zXeF9UkU_KYZGFzzFvQ",
    "type": "text",
    "x": 436.2000045776367,
    "y": 115.2,
