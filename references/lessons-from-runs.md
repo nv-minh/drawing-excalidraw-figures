@@ -186,3 +186,10 @@ A softer prompt is a different test: keep the prompt fixed when comparing runs.
 
 So one pass of the skill gets about two thirds of figures past a strict stranger, and the fresh-eyes loop of `references/review.md` is what gets the rest there.
 The five failures were all of the kinds listed under "The four misreads" in `references/review.md`, plus one of tone: a causal loop for three roommates named two of them as the ones who avoid the kitchen, which the readers in the loop would take as blame (`references/strategies.md`, `life-problem`).
+
+### The six gaps the gallery left, closed (2026-11-24)
+
+- `plot` takes `yticks`; `span` takes `dir: "y"`; ER ends take `exactly-one` (two bars); a swimlane takes `kind: "bar"` for a fork or join.
+- New nudges: two arrows crossing, free text a few units over a cell border, and a translation much wider than its original.
+- Running them on the 13 gallery figures and the examples found one false positive (a muted timeline crossed by a request, now exempt) and two real overlaps in the English figures (`incident`, `life-problem`), fixed by shortening the translation.
+- Still open: a ruler's index numbers are flagged by the `--source` check, and the note-pointer routing has no check of its own.

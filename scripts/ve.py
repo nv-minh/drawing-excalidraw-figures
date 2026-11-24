@@ -398,9 +398,20 @@ def m_axis(e):
 
 def m_span(e):
     """Bracket measuring a span: |------|  with a label."""
-    c, y = e.get('color', 'muted'), e['y']
+    c, s = e.get('color', 'muted'), e.get('size', 16)
+    if e.get('dir') == 'y':                     # vertical: x, y1, y2; side 'right' (default) or 'left' puts the label there
+        x, y1, y2 = e['x'], e['y1'], e['y2']
+        dr = e.get('side', 'right') == 'right'
+        out = [{'t': 'line', 'points': [[x, y1], [x, y2]], 'color': c, 'weight': e.get('weight', 2)},
+               {'t': 'line', 'points': [[x - 8, y1], [x + 8, y1]], 'color': c},
+               {'t': 'line', 'points': [[x - 8, y2], [x + 8, y2]], 'color': c}]
+        if e.get('text'):
+            out.append({'t': 'text', 'x': x + 12 if dr else x - 12 - rong_chu(e['text'], s),
+                        'y': (y1 + y2) / 2 - cao_chu(e['text'], s) / 2, 'text': e['text'], 'size': s, 'color': c,
+                        'align': 'left' if dr else 'right'})
+        return out
+    y = e['y']
     x1, x2 = e['x1'], e['x2']
-    s = e.get('size', 16)
     duoi = e.get('side', 'below') == 'below'
     out = [{'t': 'line', 'points': [[x1, y], [x2, y]], 'color': c, 'weight': e.get('weight', 2)},
            {'t': 'line', 'points': [[x1, y - 8], [x1, y + 8]], 'color': c},
@@ -454,6 +465,11 @@ def m_plot(e):
         if t.get('label'):
             out.append({'t': 'text', 'x': x + w + 8, 'y': ty - 12, 'text': t['label'], 'size': 15,
                         'color': t.get('color', 'err')})
+    for yv in e.get('yticks', []):               # y tick: `value` in data units (like bars) or `at` as a 0-1 fraction
+        ty = y - h * (yv['value'] / vmax if 'value' in yv else yv['at'])
+        out.append({'t': 'line', 'points': [[x - 5, ty], [x + 5, ty]]})
+        out.append({'t': 'text', 'x': x - 12 - rong_chu(yv['label'], 15), 'y': ty - 9, 'text': yv['label'],
+                    'size': 15, 'color': 'muted'})
     for xv in e.get('xticks', []):
         tx = x + w * xv['at']
         out.append({'t': 'line', 'points': [[tx, y - 5], [tx, y + 5]]})
@@ -746,6 +762,8 @@ def m_swimlane(e):
         k, sz, tx = n.get('kind', 'step'), n.get('size', size), n.get('text', '')
         if k in ('start', 'end', 'merge'):
             return 26, 26
+        if k == 'bar':                             # fork/join bar: thin, wide enough to span the branches it splits
+            return n.get('w', 90), n.get('h', 8)
         if k == 'decision':                        # a diamond holds text in its middle half, and wraps when too narrow
             w = n.get('w', max(nw * 1.1, rong_chu(tx, sz) * 2 + 44))
             dong = sum(max(1, math.ceil((rong_chu(l, sz) + 8) / max(w / 2 - 8, 1))) for l in str(tx).split('\n'))
@@ -784,6 +802,10 @@ def m_swimlane(e):
             out.append({'t': kind, 'id': n['id'], 'x': mx - d / 2, 'y': my - d / 2, 'd': d})
             continue
         w, h = co(n)
+        if kind == 'bar':                          # fork/join bar: solid, no text, edges attach to its top and bottom
+            out.append({'t': 'box', 'id': n['id'], 'x': mx - w / 2, 'y': my - h / 2, 'w': w, 'h': h, 'sharp': True,
+                        'color': n.get('color', 'ink'), 'fill': n.get('color', 'ink'), 'fillStyle': 'solid'})
+            continue
         b = {'t': 'diamond' if kind in ('decision', 'merge') else 'box', 'id': n['id'], 'x': mx - w / 2, 'y': my - h / 2,
              'w': w, 'h': h, 'text': n.get('text'), 'size': n.get('size', size),
              'color': n.get('color', 'ink')}
@@ -798,9 +820,11 @@ def m_swimlane(e):
         for k in ('from', 'to'):
             if g.get(k) not in info:
                 chet(f"swimlane: edge has {k}='{g.get(k)}', which matches no node. Nodes: {' '.join(info)}")
-        (la, ra, ka, xa_, wa_), (lb, rb, _, xb_, _w) = info[g['from']], info[g['to']]
+        (la, ra, ka, xa_, wa_), (lb, rb, kb, xb_, _w) = info[g['from']], info[g['to']]
         a = dict(g, t='arrow')
         a.setdefault('size', 15)
+        if ka == 'bar' or kb == 'bar':
+            a['bar'] = True
         if 'fromSide' not in g and 'toSide' not in g and 'route' not in g and 'bend' not in g and g['from'] != g['to']:
             if abs(xa_ - xb_) < 1:
                 a['fromSide'], a['toSide'] = ('bottom', 'top') if rb >= ra else ('top', 'bottom')
@@ -1346,7 +1370,7 @@ def nap(path, seen=()):
 # ───────────────────────── build skeleton ─────────────────────────
 HEAD = {'arrow': 'arrow', 'triangle': 'triangle', 'dot': 'circle', 'bar': 'bar', 'none': None,
         'one': 'crowfoot_one', 'many': 'crowfoot_many', 'one-many': 'crowfoot_one_or_many',
-        'zero-one': 'crowfoot_one', 'zero-many': 'crowfoot_many',
+        'zero-one': 'crowfoot_one', 'zero-many': 'crowfoot_many', 'exactly-one': 'crowfoot_one',
         'inherit': 'triangle_outline', 'compose': 'diamond', 'aggregate': 'diamond_outline', 'circle': 'circle_outline'}
 
 
@@ -1497,7 +1521,7 @@ def dung(spec_els):
             # Excalidraw dashes the arrowheads of a dashed arrow too, which cuts an ER bar or crow into stubs
             # (a FK-less column drawn dashed). Keep the line dashed but
             # draw each ER end on its own short solid segment laid over the last 40 units.
-            ER_ENDS = ('one', 'many', 'one-many', 'zero-one', 'zero-many')
+            ER_ENDS = ('one', 'many', 'one-many', 'zero-one', 'zero-many', 'exactly-one')
             ve_lien = t == 'arrow' and chung['strokeStyle'] != 'solid'
             for k, (tip, prev) in (('head', (pts[-1], pts[-2])), ('tail', (pts[0], pts[1]))):
                 if ve_lien and e.get(k) in ER_ENDS:
@@ -1520,6 +1544,17 @@ def dung(spec_els):
                     cx, cy = tip[0] + (prev[0] - tip[0]) / L * d, tip[1] + (prev[1] - tip[1]) / L * d
                     out.append({'type': 'ellipse', 'id': f'_zero{i}{k}', 'x': cx - 6, 'y': cy - 6, 'width': 12,
                                 'height': 12, 'backgroundColor': MAU['paper'], 'fillStyle': 'solid',
+                                **dict(chung, strokeStyle='solid')})
+            # Excalidraw has one bar for "one", but ER notation writes "exactly one" with TWO bars (Mermaid `||`):
+            # draw the second bar 10 units inside the first, short and solid like the ring.
+            for k, (tip, prev) in (('head', (pts[-1], pts[-2])), ('tail', (pts[0], pts[1]))):
+                if t == 'arrow' and e.get(k) == 'exactly-one':
+                    L = math.hypot(tip[0] - prev[0], tip[1] - prev[1]) or 1
+                    ux, uy = (prev[0] - tip[0]) / L, (prev[1] - tip[1]) / L
+                    d = min(e.get('barGap', 22), L * .5)
+                    bx, by = tip[0] + ux * d, tip[1] + uy * d
+                    out.append({'type': 'line', 'id': f'_bar{i}{k}', 'x': bx + uy * 8, 'y': by - ux * 8,
+                                'points': [[0, 0], [-uy * 16, ux * 16]], 'roundness': None,
                                 **dict(chung, strokeStyle='solid')})
             if t == 'arrow' and e.get('text') and tu_do:      # detached label: placed by distance along the arrow
                 segs = [(pts[k], pts[k + 1], math.hypot(pts[k + 1][0] - pts[k][0], pts[k + 1][1] - pts[k][1]))
@@ -1933,17 +1968,46 @@ def soat(conv, hinh, lint_arrows, goc, sk=(), strat=None):
     def _dir(p, q):
         L = math.hypot(q[0] - p[0], q[1] - p[1])
         return ((q[0] - p[0]) / L, (q[1] - p[1]) / L, L) if L else (0, 0, 0)
-    for i, (a1, b1, p1, *_) in enumerate(lint_arrows):
+    for i, (a1, b1, p1, _d1, sp1) in enumerate(lint_arrows):
         for j in range(i + 1, len(lint_arrows)):
-            a2, b2, p2, *_ = lint_arrows[j]
+            a2, b2, p2, _d2, sp2 = lint_arrows[j]
             if len(p1) < 2 or len(p2) < 2:
                 continue
             for k1, k2, n1, n2, ten in ((p1[0], p2[0], p1[1], p2[1], 'leave'), (p1[-1], p2[-1], p1[-2], p2[-2], 'reach')):
                 ux, uy, l1 = _dir(k1, n1)
                 vx, vy, l2 = _dir(k2, n2)
-                if math.hypot(k1[0] - k2[0], k1[1] - k2[1]) < 6 and ux * vx + uy * vy > 0.985 and min(l1, l2) > 12:
+                bar = sp1.get('bar') and sp2.get('bar')     # a swimlane fork/join bar: the shared trunk is the point
+                if not bar and math.hypot(k1[0] - k2[0], k1[1] - k2[1]) < 6 and ux * vx + uy * vy > 0.985 and min(l1, l2) > 12:
                     nhac.append(f"arrows {a1} → {b1} and {a2} → {b2} {ten} ({k1[0]:.0f},{k1[1]:.0f}) in the same direction and "
                                 f"share {min(l1, l2):.0f} units of stroke: give one fromAt/toAt or another side")
+    # 2e · two arrows cross each other: a reader following one line meets the other and may switch. Arrows that share a
+    #      shape, axes, legend and swimlane fork/join bars are by design; the rest should route around or say why.
+    def _cat_nhau(p1, p2, q1, q2):
+        d = (p2[0] - p1[0]) * (q2[1] - q1[1]) - (p2[1] - p1[1]) * (q2[0] - q1[0])
+        if abs(d) < 1e-9:
+            return None
+        t = ((q1[0] - p1[0]) * (q2[1] - q1[1]) - (q1[1] - p1[1]) * (q2[0] - q1[0])) / d
+        u = ((q1[0] - p1[0]) * (p2[1] - p1[1]) - (q1[1] - p1[1]) * (p2[0] - p1[0])) / d
+        L1, L2 = math.hypot(p2[0] - p1[0], p2[1] - p1[1]), math.hypot(q2[0] - q1[0], q2[1] - q1[1])
+        if 4 / (L1 or 1) < t < 1 - 4 / (L1 or 1) and 4 / (L2 or 1) < u < 1 - 4 / (L2 or 1):
+            return p1[0] + t * (p2[0] - p1[0]), p1[1] + t * (p2[1] - p1[1])
+    ra = [x for x in lint_arrows if len(x[2]) >= 2 and not x[4].get('axis') and not x[4].get('legend')
+          and not x[4].get('bar') and x[4].get('t') == 'arrow'
+          and not (x[0] is None and x[4].get('color') == 'muted')]     # a muted free line is a timeline or guide, not a path
+    for i, (a1, b1, p1, _d1, sp1) in enumerate(ra):
+        for a2, b2, p2, _d2, sp2 in ra[i + 1:]:
+            if a1 is not None and a1 == a2 or a1 is not None and b1 == b2:
+                continue
+            for k in range(len(p1) - 1):
+                for m in range(len(p2) - 1):
+                    xy = _cat_nhau(p1[k], p1[k + 1], p2[m], p2[m + 1])
+                    if xy:
+                        nhac.append(f"arrow {a1 or 'points'} → {b1 or 'points'} crosses arrow {a2 or 'points'} → {b2 or 'points'} "
+                                    f"at ({xy[0]:.0f},{xy[1]:.0f}): reroute one (bend, route, fromSide) or move a shape")
+                        break
+                else:
+                    continue
+                break
     # 2b · label longer than the arrow carrying it: the text will cover the shapes at both ends.
     #      Measured ALONG the arrow: on a vertical arrow the label's height eats the line, not its width
     #      (FE25 SPSC run: a 164-wide label on a 160-long vertical arrow left 140 units of line and was flagged).
@@ -2037,6 +2101,14 @@ def soat(conv, hinh, lint_arrows, goc, sk=(), strat=None):
                 if -1 < ke < 4:
                     nhac.append(f"text “{f['text'][:22]}” touches the border of shape '{s['id']}' "
                                 f"({ke:.0f} units inside): keep 6+ units clear")
+            elif 0 < g < dt * 0.995 and not str(f['id']).startswith(f"{s['id']}."):
+                # A few units over an edge: a table cell's border cut the end of a number (8% of the text, so the
+                # 12-88% test above stayed silent). 3+ units both ways is a stroke through the glyphs.
+                ow = min(f['x'] + f['width'], s['x'] + s['width']) - max(f['x'], s['x'])
+                oh = min(f['y'] + f['height'], s['y'] + s['height']) - max(f['y'], s['y'])
+                if min(ow, oh) >= 3 and (g < 0.12 * dt or g >= 0.88 * dt):
+                    nhac.append(f"text “{f['text'][:22]}” crosses the border of shape '{s['id']}' by {min(ow, oh):.0f} units: "
+                                f"{_ra_vao(f, s)}")
     # 3a · a label touching the hollow ring of a `zero-one`/`zero-many` end: the ring sits 24-34 units inside the
     #      arrow, so a verb label centred on a short ER edge lands on it (`td4-variant-giu-gia-va-ton-kho`).
     #      3 units of clearance: a box that only touches the ring still reads as text sitting on it.
@@ -2472,7 +2544,23 @@ def dich(src, lang, els, caption):
             thieu.append(s)
         return bang.get(s, s)
     els, cap = _chu(els, tra), _chu(caption, tra)
-    return els, cap, list(dict.fromkeys(thieu))
+    return els, cap, list(dict.fromkeys(thieu)), _dai_ra(els0_nhan(bang))
+
+
+def els0_nhan(bang):
+    """(written label, translation) pairs of a labels file."""
+    return [(k, v) for k, v in bang.items() if isinstance(v, str) and isinstance(k, str)]
+
+
+def _dai_ra(cap):
+    """Translations that came out wider than the label they replace: the English figure shares the Vietnamese
+    layout, so a label 30% longer (and 30+ units) is where a box grows or a label meets its neighbour."""
+    out = []
+    for k, v in cap:
+        a, b = max((rong_chu(l, 16) for l in k.split('\n')), default=0), max((rong_chu(l, 16) for l in v.split('\n')), default=0)
+        if k != v and len(k) < 90 and b > a * 1.3 and b - a >= 30:     # a long sentence wraps by itself (the caption)
+            out.append((k, v))
+    return out
 
 
 # ───────────────────────── several figures on one page ─────────────────────────
@@ -2671,7 +2759,11 @@ def chay(co, specs):
                         chet(f'source file not found: {f_nguon}')
                     nguon = (fp.read_text(encoding='utf-8', errors='replace'), fp.name)
                 if lang:
-                    els, cap, thieu = dich(src, lang, els, cap)
+                    els, cap, thieu, dai = dich(src, lang, els, cap)
+                    if dai:
+                        print(f"  • {len(dai)} translations are 30%+ wider than the label they replace, and the layout is shared "
+                              f"with the original: shorten them or give the shape more room: "
+                              + ', '.join(f'“{v[:24]}”' for _, v in dai[:4]) + (' …' if len(dai) > 4 else ''))
                     if thieu:
                         print(f"  • {len(thieu)} labels have no translation in {file_nhan(src, lang).name}, kept as written: "
                               + ', '.join(f'“{t[:20]}”' for t in thieu[:5]) + (' …' if len(thieu) > 5 else ''))
