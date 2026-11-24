@@ -29,9 +29,12 @@ A business pitch, a concept that needs teaching, a tangled 2 a.m. note, an inter
 For a rough idea, the skill first writes one sentence - "this idea really says that..." - lists the concepts, relations and tensions in the writer's own words, then picks the figure type from the idea's structure: causal loop, 2x2 matrix, funnel, concept map, timeline, swimlane.
 When there is someone to ask, the skill shows the first draft and asks "is this what you meant?" before polishing.
 
-<p align="center"><img src="docs/images/y-tuong/ghi-chu-light.png" alt="A quitting-decision note drawn as a timeline" width="620"></p>
+<table>
+<tr><td width="50%" valign="top"><a href="evals/ghi-chu-ca-nhan/prompt.md"><img src="docs/images/y-tuong/ghi-chu-light.png" alt="A quitting-decision note drawn as a timeline" width="380"></a><br><b>personal note</b> (reader: the writer, re-reading a week later)<br>quitting to join a startup: the real fear is five static years, not eight months of savings · <a href="evals/ghi-chu-ca-nhan/prompt.md">brief</a></td><td width="50%" valign="top"><a href="evals/giang-day-khai-niem/prompt.md"><img src="docs/images/y-tuong/giang-day-light.png" alt="Industrial moths drawn as four countable moth rows" width="380"></a><br><b>teaching a concept</b> (reader: a student meeting evolution for the first time)<br>industrial moths: no moth changes colour, the population's ratio does · <a href="evals/giang-day-khai-niem/prompt.md">brief</a></td></tr>
+<tr><td width="50%" valign="top"><a href="evals/quy-trinh-to-chuc/prompt.md"><img src="docs/images/y-tuong/quy-trinh-light.png" alt="Expense approval as a three-role swimlane" width="380"></a><br><b>organizational process</b> (reader: an employee filing a first expense claim)<br>expense approval: team lead, accountant, a 2 million threshold and a red invoice · <a href="evals/quy-trinh-to-chuc/prompt.md">brief</a></td><td width="50%" valign="top"><a href="evals/y-tuong-kinh-doanh/prompt.md"><img src="docs/images/y-tuong/kinh-doanh-light.png" alt="Cut the price or hold it: which branch has a loop" width="380"></a><br><b>business idea</b> (reader: the coffee-shop owner, before the pricing meeting)<br>a rival cuts 10k a cup: hold the price because the regulars loop runs on its own · <a href="evals/y-tuong-kinh-doanh/prompt.md">brief</a></td></tr>
+</table>
 
-Four non-technical cases live in `evals/`, with results and lessons in `references/lessons-from-runs.md`.
+The four cases above live in `evals/`, with results and lessons in `references/lessons-from-runs.md`.
 The `nguoi-moi-mat-khau-salt` case measures whether a newcomer understands the figure: the judge looks at the PNG as a parent who never programmed and answers three questions from the image alone.
 Run it as a controlled comparison (with and without the skill, reported as `Δ`) as described in `evals/README.md`.
 

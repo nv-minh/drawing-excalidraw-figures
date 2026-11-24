@@ -29,9 +29,12 @@ Một pitch kinh doanh, một khái niệm cần giảng, một đoạn note r�
 Với ý tưởng thô, skill viết thêm một câu "ý này thực chất nói rằng...", liệt kê khái niệm, quan hệ và chỗ căng thẳng bằng đúng chữ của người viết, rồi chọn hình theo cấu trúc của ý: vòng nhân quả, ma trận 2x2, phễu, concept map, timeline, swimlane.
 Nếu có người để hỏi, skill đưa bản nháp đầu tiên và hỏi "đúng ý bạn chưa?" trước khi trau chuốt.
 
-<p align="center"><img src="docs/images/y-tuong/ghi-chu-light.png" alt="Note về quyết định nghỉ việc vẽ thành timeline" width="620"></p>
+<table>
+<tr><td width="50%" valign="top"><a href="evals/ghi-chu-ca-nhan/prompt.md"><img src="docs/images/y-tuong/ghi-chu-light.png" alt="Note nghỉ việc vẽ thành timeline" width="380"></a><br><b>ghi chú cá nhân</b> (người đọc: chính người viết, đọc lại sau một tuần)<br>nghỉ việc sang startup: cái sợ thật là 5 năm ngồi yên, không phải 8 tháng tiền · <a href="evals/ghi-chu-ca-nhan/prompt.md">đề bài</a></td><td width="50%" valign="top"><a href="evals/giang-day-khai-niem/prompt.md"><img src="docs/images/y-tuong/giang-day-light.png" alt="Bướm công nghiệp vẽ thành bốn dải bướm đếm được" width="380"></a><br><b>giảng dạy khái niệm</b> (người đọc: học sinh gặp tiến hoá lần đầu)<br>bướm công nghiệp: không con nào đổi màu, tỷ lệ trong quần thể đổi · <a href="evals/giang-day-khai-niem/prompt.md">đề bài</a></td></tr>
+<tr><td width="50%" valign="top"><a href="evals/quy-trinh-to-chuc/prompt.md"><img src="docs/images/y-tuong/quy-trinh-light.png" alt="Duyệt chi tiền qua swimlane ba vai" width="380"></a><br><b>quy trình tổ chức</b> (người đọc: nhân viên mới nộp đề nghị chi lần đầu)<br>duyệt chi tiền: trưởng nhóm, kế toán, ngưỡng 2 triệu và hoá đơn đỏ · <a href="evals/quy-trinh-to-chuc/prompt.md">đề bài</a></td><td width="50%" valign="top"><a href="evals/y-tuong-kinh-doanh/prompt.md"><img src="docs/images/y-tuong/kinh-doanh-light.png" alt="Giảm giá hay giữ giá: nhánh nào có vòng tự chạy" width="380"></a><br><b>ý tưởng kinh doanh</b> (người đọc: chủ quán cà phê trước cuộc họp về giá)<br>đối thủ bán rẻ 10 nghìn: giữ giá vì vòng khách quen tự chạy · <a href="evals/y-tuong-kinh-doanh/prompt.md">đề bài</a></td></tr>
+</table>
 
-Bốn đề phi kỹ thuật nằm trong `evals/`, kết quả và bài học trong `references/lessons-from-runs.md`.
+Bốn đề trên nằm trong `evals/`, kết quả và bài học trong `references/lessons-from-runs.md`.
 Đề `nguoi-moi-mat-khau-salt` đo thẳng việc người mới có hiểu hình không: giám khảo xem PNG, đóng vai phụ huynh chưa biết lập trình và trả lời ba câu hỏi chỉ từ hình.
 Chạy có đối chứng (có skill và không skill, báo `Δ`) theo `evals/README.md`.
 
