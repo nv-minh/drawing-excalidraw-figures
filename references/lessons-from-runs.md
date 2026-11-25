@@ -193,3 +193,53 @@ The five failures were all of the kinds listed under "The four misreads" in `ref
 - New nudges: two arrows crossing, free text a few units over a cell border, and a translation much wider than its original.
 - Running them on the 13 gallery figures and the examples found one false positive (a muted timeline crossed by a request, now exempt) and two real overlaps in the English figures (`incident`, `life-problem`), fixed by shortening the translation.
 - Still open: a ruler's index numbers are flagged by the `--source` check, and the note-pointer routing has no check of its own.
+
+### A Java team read the Java4Shell figures and could not follow them (2026-11-25)
+
+A Java developer on the owner's team read the four Java4Shell slides, every low-level term glossed, and said: "looking at the figure I do not understand; it lacks information; I had to go and read up on JDK vs Base64 vs padding; the figure with the text is fine, it only lacks the related information".
+The gallery `vulnerability` figure, drawn later with the whole skill and five fresh-eyes rounds, had the same gap.
+
+**Reproduced with the prompt as it was.**
+Three new reviewers, one per figure, were asked the four questions.
+Verdicts: OK, OK, CHƯA OK.
+None named a missing fact.
+One wrote "I do not understand why it comes to 50 bytes" and still concluded OK.
+
+**Two causes.**
+The term list and the reviewer's third question are about the words on the figure, and the missing things were facts the figure never wrote: that 4 Base64 characters carry 3 bytes, that `=` is padding, that the JDK allocates the array before decoding.
+A reader who lacks a word sees the gap and looks it up; a reader who lacks a premise only knows that they do not understand.
+The reviewer is also a model that understands every word, so asked what it did not understand it answers "nothing" or names a jargon word.
+
+**What was tried, in order.**
+
+- A planning agent given only the brief and the amended steps 1 and 2, not the figure and not the feedback, put "4 ký tự = 3 byte, `=` là đệm" outside the reader's "surely knows" list and on the figure by itself: "the reader only calls the library".
+  It did the same for six other briefs, from a first-year economics student to a TCP specialist (a backend developer who uses Postgres daily does not know that WAL is written before each change).
+- A new reviewer asked to list what the figure takes for granted (Part B of `references/review.md`) found the gap on the old gallery figure in its first round: 14 items, 2 BLOCKS, the first being the Base64 rule and the allocation before decoding.
+- With the prompt as it now stands, the old figure's first round listed 2 BLOCKS items of 14: how Base64 works, and the CPU condition.
+- On the redrawn figure five rounds went 4, 2, 1, 2, 2 BLOCKS items, each round one layer deeper: why machine code lacks the bounds check, why 64 bytes, why the mask is wrong, why the length is -1.
+  One round caught a sentence that contradicted itself ("each instruction writes all 64 bytes or nothing" beside "the mask switches each byte").
+  The lines added to answer them went into the smallest text on the figure, and reviewers then reported they could not read the lines that held the answers.
+- So the sample became a set of two figures, as the deck already was: the effect with the normal case first, pointing to a second figure where each step of the mask computation has its reason in body-size text.
+
+**Rules added.**
+
+- Step 1 writes down what the reader surely knows; having used a thing is not knowing how it works inside.
+- Step 2 lists the premises: what each step needs the reader to accept.
+- A premise goes on the figure in body size and ink, and when the mechanism runs inside something the reader only calls, the normal case comes first (`references/strategies.md`).
+- Fresh eyes has a Part B: the reviewer lists what the figure takes for granted, marks each item STATED or ASSUMED, then ON LIST or NOT ON LIST, then BLOCKS or DETAIL; the figure stops when no BLOCKS item is left.
+- A second round that still lists BLOCKS items, each deeper, means split the figure.
+- A BLOCKS item the source cannot answer is named in the hand-off, never invented.
+- `evals/nguoi-moi-mat-khau-salt` has a `07-premises-stated` grader for the same check.
+
+**The deck, five slides read in order by one new reviewer.**
+Retold correctly end to end: the JVM swaps in hand-written machine code; the "=" tail gives a length of -1; the mask sets all 64 bits; 64 bytes are written from byte 48 of a 50-byte array; 62 bytes of another object are overwritten before the exception.
+Part B listed 4 BLOCKS items.
+One was one more layer in the slides that had been redone (why -1 is read as a huge number).
+Two were in the slide that had not been touched: it contradicted the footer of the slide before it ("JDK cũ hơn: không bị" against "JDK 17 cũ cần 128 ký tự", and the source sides with the footer), and it never joined the CPU condition to the 64-byte instruction.
+The fourth is the version number of the patch, which the source does not give.
+Three were fixed; the fourth is a hand-off item.
+So Part B also catches a fact that is wrong, when one figure of a set disagrees with another.
+
+**Not yet run with fresh reviewers**, because the review model reached its five-hour usage limit: a second round on the deck, the two-figure set, and Part B on the other six gallery figures.
+By the author's own check, the weakest of the three in `references/review.md`: `architecture`, `concept`, `incident`, `mechanism` and `knowledge-summary` already state their premises; `interaction` did not.
+It had `state lệch → 400` and the `code_verifier` steps without a word on why either exists, after five rounds of the old prompt; two lines were added at its foot.

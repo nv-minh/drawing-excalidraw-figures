@@ -6,8 +6,11 @@ Pass 1 matters most and is skipped most, because pass 2 and 3 errors are easier 
 ## Pass 1: does the figure say the right thing
 
 - **Reader**: read the figure as the reader named in step 1, knowing only what that reader knows.
-  Go down the term list: every term is explained in the figure, replaced by an everyday word, or already known at that level.
+  Go down the term list: every term is explained in the figure, replaced by an everyday word, or on the reader's "surely knows" list.
   A term with none of the three is a hole: fix it before anything else.
+  **Premises**: go down the premise list from step 2.
+  Each is stated on the figure in words the reader can read off, or is on the "surely knows" list.
+  A premise that is neither is a hole, and a worse one than an unknown word: the reader cannot look up what the figure never names.
   For a newcomer (explainer mode): does the figure start from something familiar (an everyday example, a metaphor) before the mechanism, and does each part carry a few words on what it is, not only its name?
 - **Retell test**: with the source text covered, write the two or three sentences this reader could say after looking at the figure for 30 seconds.
   If they do not contain the step 1 sentence, or contain something false, the figure fails for this reader even when every fact in it is correct.
@@ -37,27 +40,62 @@ You wrote the figure, so you read into it what you meant.
 A reviewer who has only the image shows what it actually says, and that is the check a team review did by hand on a correct security figure that a non-Java reader still could not follow.
 
 Do it once the tool is clean and before you polish, for every figure meant for someone else.
-When you can start a subagent (the Agent tool, or a second session), give it ONLY the light PNG and the reader level, never the source or your notes:
+When you can start a subagent (the Agent tool, or a second session), give it ONLY the light PNG, the reader and the "surely knows" list, never the source or your notes:
 
 ```text
-You are <the reader from step 1, e.g. "a Java developer with little security background">.
-Look only at the image at <absolute path to name-light.png>. You have not read any article about it.
-Answer in <the figure's language>, briefly:
+You review one figure and have only the image at <absolute path to name-light.png>: read no other file and do not search for the subject.
+
+Reader: <the reader from step 1, e.g. "a Java developer with little security background, at a team talk">.
+The reader surely knows only this:
+<the "surely knows" list from step 1, one item per line>
+
+Part A, as the reader. You have not read any article about the subject.
 1. Where did your eye start, and in what order did you read the parts?
 2. In one or two sentences, what does this figure say?
 3. Which words or marks did you not understand?
 4. Which part seemed unrelated to the rest?
+
+Part B, as yourself: someone who understands the subject.
+The reader of Part A is played by you, who understands every word, so Part A cannot show what a real reader lacks. Find that another way: list what the figure takes for granted.
+5. Walk the figure in reading order. At each step, write what the reader must already accept for the step to make sense: a term, a rule of how a part normally works, a relation between two things the figure names, a convention or a sign.
+6. For each item, quote the words of the figure that state it, or write ASSUMED when the figure uses it without saying it.
+7. For each ASSUMED item write ON LIST when it follows from what the reader surely knows, and NOT ON LIST otherwise. Do not excuse an item because the reader probably knows it: what is not on the list is NOT ON LIST.
+8. For each NOT ON LIST item write BLOCKS when a step of the figure cannot be followed without it (a number that cannot be checked, a step whose reason is missing), and DETAIL when the figure still reads without it.
+
+Answer in <the figure's language>, briefly: the four answers of Part A; then for Part B one line per item (step, what it assumes, STATED with its quote or ASSUMED, ON LIST or NOT ON LIST, and BLOCKS or DETAIL); then the BLOCKS items in the order the reader meets them, each as one line of plain words that would close the gap.
 ```
+
+A set read in order (a deck) gets one reviewer for the whole set, the images listed in reading order; an item counts as STATED when the figure being read, or an earlier one, says it.
+
+**Why Part B.**
+The reviewer is a model that understands every word on the figure.
+Asked what it did not understand, it answers "nothing" or names a jargon word, and the figure passes.
+Five rounds said OK about the Java4Shell figure, with every low-level term glossed, and a Java developer on the team still could not follow it: no line said that 4 Base64 characters carry 3 bytes, or that `=` is padding.
+The missing thing was never a word on the figure, so no question about words could find it.
+Asked what the figure takes for granted, a new reviewer listed those three in its first round.
+That is a question an expert answers well, and the reviewer is the expert in the room.
 
 Then compare:
 
 - Answer 2 against the step 1 sentence. If it misses the point or says something false, the figure fails: change the structure (strategy, type, reading order), not the wording.
 - Answer 1 against the order you intended. A different order means the badges, the joining arrows or the layout are missing (`references/visual-language.md`, "Guiding the eye").
 - Answer 3: every term listed there gets a plain gloss or is replaced.
+  A "typo" may be the reviewer's own misread of the hand-drawn font at the column width: check the spec before fixing it.
 - Answer 4: that part gets a dashed arrow to what it explains, or goes.
+- Answers 5 to 8: every BLOCKS item is a hole, and a worse one than an unknown word, because the reader cannot look up what the figure never names.
+  Close it on the figure with one line of plain words beside the step that needs it, drop the step when it is a detail, or put the item on the reader's list with a reason you could give the person who asked.
+  A DETAIL item gets a line when one line is enough.
+  The rest go on the reader's list in the hand-off, where the person who asked can correct them.
+  Many DETAIL items the reader clearly knows (a Java developer knows that the JDK has versions) mean the list was written too narrowly: widen the item that covers them and read the list again.
+  A BLOCKS item the source cannot answer (the version number of the patched JDK, when the advisory gives only the release date) is not closed by inventing one: write on the figure what the source does give, and name the open item in the hand-off, so the person who asked can fill it.
+  **When a second round still lists BLOCKS items, each one deeper than the last (the reason of the reason), stop adding lines.**
+  One figure is carrying a mechanism that needs room of its own.
+  Split where the strategy's figure set splits, give the reason its own figure in body-size text, and point to it from the first (`vì sao mask sai: hình 2`).
+  Lines added to one figure end in the smallest text on the page, exactly where the reader needs them.
+On the old Java4Shell figure the first round listed 2 BLOCKS items (how Base64 works, the CPU condition); five rounds on the redrawn one went 4, 2, 1, 2, 2 (why machine code lacks the bounds check, then why 64 bytes, then why the mask is wrong, then why the length is -1), and reviewers then reported they could not read the small lines that held the answers.
 
 Fix, render, and ask a NEW reviewer (the first one has now seen the answer).
-With no subagent available, ask the person who gave the task the same four questions, or do it yourself with the source closed, knowing it is the weakest of the three.
+With no subagent available, ask the person who gave the task the four questions of Part A, and do Part B yourself: walk the figure step by step with the premise list open, knowing it is the weakest of the three.
 
 ## Pass 2: visible errors
 
@@ -87,7 +125,7 @@ The tool is silent about most of these; `references/lessons-from-runs.md` rules 
 
 Stop when all three hold:
 
-1. The figure says the step 1 sentence without a caption, to the reader named in step 1.
+1. The figure says the step 1 sentence without a caption, to the reader named in step 1, and the last fresh eyes listed no BLOCKS item, or only ones the source cannot answer, named in the hand-off.
 2. No pass 2 errors remain.
 3. You can hand the figure to someone else without adding "except this bit".
 
@@ -113,6 +151,6 @@ Do not stop after the first round just because there are no hard errors: the fir
 | Concept map where every node links to every other | No claim chosen | Go back to the "This idea really says that" sentence, keep only edges that serve it |
 | Reader asks "where do I start?" or "what does this panel have to do with that strip?" | Regions not ordered, explanations not joined | Badges ① ② ③ in story order, one dashed arrow from each panel to the part it explains |
 | Reader nods at `object khác`, `dữ liệu nhạy cảm`, but the severity does not land | Abstract category with no instance | One real example from the source under the label |
-| Every fact is right, and the reader still does not get it | The figure assumes terms the reader lacks | Step 1 term list: explain or replace each term, and for a newcomer switch to explainer mode |
+| Every fact is right, every term is glossed, and the reader still does not get it | The figure assumes terms the reader lacks, or facts it never writes (how the thing normally works when nothing is wrong) | Step 1 term list: explain or replace each term. Step 2 premise list: state each premise in one line beside its step, and show the normal case first. Fresh eyes Part B lists what the figure takes for granted. For a newcomer switch to explainer mode |
 | Figure is taller than one screen | One figure carries the whole story | Split where the tool's nudge says, or make a progressive series |
 | Security figure reads like a how-to | Steps copied from an exploit write-up | Cut back to mechanism and defence (SKILL.md, "Security and other sensitive topics") |
