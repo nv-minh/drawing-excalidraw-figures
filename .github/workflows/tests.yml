@@ -12,9 +12,14 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+      - name: Dựng bundle Excalidraw
+        # .cache/exca.bundle.js không còn trong repo (cảnh báo quét secret của
+        # GitHub trên cấu hình Firebase công khai của Excalidraw): dựng 1 lần
+        # trước khi test, ~30s. Fonts (assets/fonts/) vẫn có sẵn trong repo.
+        run: |
+          npm install --no-audit --no-fund
+          npm run bundle
       - name: Cài dependencies
-        # Không cần Node: bundle Excalidraw (.cache/exca.bundle.js) và fonts
-        # (assets/fonts/) đã commit trong repo, render chạy offline hoàn toàn.
         run: |
           pip install -r requirements.txt pytest
           python -m playwright install chromium --with-deps
