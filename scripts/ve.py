@@ -2630,8 +2630,9 @@ def kiem_tra():
         print(('✓ ' if ok else '✗ ') + msg + (f'\n    fix: {fix}' if fix and not ok else ''))
     dong(sys.version_info >= (3, 11), f'Python {sys.version.split()[0]} at {sys.executable} (3.11+)',
          'install Python 3.11 or newer')
-    for f, ten in ((ROOT / '.cache' / 'exca.bundle.js', 'Excalidraw bundle'), (ROOT / 'assets' / 'fonts' / 'fonts.css', 'fonts'),
-                   (ROOT / 'dist' / 'assets' / 'tokens.css', 'color tokens')):
+    dong((ROOT / '.cache' / 'exca.bundle.js').exists(), f"Excalidraw bundle: {ROOT / '.cache' / 'exca.bundle.js'}",
+         'no longer in the repo (secret scan): build it once with `npm install && npm run bundle`')
+    for f, ten in ((ROOT / 'assets' / 'fonts' / 'fonts.css', 'fonts'), (ROOT / 'dist' / 'assets' / 'tokens.css', 'color tokens')):
         dong(f.exists(), f'{ten}: {f}', 'these ship with the repo: clone it again or `git checkout -- .`')
     try:
         from importlib.metadata import version

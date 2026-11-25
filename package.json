@@ -2,13 +2,13 @@
   "name": "drawing-excalidraw-figures",
   "private": true,
   "license": "MIT",
-  "description": "Chỉ cần khi dựng lại bundle Excalidraw (.cache/exca.bundle.js đã có sẵn trong repo).",
+  "description": "Dựng lại bundle Excalidraw (.cache/exca.bundle.js, đã gỡ khỏi repo): npm install rồi npm run bundle.",
   "scripts": {
     "bundle": "node scripts/excalidraw-bundle.mjs"
   },
   "devDependencies": {
-    "@excalidraw/excalidraw": "^0.17.6",
-    "@excalidraw/mermaid-to-excalidraw": "^0.7.0",
+    "@excalidraw/excalidraw": "0.18.1",
+    "@excalidraw/mermaid-to-excalidraw": "3.6.0",
     "esbuild": "^0.24.0"
   }
 }
