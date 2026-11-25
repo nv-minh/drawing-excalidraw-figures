@@ -70,11 +70,13 @@ One actor with one yes/no detour (no insurance card: pay first, then rejoin) is 
 ### `vulnerability`
 
 **Reader question:** what is the weakness, am I affected, and what do I do?
-**Figure set:** three or four, as in the Java4Shell set: (1) the effect on memory or data, before and after; (2) why the code does it (explained flow `30` of the faulty computation); (3) am I affected (decision tree `10` with the check command and the mitigation flags); (4) disclosure timeline (`04`).
+**Figure set:** three to five, as in the Java4Shell set: (0) how the thing normally works, when the weak code sits inside something the reader only calls (`mechanism`: the normal case first); (1) the effect on memory or data, before and after; (2) why the code does it (explained flow `30` of the faulty computation); (3) am I affected (decision tree `10` with the check command and the mitigation flags); (4) disclosure timeline (`04`).
 **Mandatory:** the rules of SKILL.md "Security and other sensitive topics": mechanism and defence only. The tool stops (`✗`) on text that works as attack input: a run of 16+ identical characters, escaped bytes, a shell command, a JNDI string. Write the shape of the input (`64 ký tự Base64 + "="`), not the input.
 **Mandatory:** numbered regions, the cause panel joined to the effect it causes, a plain gloss under every low-level term (`intrinsic`, `heap`, `mask`), one concrete example of what the overwritten or leaked data can be, taken from the advisory (`token, khoá bí mật`).
+**Mandatory:** the premises from SKILL.md step 2, stated in plain words. A gloss is not enough for what the reader uses as a black box: the Java4Shell figure glossed `intrinsic`, `heap` and `mask`, passed five rounds, and still lost a Java developer who had to read up on "JDK vs Base64 vs padding" before it meant anything.
 **Optional:** a comparison pair (safe path against faulty path) as two `code` blocks side by side, the faulty one `err`.
-**One figure instead of a set:** ① the input as its shape, ② the faulty code next to the fixed code, ③ the effect, ④ the fix version, ⑤ the defence steps in order. The defence names the step people skip (restart every process that loaded the old library; rotate the keys that may have leaked), not only "upgrade".
+**When the reason has more than two layers** (why the mask is wrong, then why the length is -1), the first figure states the immediate cause and points to a second that gives each step its reason in body-size text (`vulnerability-2-vi-sao`): five rounds of adding lines to one figure went 4, 2, 1, 2, 2 BLOCKS items.
+**One figure instead of a set:** ① how the thing normally works (one line and a tiny example), ② the input as its shape and what the program allocates for it, ③ the faulty code next to the code that checks, with the premises it leans on, ④ the effect on memory or data, ⑤ what happens next, who is affected and what to do. The defence names the step people skip (restart every process that loaded the old library; rotate the keys that may have leaked), not only "upgrade".
 **Pitfall:** exploitation steps (heap grooming, gadget chains). They help no defender and turn the figure into instructions.
 
 ### `architecture`
@@ -92,6 +94,11 @@ One actor with one yes/no detour (no insurance card: pay first, then rejoin) is 
 **Figure set:** one figure, or a progressive series (`17a`/`17b`) when the state evolves.
 **Types:** byte cells (`03`), anatomy (`02`), hash ring (`14`), timeline (`04`), two views (`07`), metaphor first (`08`) for a newcomer.
 **Mandatory:** real values in cells and labels; before/after stacked when one thing changes state.
+**The normal case first.**
+When the thing works inside something the reader only calls (a library, the runtime, a protocol, the hardware), open with how it behaves when nothing is wrong, in the reader's terms: one line or a small strip that shows the rule a fault will break.
+`mỗi 4 ký tự Base64 → 3 byte`, and `"="` is padding that carries no byte, drawn as two tiny rows of character cells beside the bytes they give.
+A fault is a departure from the normal path, and a reader who does not hold the normal path cannot see the departure: the figure's numbers stay unexplained.
+In a set this is its own figure; in one figure it is the first region.
 **Pitfall:** a request flow. A mechanism lesson almost never wants one.
 
 ### `data-model`

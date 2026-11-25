@@ -30,6 +30,8 @@ Steps 1, 2 and 6 are skipped most often, and they decide whether the figure is u
 
 **First ask who reads the figure and what they already know.**
 A figure can be true in every fact and still teach nothing: three figures about a browser exploit were correct, and the reader understood none of them, because they assumed the reader knew Base64, the heap and JIT.
+It happened again with a Java4Shell figure: every low-level term had its gloss and five fresh-eyes rounds said OK, and a Java developer on the team still had to read up on "JDK vs Base64 vs padding" before the figures meant anything.
+No line said how Base64 decoding works when nothing is wrong, and a gap that is never written down is the hardest one to see.
 "What does the reader see" depends on "what does the reader already know", so settle that before anything else.
 
 Ask the person who gave the task one question, with these three answers:
@@ -37,10 +39,17 @@ Ask the person who gave the task one question, with these three answers:
 | Reader | Already knows | Mode |
 |---|---|---|
 | Newcomer (student, non-specialist, someone new to the field) | Everyday words, not the field's terms | **Explainer** |
-| Developer (works in software, not in this exact area) | General programming terms | **Compact**, plus the explanations below for terms outside general programming |
+| Developer (works in software, not in this exact area) | General programming terms they use in their own work | **Compact**, plus the explanations below for everything else |
 | Specialist (security, database, kernel expert in this exact area) | The field's terms and numbers | **Compact** |
 
-When nobody can be asked, read the level off the source (a beginner lesson, an internal postmortem, a paper) and write the assumed level in the hand-off.
+**Write down what this reader surely knows.**
+Three to eight items, each saying what the reader does with a thing, in words from their own work (`Java language and daily work: classes, methods, byte arrays, exceptions; calls library methods such as Base64.getDecoder().decode()`).
+The figure may lean on this list without a word of explanation, and on nothing else.
+**Having used a thing is not knowing how it works.**
+A developer who calls a library, a runtime or a protocol every day still does not know what it does inside: a Java developer who has decoded Base64 for years may not know that 4 characters carry 3 bytes, or what the `=` at the end means.
+So "how it works inside" never makes the list for anything the reader only calls.
+
+When nobody can be asked, read the level off the source (a beginner lesson, an internal postmortem, a paper) and write the assumed level and the list in the hand-off, so the person who asked can correct it.
 
 Then name the **strategy**: what kind of content this is (a process flow, an interaction, an incident, a vulnerability, an architecture, a mechanism, a data model, a decision, a concept, a knowledge summary, a note, a problem from everyday life, a rough idea or pitch).
 `references/strategies.md` gives each one its figure set (how many figures, in what order), its types, the reading-path rules that are mandatory for it, and its pitfalls.
@@ -51,9 +60,10 @@ For each term, decide one of three:
 
 - **Explain it in the figure**: a few plain words beside the term (`heap: vùng nhớ chương trình xin thêm khi đang chạy`), as a `note` or a second muted line under the label.
 - **Replace it** with the everyday word, when the term itself is not what the lesson teaches.
-- **Leave it**, only when the reader's level from the table already includes it.
+- **Leave it**, only when it is on the reader's "surely knows" list.
 
 A term that the figure uses and the reader does not know is a hole in the figure, the same as a missing step.
+So is a fact the figure relies on and never writes: step 2 lists those.
 
 **The two modes:**
 
@@ -107,7 +117,18 @@ The no-invention rule holds here too: a concept or relation the writer did not s
 A rough idea rarely has numbers, and the figure does not need any: it is a conceptual figure (see "Level of detail" in `references/visual-language.md`).
 Keep a number only when the writer gave it.
 
-This list is the checklist for step 6.
+**Premises**, for either kind of source.
+The term list (step 1) is made of the figure's words.
+A figure also leans on facts that appear nowhere in it: a rule of how a part normally works (`4 Base64 characters carry 3 bytes`), a relation between two things it names (`the JDK is what runs the decoder`), a convention (`=` at the end is padding, not data).
+A reader who lacks a word sees the gap and looks it up.
+A reader who lacks a premise only knows that they do not understand, and cannot tell what to look up.
+Read the fact list step by step and ask of each step: what must the reader already accept for this step to make sense?
+Write each answer down.
+A premise that is not on the "surely knows" list goes into the figure as one line in plain words beside the step that needs it, in the figure's body size and ink: it is the line the reader is missing, not a caption.
+When a step needs a premise that cannot be said in a line, the step is a detail the figure can drop.
+When the thing works inside something the reader only calls, show the normal behaviour first (`references/strategies.md`, "The normal case first").
+
+These lists are the checklist for step 6.
 
 ### 3. Pick the figure type by what must be seen
 
@@ -224,7 +245,9 @@ Go through `references/review.md`, which starts with the reader check against st
 Expect 2 to 4 rounds.
 Stop when the figure says the sentence of step 1 with the caption covered.
 
-Before polishing, get **fresh eyes**: give only the PNG and the reader level to a subagent (or the person who asked) with the four questions in `references/review.md`, and fix what their answers show the figure does not say.
+Before polishing, get **fresh eyes**: give only the PNG, the reader and the "surely knows" list to a subagent (or the person who asked) with the questions in `references/review.md`.
+The first four are asked as the reader; the rest have the reviewer list what the figure takes for granted, which is how a missing premise shows up.
+Fix what the answers show the figure does not say.
 
 For a rough idea with a person to ask, show the first clean render before polishing and ask one question: "Is this what you meant?"
 Name the one relation or tension you were least sure of, so the answer is about the idea and not the colors.

@@ -21,6 +21,8 @@ Two kinds of grader:
   `03-newcomer-retell` asks the three questions the article answers; it passes only if a parent can read the answers off the image in words the image gives.
   `04-terms-explained` fails any technical term shown with only its name.
   This is the measured form of the retell test in `references/review.md`.
+  `07-premises-stated` does not ask whether a term has a gloss: the judge lists what the figure takes for granted, and fails any step that cannot be followed without something the figure never says, such as a rule of how a part normally works.
+  It is the measured form of Part B of the fresh-eyes review in `references/review.md`, which is what a Java team's feedback on the Java4Shell figures showed a term check alone could not catch.
 
 `05-mechanism-not-howto` checks the security rule in `SKILL.md`: mechanism and defence, no cracking instructions.
 
