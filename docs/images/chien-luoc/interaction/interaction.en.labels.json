@@ -29,5 +29,6 @@
  "mang code_challenge / code_verifier": "carries code_challenge / code_verifier",
  "đăng nhập xong": "signed in",
  "người dùng huỷ": "user cancelled",
- "alt: chỉ một trong hai trường hợp xảy ra · nét đứt: trả lời hoặc chuyển hướng": "alt: only one of the two cases happens · dashed: reply or redirect"
+ "alt: chỉ một trong hai trường hợp xảy ra · nét đứt: trả lời hoặc chuyển hướng": "alt: only one of the two cases happens · dashed: reply or redirect",
+ "Vì sao có state: trả lời phải khớp yêu cầu backend vừa gửi; lệch = có người ép trình duyệt tới.\nVì sao có code_verifier: code đã qua trình duyệt, dễ bị chộp; thiếu nó thì đổi không ra token.": "Why state: the reply must match the request just sent; if not, someone forced the browser here.\nWhy code_verifier: the code passed through the browser and can be stolen; without it, no token."
 }
