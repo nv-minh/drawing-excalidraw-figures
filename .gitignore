@@ -4,3 +4,5 @@ __pycache__/
 _out/
 .vercel/
 .cache/
+
+node_modules/
