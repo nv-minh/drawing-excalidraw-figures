@@ -5,7 +5,7 @@
  {"t":"box","id":"pc","x":330,"y":104,"w":130,"h":40,"text":"page cache","size":16,"color":"warn","fill":"warn"},
  {"t":"box","id":"fs","x":470,"y":20,"w":110,"h":40,"text":"fsync()","size":16,"color":"l4"},
  {"t":"cells","id":"blk","x":470,"y":206,"cw":44,"ch":36,"labels":["","","",""],"marks":{"1":{"color":"l4","fill":"l4"}}},
- {"t":"arrow","from":"w","to":"pc","text":"xong ngay"},
+ {"t":"arrow","from":"w","to":"pc","text":"xong ngay","labelDx":56,"labelDy":-26},
  {"t":"arrow","from":"fs","to":"blk.1","color":"l4","text":"ép xuống"},
  {"t":"note","x":150,"y":206,"text":"mất điện lúc này: dữ liệu\ntrong page cache biến mất","to":"pc","color":"err"}
 ]}

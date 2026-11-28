@@ -13,7 +13,7 @@
  {"t":"badge","x":138,"y":184,"n":1,"color":"l2"},
  {"t":"box","id":"lb","x":156,"y":206,"w":130,"h":64,"text":"người chia việc","size":15},
  {"t":"text","x":160,"y":282,"text":"load balancer:\nchia đều lượt đọc\ncho 4 máy","size":15,"color":"muted"},
- {"t":"arrow","from":"ph","to":"lb","text":"nội dung","size":15,"labelDy":-14},
+ {"t":"arrow","from":"ph","to":"lb","text":"nội dung","size":15,"labelDy":-18},
 
  {"t":"badge","x":316,"y":184,"n":2,"color":"l2"},
  {"t":"stack","id":"web","x":334,"y":206,"w":120,"h":64,"n":4,"text":"máy chủ web","size":15},
@@ -22,22 +22,22 @@
 
  {"t":"badge","x":580,"y":170,"n":3,"color":"l4"},
  {"t":"db","id":"rd","x":600,"y":186,"w":120,"h":104,"text":"bản chép\nnhanh","color":"l4","fill":"l4","size":15},
- {"t":"text","x":586,"y":300,"text":"Redis: bộ nhớ\nRAM, đọc rất\nnhanh, ~1 ms","size":15,"color":"muted"},
+ {"t":"text","x":548,"y":300,"text":"Redis: bộ nhớ tạm\n(RAM), ~1 ms, ít chỗ\n(chỉ giữ bài nóng)","size":15,"color":"muted"},
  {"t":"arrow","id":"a_rd","from":"web","to":"rd","toSide":"left","text":"hỏi trước","size":15,"color":"l4","weight":3,"labelDy":-16},
- {"t":"row","x":472,"y":252,"gap":2,"elements":[
+ {"t":"row","x":466,"y":254,"gap":2,"elements":[
    {"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},{"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},{"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},
    {"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},{"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},{"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},
    {"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},{"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"},{"t":"ellipse","w":11,"h":11,"color":"node","fill":"node"}]},
- {"t":"text","x":472,"y":270,"text":"9/10 có sẵn","size":15,"color":"node"},
+ {"t":"text","x":466,"y":272,"text":"9/10 có sẵn","size":15,"color":"node"},
 
  {"t":"badge","x":580,"y":402,"n":4,"color":"l2"},
  {"t":"db","id":"pg","x":600,"y":420,"w":120,"h":96,"kind":"sql","text":"kho bài gốc","size":15},
- {"t":"text","x":600,"y":548,"text":"PostgreSQL:\nlưu trên đĩa,\nchậm hơn, ~30 ms","size":15,"color":"muted"},
+ {"t":"text","x":586,"y":550,"text":"PostgreSQL: ổ đĩa\nlưu lâu dài mọi bài,\nchậm hơn, ~30 ms","size":15,"color":"muted"},
  {"t":"arrow","from":"web","to":"pg","fromSide":"bottom","fromAt":0.88,"toSide":"left","route":"vh","color":"warn","dashed":true},
- {"t":"ellipse","x":434,"y":372,"w":12,"h":12,"color":"warn","fill":"warn"},
+ {"t":"ellipse","x":416,"y":372,"w":12,"h":12,"color":"warn","fill":"warn"},
  {"t":"text","x":456,"y":358,"text":"1/10, chỉ khi bản\nchép nhanh chưa\ncó bài","size":15},
 
- {"t":"arrow","from":"pg","to":"rd","fromSide":"top","toSide":"bottom","fromAt":0.8,"toAt":0.8,"color":"muted","dashed":true,"text":"máy chủ\nchép vào,\ngiữ 5 phút","size":15,"labelAt":0.5},
- {"t":"text","x":0,"y":540,"text":"9 trên 10 lượt đọc dừng ở bản chép nhanh:\n2 triệu lượt/giờ × 1/10 = 200 nghìn lượt/giờ\nxuống kho bài gốc.","size":16},
- {"t":"text","x":0,"y":620,"text":"mỗi chấm = 1 lượt đọc: 9 chấm xanh dừng ở bản chép\nnhanh, 1 chấm cam đi tiếp · ms: một phần nghìn giây","size":15,"color":"muted"}
+ {"t":"arrow","from":"pg","to":"rd","fromSide":"top","toSide":"bottom","fromAt":0.8,"toAt":0.8,"color":"muted","dashed":true,"text":"chép lên bản\nchép nhanh,\ngiữ 5 phút","size":15,"labelAt":0.5},
+ {"t":"text","x":0,"y":524,"text":"Nhiều người cùng đọc vài bài nóng trong 5 phút,\nnên 9 trên 10 lượt đọc dừng ở bản chép nhanh:\n2 triệu lượt/giờ × 1/10 = 200 nghìn lượt/giờ\nxuống kho bài gốc (tránh quá tải ổ đĩa chậm).","size":16},
+ {"t":"text","x":0,"y":624,"text":"mỗi chấm = 1 lượt đọc: 9 chấm xanh dừng ở bản chép\nnhanh, 1 chấm cam đi tiếp · ms: một phần nghìn giây","size":15,"color":"muted"}
 ]}

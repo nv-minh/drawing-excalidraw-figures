@@ -5,9 +5,9 @@
  {"t":"box","id":"svc","x":370,"y":78,"w":140,"h":64,"text":"Order Service","size":18,"color":"l4"},
  {"t":"db","id":"pg","x":630,"y":0,"w":110,"h":96,"text":"Postgres"},
  {"t":"queue","id":"q","x":620,"y":160,"w":160,"h":46,"text":"events","items":[{"color":"hot"},{},{}]},
- {"t":"arrow","from":"c","to":"gw","text":"1. POST /orders","color":"hot"},
+ {"t":"arrow","from":"c","to":"gw","text":"1. POST /orders","color":"hot","labelDy":-14},
  {"t":"arrow","from":"gw","to":"svc","color":"hot"},
- {"t":"arrow","from":"svc","to":"pg","text":"2. INSERT","color":"hot","fromSide":"right","fromAt":0.3,"toSide":"left"},
- {"t":"arrow","from":"svc","to":"q","text":"3. publish","color":"hot","dashed":true,"fromSide":"right","fromAt":0.7,"toSide":"left"},
+ {"t":"arrow","from":"svc","to":"pg","text":"2. INSERT","color":"hot","fromSide":"right","fromAt":0.3,"toSide":"left","labelDy":-28,"labelDx":-8},
+ {"t":"arrow","from":"svc","to":"q","text":"3. publish","color":"hot","dashed":true,"fromSide":"right","fromAt":0.7,"toSide":"left","labelDy":34,"labelDx":-8},
  {"t":"note","x":290,"y":236,"text":"nét đứt = bất đồng bộ, không chờ kết quả","to":"q","toSide":"bottom","color":"muted"}
 ]}

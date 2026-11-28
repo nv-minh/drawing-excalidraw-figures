@@ -11,13 +11,13 @@
  "máy chủ web": "web server",
  "web server: 4\nmáy giống hệt,\nlấy nội dung bài": "web server:\n4 identical\nmachines",
  "bản chép\nnhanh": "quick\ncopy",
- "Redis: bộ nhớ\nRAM, đọc rất\nnhanh, ~1 ms": "Redis: RAM\nmemory, very\nfast, ~1 ms",
+ "Redis: bộ nhớ tạm\n(RAM), ~1 ms, ít chỗ\n(chỉ giữ bài nóng)": "Redis: temp memory\n(RAM), ~1 ms, small\n(keeps hot ones)",
  "hỏi trước": "asks first",
  "9/10 có sẵn": "9/10 found",
  "kho bài gốc": "master store",
- "PostgreSQL:\nlưu trên đĩa,\nchậm hơn, ~30 ms": "PostgreSQL:\nkept on disk,\nslower, ~30 ms",
+ "PostgreSQL: ổ đĩa\nlưu lâu dài mọi bài,\nchậm hơn, ~30 ms": "PostgreSQL: hard drive\nkeeps all articles,\nslower, ~30 ms",
  "1/10, chỉ khi bản\nchép nhanh chưa\ncó bài": "1/10, only when the\nquick copy does not\nhave the article",
- "máy chủ\nchép vào,\ngiữ 5 phút": "server\ncopies,\nfor 5 min",
- "9 trên 10 lượt đọc dừng ở bản chép nhanh:\n2 triệu lượt/giờ × 1/10 = 200 nghìn lượt/giờ\nxuống kho bài gốc.": "9 in 10 reads stop at the quick copy:\n2 million reads/hour × 1/10 = 200 thousand/hour\nreach the master store.",
+ "chép lên bản\nchép nhanh,\ngiữ 5 phút": "copies up to\nquick copy,\nfor 5 min",
+ "Nhiều người cùng đọc vài bài nóng trong 5 phút,\nnên 9 trên 10 lượt đọc dừng ở bản chép nhanh:\n2 triệu lượt/giờ × 1/10 = 200 nghìn lượt/giờ\nxuống kho bài gốc (tránh quá tải ổ đĩa chậm).": "Many readers open the same hot articles within 5 min,\nso 9 in 10 reads stop at the quick copy:\n2 million reads/hour × 1/10 = 200 thousand/hour\nreach the master store (avoiding disk overload).",
  "mỗi chấm = 1 lượt đọc: 9 chấm xanh dừng ở bản chép\nnhanh, 1 chấm cam đi tiếp · ms: một phần nghìn giây": "each dot = 1 read: 9 green dots stop at the quick\ncopy, 1 orange dot goes on · ms: a thousandth of a second"
 }

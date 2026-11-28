@@ -1,17 +1,21 @@
 {
  "Một dòng cấu hình đổi lúc 13:00 làm log tăng 10 GB mỗi giờ trên chính đĩa chứa dữ liệu; vùng log leo đều 8 giờ, cảnh báo 95% chỉ chừa 1 giờ, và 21:00 chạm trần 200 GB làm Postgres dừng 40 phút.": "One config line changed at 13:00 made the logs grow 10 GB an hour on the very disk that holds the data; the log area climbs steadily for 8 hours, the 95% alert leaves only 1 hour, and at 21:00 the 200 GB ceiling stops Postgres for 40 minutes.",
  "13:00  thứ châm ngòi (tác nhân kích hoạt): đổi một dòng cấu hình": "13:00  the spark (trigger): one config line changed",
- "log_min_duration_statement = 0   -- ghi mọi truy vấn\n-- trước là 1000: chỉ ghi truy vấn > 1 s": "log_min_duration_statement = 0   -- log every query\n-- was 1000: log only queries > 1 s",
+ "log_min_duration_statement = 0   # ghi mọi truy vấn\n# trước là 1000: chỉ ghi truy vấn > 1 s": "log_min_duration_statement = 0   # log every query\n# was 1000: log only queries > 1 s",
  "dung lượng\nđĩa đã dùng\n(GB)": "disk space\nused\n(GB)",
  "log": "logs",
  "dữ liệu": "data",
+ "ngừng nhận đơn (40 phút)": "downtime (40 min)",
+ "trần đĩa: 200 GB (đầy)": "disk limit: 200 GB (full)",
  "cảnh báo 95% = 190 GB": "alert at 95% = 190 GB",
  "log +10 GB/giờ": "logs +10 GB/hour",
- "20:00 cảnh báo 95% kêu:\ncòn 10 GB = 1 giờ; người\ntrực đang tìm nguyên\nnhân thì đĩa đầy": "20:00 the 95% alert fires:\n10 GB left = 1 hour; the\non-call is still looking\nfor the cause when it fills",
+ "1 giờ": "1 h",
+ "20:00 cảnh báo 95% kêu:\ncòn 10 GB = 1 giờ; chưa kịp\ntìm nguyên nhân thì đĩa đầy": "20:00 the 95% alert fires:\n10 GB left = 1 hour; disk fills\nbefore cause is found",
  "↑ nguyên nhân gốc (vì sao chuyện nhỏ thành sự cố):\nlog nằm chung đĩa với dữ liệu, không giới hạn dung lượng": "↑ root cause (why a small change became an outage):\nlogs share the disk with the data, with no size limit",
- "21:00 đĩa đầy, Postgres không ghi\nđược WAL nên dừng 40 phút: không\nnhận đơn hàng, ~1 800 đơn lỗi 500": "21:00 disk full: Postgres\ncannot write WAL, down 40 min:\nno orders, ~1 800 fail (500)",
- "(WAL: nhật ký Postgres phải\nghi trước mỗi thay đổi)": "(WAL: the journal Postgres must\nwrite before every change)",
+ "21:00 đĩa đầy, Postgres không ghi được WAL\nnên dừng 40 phút: không nhận đơn hàng,\n~1 800 đơn lỗi 500": "21:00 disk full: Postgres cannot write WAL\nand stops for 40 min: no orders,\n~1 800 fail (500)",
+ "(WAL: nhật ký Postgres buộc ghi lên cùng đĩa\n200 GB trước mỗi thay đổi; không ghi được thì dừng)": "(WAL: the journal Postgres must write to this same\n200 GB disk before every change; no room → halt)",
  "dữ liệu Postgres: 120 GB, gần như không đổi": "Postgres data: 120 GB, nearly constant",
- "21:25 xoá 70 GB log cũ (còn 130 GB),\ntrả cấu hình về 1000; 21:40 chạy lại": "21:25 delete 70 GB of old logs (130 GB\nleft), setting back to 1000; 21:40 up again",
- "130 GB": "130 GB"
+ "-70 GB\n(21:25)": "-70 GB\n(21:25)",
+ "130 GB": "130 GB",
+ "21:25 xoá 70 GB log cũ (đĩa còn 130 GB), trả cấu hình về 1000; 21:40 Postgres chạy lại": "21:25 delete 70 GB old logs (130 GB left), reset config to 1000; 21:40 Postgres back up"
 }
