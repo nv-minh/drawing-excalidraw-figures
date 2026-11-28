@@ -88,6 +88,8 @@ Then compare:
   The rest go on the reader's list in the hand-off, where the person who asked can correct them.
   Many DETAIL items the reader clearly knows (a Java developer knows that the JDK has versions) mean the list was written too narrowly: widen the item that covers them and read the list again.
   A BLOCKS item the source cannot answer (the version number of the patched JDK, when the advisory gives only the release date) is not closed by inventing one: write on the figure what the source does give, and name the open item in the hand-off, so the person who asked can fill it.
+  **Calibrating Part B (domain premise vs diagram convention).** Mark an item `BLOCKS` only when a real reader at the named level would genuinely misread a step or fail to verify a number without it (an unstated rule of how a component works, an unexplained domain notation like `$2b$12$` or half-open offsets, or a missing cause). Standard diagram conventions (reading left to right, dashed lines for replies when keyed) and minor background context belong in `DETAIL`, not `BLOCKS`.
+  **Multi-figure sets.** Check that every figure in a set uses consistent slide headers (`Hình 1 của 2`, `Hình 2 của 2`), separators, accent meanings, and ranges (e.g. byte ranges or config names) so no two slides contradict each other.
   **When a second round still lists BLOCKS items, each one deeper than the last (the reason of the reason), stop adding lines.**
   One figure is carrying a mechanism that needs room of its own.
   Split where the strategy's figure set splits, give the reason its own figure in body-size text, and point to it from the first (`vì sao mask sai: hình 2`).
@@ -117,7 +119,8 @@ The tool is silent about most of these; `references/lessons-from-runs.md` rules 
 ## Pass 3: dark theme and tool
 
 - In `-dark.png`, all text is still readable and every stroke still visible.
-- A `solid` fill in the dark theme does not swallow the text inside it.
+- A `solid` fill in the dark theme does not swallow the text inside it (including free text placed over a filled background band or closed polygon: keep it in `ink`, not `err`/`l4`/`muted`, and use `textColor: "ink"` on multi-line body text inside accented boxes or spans).
+- Adjacent table cells with `marks` do not draw clashing colored rough borders on top of each other (use `fill`/`textColor` on cell marks while leaving borders in `ink`).
 - A thing whose real brightness is the point (a dark moth, a night sky, white paper) is still dark or light in `-dark.png`. If it flipped, it is drawn in a theme token: use `lit-dark` / `lit-light`.
 - The tool prints no `✗` line. Every `•` line is fixed or has a clear reason to stay.
 

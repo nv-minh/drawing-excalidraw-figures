@@ -112,7 +112,7 @@ Every component below accepts `id x y w h text color fill` and can be an arrow t
 | `db` | Upright cylinder: a data store | `kind`: `sql` (three disks) `doc` `kv` `col` (vertical columns) `ts` (zigzag line) `blob` `search` `vector` `graph`. With `kind`, the label sits below the cylinder |
 | `pipe` | Horizontal pipe: stream, log, Kafka topic | `segments`: number of segments (partitions). With `segments`, the label sits above |
 | `queue` | Flat box holding messages | `items`: a list of `{"color":..,"text":..}`, or `n` for n empty messages. `labelPos: "above"` |
-| `stack` | Offset stack of boxes: multiple instances | `n` (default 3). The id points at the top box |
+| `stack` | Offset stack of boxes: multiple instances | `n` (default 3). Anchor keeps the front box's `(x, y, w, h)` so `left`/`bottom` stay level with neighbours, while `right`/`top` edges clear all offset back boxes automatically |
 | `person` | Stick figure | No `w`, only `h`. Label sits below |
 | `window` | Browser window or app screen | `title` on the title bar |
 | `cloud` | Cloud: external service, internet, CDN | `dashed` |
@@ -142,7 +142,7 @@ Every component below accepts `id x y w h text color fill` and can be an arrow t
 - `index`: `true` to number from 0, or a list of labels. Numbers sit ABOVE the cell (horizontal strip) or LEFT of the cell (vertical strip), size 15, color `muted`: leave 24 units on that side.
   A `""` in the list draws nothing, so a long strip can number only the cells the text names (a 32-bit Bloom filter labelled at 3, 5, 14, ...); each `""` used to make an empty text element, 48 of them on two 32-cell strips.
 - Estimate text width to pick `cw`: character count × font size × 0.52, plus 16 units of padding. `order-1001` at size 16 needs `cw` around 100.
-- `marks`: style individual cells by index. Each mark accepts `color`, `fill`, `fillStyle`, `dashed`.
+- `marks`: style individual cells by index. Each mark accepts `color`, `fill`, `fillStyle`, `dashed`, `textColor`.
 - `size`: font size in cells (default 18 for a strip, 16 for `grid`).
 - `title`: small title above.
 - Cell i has id `<id>.<i>`, the whole strip has id `<id>`.
@@ -153,17 +153,17 @@ Every component below accepts `id x y w h text color fill` and can be an arrow t
 {"t":"grid","id":"g","x":0,"y":0,"cw":44,"ch":40,"rows":[["0","1"],["2","3"]],"marks":{"1,0":{"fill":"err"}}}
 ```
 
-A cell has id `<id>.<row>.<col>`.
+A cell has id `<id>.<row>.<col>`. Marks accept `color`, `fill`, `fillStyle`, `dashed`, `textColor`.
 
 ### `table`: table with a header and real rows
 
 ```json
 {"t":"table","id":"t","x":300,"y":190,"cols":[60,90,90],"head":["id","user_id","total"],
- "rows":[["1","7","120"],["2","7","80"]],"marks":{"0":{"fill":"l4"},"1,2":{"color":"err"}},"title":"orders"}
+ "rows":[["1","7","120"],["2","7","80"]],"marks":{"0":{"fill":"l4"},"1,2":{"fill":"err","textColor":"ink"}},"title":"orders"}
 ```
 
 `cols` is the width of each column, `rh` is the row height (default 38).
-`marks` accepts `"row"` or `"row,col"`, each with `color`, `fill`, `fillStyle`, `dashed`.
+`marks` accepts `"row"` or `"row,col"`, each with `color`, `fill`, `fillStyle`, `dashed`, `textColor`. Prefer `fill` and `textColor` (leaving cell borders at the table's default `ink`) so neighbouring cells never draw two differently colored rough strokes on top of each other.
 A `dashed` `muted` row with empty cells is a row that never got written, for the "after" half of a figure where a constraint stopped the insert.
 Row i has id `<id>.<i>`, a cell has id `<id>.<i>.<col>`.
 A header cell has id `<id>.h.<col>`: aim an edge at it with `toSide: "top"` when the edge stands for a whole column, not one row.
@@ -175,8 +175,8 @@ The `title` sits 28 units above the top-left corner, so an edge entering the top
 {"t":"entity","id":"o","x":300,"y":0,"w":190,"name":"orders","fields":["id  PK","user_id  FK","total"]}
 ```
 
-An entity is `50 + 24 × fields` tall: a 36-unit header, then the fields at size 16, 20 units per line.
-Field i (from 0) is centred `51 + 20 i` units below `y`; to land an edge on that row, `fromAt`/`toAt` = that offset / the height, with `fromSide`/`toSide` set (a held-out run read the `.excalidraw` to find this).
+An entity is `50 + max(24, round(size × 1.45)) × fields` tall: a 36-unit header, then the fields (default size 16, 24 units per line).
+Field i (from 0) is centred `51 + 20 i` units below `y` at default size 16; to land an edge on that row, `fromAt`/`toAt` = that offset / the height, with `fromSide`/`toSide` set (a held-out run read the `.excalidraw` to find this).
 
 ### `code`: dark-background code block
 
@@ -186,8 +186,8 @@ Field i (from 0) is centred `51 + 20 i` units below `y`; to land an edge on that
 
 Dark background in both themes, monospace text.
 Width is computed from the longest line, or set `w` (equal `w` lines up several blocks so arrows leave them at one x).
-The computed width is `characters × 0.52 × size × 1.17 + 32`: a 30-character line is 306 units at size 15 and 277 at size 13. Plan two blocks side by side with this before choosing the size; going below 14 to fit trips the small-text nudge in a 666 column.
-The `title` counts as a line: a `w` narrower than the longest line or title stops the tool, since text over the box is free text and no overflow check sees it leave the box.
+Auto width is `characters × 0.52 × size × 1.24 + 36` (covering 1× DPR FreeType/Skia glyph hinting expansion in IBM Plex Mono; explicit `w` must be at least `1.17× + 32`). Plan two blocks side by side with this before choosing the size; going below 14 to fit trips the small-text nudge in a 666 column.
+The `title` counts as a line (opacity 80%): a `w` narrower than the longest line or title stops the tool, since text over the box is free text and no overflow check sees it leave the box.
 `color` (`err` `node` `l4`) draws the border in that accent at weight 2; the text stays light on dark, so the border is the only way to mark one block as the failing run, the silent run or the diff under discussion.
 `size` sets the code font; the `title` follows it down (never above 15), so a size-12 block does not sit under a bigger heading.
 Line i (from 0) of `text` is centred at `y + 38 + 18.75 i + 9.4` with a `title` (`y + 12 + ...` without), at the default size 15: use it with `fromAt` = that offset / block height to start an arrow level with one line.
@@ -210,7 +210,7 @@ A tick labelled `""` draws the mark with no text, for a scale whose every step d
 {"t":"span","x1":290,"x2":380,"y":150,"text":"mất tin nếu có ở đây","color":"err"}
 ```
 
-`side: "above"` puts the text above.
+`side: "above"` puts the text above; `textColor` overrides the label color (e.g. `"ink"` on an `l4` or `warn` bracket for crisp contrast in both themes).
 Vertical: `{"t":"span","dir":"y","x":340,"y1":60,"y2":260,"text":"200 ms"}` measures a height; the text goes to the right, `side: "left"` to the left.
 
 ### `plot`: chart
@@ -222,7 +222,7 @@ Vertical: `{"t":"span","dir":"y","x":340,"y1":60,"y2":260,"text":"200 ms"}` meas
 ```
 
 - `x`,`y` is the **bottom-left corner** of the plot area (the only exception to the top-left rule).
-- `bars`: `label` below the bar, `text` above the bar. Bars are filled `hachure` with the `fill` color by default (no `fill` means the bar's own `color`); set `"fillStyle":"solid"` per bar for a solid fill. Use solid for bars under about 15 units tall: 27 hachure bars of value 1 at 7 units read as one dashed strip, not as countable bars.
+- `bars`: `label` below the bar, `text` above the bar (`textColor` overrides the value label color). Bars are filled `hachure` with the `fill` color by default (no `fill` means the bar's own `color`); set `"fillStyle":"solid"` per bar for a solid fill. Use solid for bars under about 15 units tall: 27 hachure bars of value 1 at 7 units read as one dashed strip, not as countable bars.
 - `lines`: `[{"points":[[x,y],...],"color":..,"label":..}]`, coordinates in data units. Set `xmax` and `max` to fix the scale.
 - `thresholds`: dashed horizontal lines. The label is drawn to the RIGHT of the plot area, outside `w`: leave room for it. Bar labels and `ylabel` also fall outside the `x`/`w` box.
 - `{"gap": true}` in `bars` leaves one empty slot: put it before a total bar so it does not read as one more part (a `value` 0 bar still draws a 2-unit stub that looks like an unlabelled part).
@@ -386,15 +386,15 @@ Both are arrow targets.
 
 | `t` | Use for | Example |
 |---|---|---|
-| `note` | Free note, can point a dashed line at something. `color` colors the pointer too. Keep the note 45 units or more from its target or the pointer is too short | `{"t":"note","x":330,"y":60,"text":"đụng độ","to":"e2","color":"err"}` |
-| `badge` | Numbered step circle. Disc filled with its color's tint; `muted` and `ink` have no tint and get `soft` (a muted badge stopped the render until the). Its number's box reaches 6 units left of `x`, so a badge at `x` 0 widens the figure: start it at `x` 6 or more. Put the heading text beside it at `x + d + 6` (36 for the default `d` 30); closer, the text touches the disc | `{"t":"badge","x":276,"y":4,"n":1,"color":"node"}` |
+| `note` | Free note, can point a dashed line at something. `color` colors the pointer too; `align` aligns text (`left|center|right`). Keep the note 45 units or more from its target or the pointer is too short | `{"t":"note","x":330,"y":60,"text":"đụng độ","to":"e2","color":"err"}` |
+| `badge` | Numbered step circle. Disc filled with its color's tint; `muted` and `ink` have no tint and get `soft` (a muted badge stopped the render until this fallback was added). Badge numbers drop to `ink` automatically when the tint/color pair fails contrast in either theme. Its number's box reaches 6 units left of `x`, so a badge at `x` 0 widens the figure: start it at `x` 6 or more. Put the heading text beside it at `x + d + 6` (36 for the default `d` 30); closer, the text touches the disc | `{"t":"badge","x":276,"y":4,"n":1,"color":"node"}` |
 | `steps` | Numbered step list placed beside the figure | `{"t":"steps","x":400,"y":60,"title":"Khi node C chết","items":["...", {"text":"...","color":"muted"}]}` |
-| `card` | Card with an underlined title: API, requirements, figures | `{"t":"card","x":340,"y":250,"title":"API","text":"POST /orders","mono":true}` |
+| `card` | Card with an underlined title: API, requirements, figures. `mono: true` uses FreeType 1×-DPR headroom (`1.24× + 34`) so monospace lines stay clear of the right border | `{"t":"card","x":340,"y":250,"title":"API","text":"POST /orders","mono":true}` |
 | `legend` | Legend for colors and stroke styles | `{"t":"legend","x":560,"y":330,"items":[{"color":"hot","fill":"hot","text":"đường đi"},{"color":"err","line":true,"dashed":true,"text":"lỗi"}]}` |
 | `cross` | Red X | `{"t":"cross","x":596,"y":296}` |
 | `check` | Green check mark | `{"t":"check","x":430,"y":250}` |
 
-`note` accepts `to` (id of a shape or of an arrow), `toSide`, `fromSide`, `bend`.
+`note` accepts `to` (id of a shape or of an arrow), `toSide`, `fromSide`, `fromAt`, `toAt`, `route`, `shift`, `head`, `weight`, `bend`, and `align`.
 A `legend` takes `dir: "x"` to lay its items in one row instead of a column, `gap` units apart (default 28); use it under a wide figure whose key would otherwise add 30 units of height per item.
 A `legend` item with `line: true` draws a short arrow; add `"head":"none"` when the edges it explains have no head (tree `lines`, ER lines), or the key and the figure disagree (td2 closure table run).
 A `legend` item takes `dashed`, `dotted` and `weight`, on a `line` item and on a box swatch alike: `"weight": 4` keys a thick border such as the leader of each step (`weight` and `dotted` used to be dropped, so a thick-border key had to be built by hand).
@@ -412,7 +412,7 @@ A top-right corner sits right under any title written above the box: the tool re
   {"t":"box","id":"p2","w":110,"h":56,"text":"Giữ hàng"}]}
 ```
 
-Child elements do not need `x`,`y`.
+Child elements do not need `x`,`y`. Macros (`card`, `code`, `db`, `cells`, `table`, etc.) are auto-measured when placed inside `row`/`col`.
 Use for same-kind boxes placed in a line.
 
 ### `group`: move a whole cluster, dim a whole cluster
@@ -423,7 +423,7 @@ Use for same-kind boxes placed in a line.
 
 `dx` `dy` move the whole cluster.
 `prefix` is prepended to every id in the cluster, so two copies of the same frame can be drawn without id clashes.
-`dim: true` drops the whole cluster to `muted`.
+`dim: true` drops the whole cluster (including `textColor`/`labelColor`) to `muted` while keeping `code` block foregrounds legible (`opacity: 65`).
 
 ### `extends`: progressive figure series
 
@@ -496,22 +496,25 @@ There is no browser-free mode: the shapes, the text measuring and the SVG come f
 | `✗` | Smallest text below 8px on screen | Figure too wide: stack vertically or split the figure |
 | `✗` | A `code` block's `w` is narrower than its longest line or title | Raise `w` or shorten the line |
 | `✗` | A non-token color remains | Only happens with unknown icons: report it |
-| `✗` | Spec error: invalid JSON, unknown color or fill token, unknown `t`, missing property, a property of the wrong type (`"w": "120"`), `points` that are not `[x, y]` pairs, duplicate id, arrow end or swimlane node that matches no id, unknown `head`/`tail`, unclosed or stray fragment entry, multi-line message text, unknown icon, circular `extends` | The message names the element (index, `t`, `id`, start of its text) and the valid values |
+| `✗` | Spec error: invalid JSON, unknown color or fill token, unknown `t`, missing property, a property of the wrong type (`"w": "120"`), `points` that are not `[x, y]` pairs, duplicate id, arrow end or sequence actor or swimlane node that matches no id, unknown `head`/`tail`, unclosed or stray fragment entry, multi-line message text, unknown icon, circular `extends` | The message names the element (index, `t`, `id`, start of its text) and the valid values |
 | `•` | Smallest text below 12px | Compact the figure if possible |
+| `•` | Arrow sets `fromAt`/`toAt` without `fromSide`/`toSide`, or uses `route: "hv"`/`"vh"` between parallel sides (`top`/`bottom` or `left`/`right`, causing border-sliding) | Add `fromSide`/`toSide`; use `vhv` between top/bottom edges and `hvh` between left/right edges |
 | `•` | Arrow passes through a shape that is not one of its two ends. A `points` arrow counts too: the shapes its first and last points touch are its ends. A `badge` without an `id` counts too (it gets the auto id `badge@x,y`; an id-less badge sitting on an arrow used to be skipped) | For a `from`/`to` arrow the nudge names the first `route`, `bend` or `shift` that clears every shape by 10 units; otherwise `bend`, `route`, or move the shape |
-| `•` | One arrow's head lands where another arrow starts (a pair `a → b`, `b → a` is exempt, and so is a chain of two `points` arrows that turns at a joint off every shape border, such as a timeline V where a request reaches the DB lane and the reply leaves at once: 22 such nudges hid the real ones in the) | `fromAt`/`toAt`, another side, or different `points` so in and out have separate spots |
+| `•` | One arrow's head lands where another arrow starts (a pair `a → b`, `b → a` is exempt, and so is a chain of two `points` arrows that turns at a joint off every shape border, such as a timeline V where a request reaches the DB lane and the reply leaves at once: 22 such nudges hid the real ones in the timeline lock run) | `fromAt`/`toAt`, another side, or different `points` so in and out have separate spots |
+| `•` | A dashed pointer arrow lands on or brushes another arrow's arrowhead (tip/barb within 24–28 units, or shaft within 12 units of the target tip) | Land the pointer near the middle of the target arrow's shaft, well clear of its arrowhead |
 | `•` | Two arrows leave the same spot, or reach the same spot, in the same direction, so their first or last segments share one stroke for more than 12 units (a swimlane `vhv` edge and a straight edge both leaving the bottom centre of one node, dbi3 hero run) | `fromSide`/`fromAt` on one of them, or `toAt` for two arriving |
-| `•` | An arrowhead is cut by the border of a box it does not land on: its tip is inside an enclosing `frame` and its base outside, or the reverse (an arrow entering a frame to a shape 14 units inside the border). The base is probed 26 units behind the tip, Excalidraw's ~25-unit head plus the rough stroke: a frame bottom 24 units under the tip cut the head of an arrow coming up from below and a 20-unit probe missed it (infra2 hero run) | Move the frame border 30 or more units clear of the tip, or move the target |
+| `•` | An arrowhead is cut or grazed by the border of a box it does not land on (probing both 26 units behind the tip along the shaft and `±8.5` units out along its wings) | Move the frame border 30 or more units clear of the tip, or move the target |
 | `•` | Arrow shorter than 22 units, or 64 with `both` or a `tail` (a 50-long two-headed arrow still reads as a diamond): the heads hide the line. A `dot` tail is a pointer's origin and counts as no head, here and in the cut-arrowhead check above, so a `ptr` arrow may start inside its own cell | Move the two shapes apart |
-| `•` | Label nearly as long as the arrow carrying it, measured along the arrow (its width on a horizontal arrow, its height on a vertical one) | Move the two shapes apart, shorten the label, or turn it into a `note` |
+| `•` | Label nearly as long as the arrow carrying it, or a centred bound label overlapping its own arrowhead (leaving under 21 units at the head end) | Move the two shapes apart, shorten the label, float it with `labelDy`/`labelDx`, or turn it into a `note` |
 | `•` | Free text overlaps other text or straddles a box border. Two texts also count as overlapping when their drawn glyphs collide by 6+ units both ways, even under the 18% area share: a 47-char `mono` line ran 13 units into a short table title and the tool was silent. Free `mono` text is measured at the width the SVG draws (IBM Plex Mono, 0.6 × size per character), about 20% wider than Excalidraw reports | The nudge gives the `y` (or `x`) that puts it clear: above, below or inside. Or shorten the `mono` line |
 | `•` | Free text sits inside a frame-sized shape (3x the text or larger) less than 4 units from its edge: the rough stroke runs through the glyphs and the straddle test misses it | Keep 6+ units clear of the edge, or grow the frame |
+| `•` | Free text placed over a solid filled shape or closed polygon fails 3.0:1 contrast in light or dark mode (e.g. `err` or `muted` over `fill-l2` / `fill-warn` in dark mode) | Change the free text's `color` to `ink` |
 | `•` | An arrow's line runs through a free text (a `vh` arrow leaving the bottom of a `cells` strip ran down through the strip's caption). A plain `line` counts too, except sequence lifelines (checked by the lifeline row below) and lines inside a 30-unit square (`cross`, `check`): a dashed time guide across every block of a timeline ran through the outcome text placed past its x. A plain `line` is also checked against text inside a shape, such as a `cells` label: a deadline guide ran down through the label of the strip under it; a filled shape drawn after the line hides it and is skipped, so a lane baseline under a filled box stays silent | Move the text beside the strip, or leave from another side; for a guide, end the text 6+ units before the guide's x or end the guide above it |
 | `•` | A detached arrow label (`labelAt`/`labelDx`/`labelDy`) rests on an arrow's line, its own or another's, within 1 unit (a two-line label at `labelDy` -22 hung over its own line and the shrunk-box check above hid it) | Raise `labelDy` to the value the message gives (half the label's height + 4) |
 | `•` | A hand-placed `cross` or `check` lies on free text (the sequence `fail` X is exempt, it sits in its label's box on purpose) | Move the mark to another corner, or move or shorten the text |
 | `•` | Two arrows cross (axes, legend, fork/join bars, arrows into the same shape and muted free lines such as a timeline are exempt) | Reroute one with `bend`, `route` or `fromSide`, or move a shape so the paths do not meet; keep a crossing only when no layout avoids it, and then it is the one thing the reader must not follow by mistake |
 | `•` | Free text crosses a shape's border by 3+ units, even when most of it is inside or outside (a table cell's edge through the end of a number) | The nudge gives the `x` or `y` that puts it clear; widen the cell or shorten the text |
-| `•` | `--lang`: a translation is 30%+ (and 30+ units) wider than the label it replaces | The English figure shares the Vietnamese layout, so shorten it or give the shape more room |
+| `•` | `--lang`: a translation is 30%+ (and 30+ units) wider than the label it replaces, or a non-`vi` label file still leaves Vietnamese diacritics untouched | Shorten the translation or widen the shape; translate the untouched Vietnamese labels listed |
 | `•` | A label lies within 3 units of the hollow ring of a `zero-one`/`zero-many` end | Raise it with `labelDy`, slide it with `labelAt`, or lengthen the edge |
 | `•` | A free label touches the bar or crow of an ER end (the last ~24 units of the edge, ~8 units either side of the line) | Slide it with `labelAt` toward the middle, raise it with `labelDy` (-22 on a horizontal edge under ~130 units), or lengthen the edge |
 | `•` | A `sequence` message or self-message label runs across a lifeline (measured on Excalidraw's Nunito box, ~20% wider than the drawn glyphs). Fragment guard labels count too (an `else` guard sat on the first lifeline of template 21 and this check missed it) | Shorten the label, drop `n` numbers the text does not cite, or raise `gap` to the width the message gives |
@@ -519,10 +522,10 @@ There is no browser-free mode: the shapes, the text measuring and the SVG come f
 | `•` | A `code` block or `card` beside the main structure has no arrow or note reaching it; a side-by-side pair (same top, same height) counts as one group | Add one dashed arrow from the panel to the part it explains, or drop the panel |
 | `•` | Badge numbers skip or repeat | Renumber in one unbroken story order; a repeat is fine only when both badges mark the same step |
 | `•` | Strategy `process-flow` `incident` `vulnerability` `concept`: a figure of several parts (3+ regions, or side panels beside a main structure) with no badge | Put ① ② ③ at the top-left of each part, in story order |
-| `•` / `✗` | Text that works as attack input: 16+ identical characters, `\x..` bytes, a shell command, `${jndi:`. `✗` under strategy `vulnerability` | Write the shape of the input (`64 ký tự + "="`, `<payload>`) |
+| `•` | Text that works as attack input: 16+ identical characters, `\x..` bytes, a shell command, `${jndi:`. `✗` under strategy `vulnerability` | Write the shape of the input (`64 ký tự + "="`, `<payload>`) |
 | `•` | Strategy `knowledge-summary` `life-problem` `idea`: an arrow with no label (dashed note pointers excepted) | Label it with the relation (`làm tăng`, `cần`) or the sign (`+`, `-`) |
 | `•` | Strategy `knowledge-summary` `note`: more than 9 main shapes | Keep the 4 to 7 on the main claim, or split into overview and zoom |
-| `•` | With `--source` or `"source"`: numbers in the figure that the source does not contain (single digits skipped; `200 000`, `200_000` and `200,000` match, and so do `200 nghìn` and `200,000`, `3,6 triệu` and `3,600,000`, in either direction). Strategy `incident` or `vulnerability` without a source asks for one | Keep a number only if its arithmetic is in the figure; otherwise take it from the source |
+| `•` | With `--source` or `"source"`: numbers in the figure that the source does not contain (single digits, `cells` ruler indices, strictly intermediate axis/plot ticks, 0-based plot bar endpoint `N-1` when `N` is in source, and strictly intermediate integers of a contiguous `cells` range are skipped while endpoints stay checked; `200 000`, `200_000` and `200,000` match, and so do `200 nghìn` and `200,000`, `3,6 triệu` and `3,600,000`, in either direction). Strategy `incident` or `vulnerability` without a source asks for one | Keep a number only if its arithmetic is in the figure; otherwise take it from the source |
 | `•` | Figure shows taller than one screen (900px in the column) | Split it: the nudge names an empty band near the middle where the figure can be cut, between which two labels; for a sequence, repeat the actor row in the second figure |
 | `•` | Figure wider than 888 units, so text shrinks below 3/4 | Stack the parts vertically or split: the nudge names an empty vertical band if there is one |
 | `•` | Only rounded boxes joined by arrows, and at least one arrow carries no label (`code` blocks do not count; a figure whose every edge names its relation, like a concept map or causal loop, passes) | Reconsider the figure type, or say on each arrow what flows or changes |

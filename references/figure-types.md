@@ -139,7 +139,7 @@ A comb of 100+ marks (a retry every second for two minutes) is one `line` with `
 **A clock that moves with the data** (watermark, low-water mark, replication lag): rows top to bottom in arrival order, `x` = the data's own time on a true scale, one dot per arrival with its timestamp in a left column and what happened in a right column.
 The clock is one `l4` staircase `line` (`sharp`), stepping right between rows only when it advances, so an event left of the staircase on its row is late and one right of it is on time; the reader sees lateness without a word.
 The states the clock drives (Open, Grace, Closed) are a band of adjacent `sharp` boxes above the rows, each spanning the clock range that holds it, with thin dashed `line` guides down from the band borders so the step that crosses a border is the transition.
-Pick timestamps that keep dots 6+ units off the guides, and put the clock's rule (`max đã thấy − 10s`) on its longest horizontal step .
+Pick timestamps that keep dots 6+ units off the guides, and put the clock's rule (`max đã thấy − 10s`) on its longest horizontal step.
 
 **One item through the containers that hold it, read by snapshots** (a job through the Redis keys of its states, a row through buffer, WAL and page): one `lanes` row per container with its type and count command in the label, the item as a staircase of `sharp` boxes with no arrows (boxes meet at corners, so the transition is the edge), and the command that put it there written inside each box.
 Each read is a dashed vertical `line` placed 10 to 12 units inside the right edge of a box, clear of the centred text, and what the read counts the item as goes under the lanes at that `x`; the one read the source records is the only `l4` line.

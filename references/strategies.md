@@ -174,7 +174,7 @@ The strategy says what to draw; the medium says how big.
 
 - **Article or docs column (default):** 666px column, keep under about 800 units wide, one screen tall (the tool nudges above 900px).
 - **Presentation to a team:** one figure per slide, numbered parts so the speaker can say "look at ②"; render all figures of the set with `--page deck.pdf --title ... --caption ...` to hand out; check `-dark.png` for a dark slide theme.
-  The set uses one meaning per color across all figures (in the Java4Shell set, `err` is the faulty path everywhere).
+  The set uses one meaning per color across all figures (in the Java4Shell set, `err` is the faulty path everywhere) and keeps consistent slide headers (`Hình 1 của 2`, `Hình 2 của 2`), separators, and notation across every figure in the set.
 - **Wiki or wide page:** preview with `--col 1100`, never to silence the font check on a figure meant for the column.
 
 ## What the tool checks per strategy

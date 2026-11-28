@@ -551,7 +551,8 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between}
 <section class="caidat" id="cai-dat">
   <div class="wrap">
     <h2>Cài đặt</h2>
-    <pre><span class="c"># engine, bundle Excalidraw và font đã nằm sẵn trong repo - render không cần mạng</span>
+    <pre><span class="c"># dựng bundle Excalidraw một lần bằng Node (font và engine đã có sẵn trong repo - render offline)</span>
+<span class="k">$</span> npm install &amp;&amp; npm run bundle
 <span class="k">$</span> pip install -r requirements.txt
 <span class="k">$</span> python3 -m playwright install chromium
 
@@ -910,8 +911,8 @@ const DICH = {
   'Ba model đầu chạy trong một phiên tự động. GLM 5.3 vẽ sau qua một phiên có gián đoạn nên thời gian và token không so sánh được, chỉ giữ số vòng render (tính cả lần lỗi cú pháp).':
     'The first three models ran in one automated session. GLM 5.3 drew later through an interrupted session, so time and tokens are not comparable; only its render rounds are kept (syntax-error rounds included).',
   /* cài đặt */
-  '# engine, bundle Excalidraw và font đã nằm sẵn trong repo - render không cần mạng':
-    '# engine, Excalidraw bundle and fonts already live in the repo - rendering needs no network',
+  '# dựng bundle Excalidraw một lần bằng Node (font và engine đã có sẵn trong repo - render offline)':
+    '# build the Excalidraw bundle once with Node (fonts and engine ship in the repo - offline rendering)',
   '# chạy thử ngay một template có sẵn': '# try a bundled template right away',
   '✓ 03-byte-cells: 46 phần tử · 688×282 · chữ nhỏ nhất 14.5px': '✓ 03-byte-cells: 46 elements · 688×282 · smallest text 14.5px',
   '# đặt vào chỗ Claude Code tìm skill': '# put it where Claude Code looks for skills',

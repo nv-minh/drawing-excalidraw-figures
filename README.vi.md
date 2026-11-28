@@ -1,0 +1,224 @@
+# drawing-excalidraw-figures
+
+[English](README.md) · **Tiếng Việt**
+
+<p align="center"><img src="docs/images/examples/11-sequence-light.png" alt="Hình sequence vẽ bằng skill" width="620"></p>
+
+Biến một đoạn văn kỹ thuật, hay một ý tưởng còn thô mới chỉ có chữ, thành hình Excalidraw nét vẽ tay - không phải hàng hộp nối mũi tên, mà hình làm cho thời gian thành độ dài, dữ liệu thành ô có giá trị thật, giới hạn thành một đường kẻ.
+Skill cho Claude Code, Codex CLI, hoặc agent nào đọc được SKILL.md: bạn đưa đoạn văn, agent viết spec JSON ngắn, chạy một lệnh, ra bốn file.
+
+```
+fig.excalidraw   cảnh gốc - kéo vào excalidraw.com để sửa tiếp
+fig.svg          SVG tĩnh, màu theo token var(--token), chạy chế độ sáng lẫn tối
+fig-light.png    bản xem trước ở cột đọc 666px, chế độ sáng
+fig-dark.png     bản xem trước, chế độ tối
+```
+
+**Vì sao đáng dùng:**
+
+- **Sửa tiếp được** - `.excalidraw` mở trên excalidraw.com, kéo thả chỉnh như bản vẽ tay thật
+- **Hai chế độ màu chuẩn** - SVG tô bằng token, không bao giờ lệch ở dark mode
+- **Offline hoàn toàn sau khi cài** - engine và font nằm sẵn trong repo; dựng bundle Excalidraw một lần bằng Node rồi render không cần mạng, không API
+- **Tool gác cổng** - chặn chữ tràn, mũi tên xuyên hộp, màu sai token ngay lúc render; phần còn lại mắt bạn quyết định
+
+Xem skill vẽ ra gì khi bốn model AI thi nhau vẽ: [32 hình, tám đề](https://drawing-excalidraw-figures.vercel.app/#so-sanh).
+
+## Không chỉ cho kỹ thuật
+
+Một pitch kinh doanh, một khái niệm cần giảng, một đoạn note rối lúc 2 giờ sáng, một quy trình nội bộ: ý nào cũng có hình dạng riêng.
+Với ý tưởng thô, skill viết thêm một câu "ý này thực chất nói rằng...", liệt kê khái niệm, quan hệ và chỗ căng thẳng bằng đúng chữ của người viết, rồi chọn hình theo cấu trúc của ý: vòng nhân quả, ma trận 2x2, phễu, concept map, timeline, swimlane.
+Nếu có người để hỏi, skill đưa bản nháp đầu tiên và hỏi "đúng ý bạn chưa?" trước khi trau chuốt.
+
+<table>
+<tr><td width="50%" valign="top"><a href="evals/ghi-chu-ca-nhan/prompt.md"><img src="docs/images/y-tuong/ghi-chu-light.png" alt="Note nghỉ việc vẽ thành timeline" width="380"></a><br><b>ghi chú cá nhân</b> (người đọc: chính người viết, đọc lại sau một tuần)<br>nghỉ việc sang startup: cái sợ thật là 5 năm ngồi yên, không phải 8 tháng tiền · <a href="evals/ghi-chu-ca-nhan/prompt.md">đề bài</a></td><td width="50%" valign="top"><a href="evals/giang-day-khai-niem/prompt.md"><img src="docs/images/y-tuong/giang-day-light.png" alt="Bướm công nghiệp vẽ thành bốn dải bướm đếm được" width="380"></a><br><b>giảng dạy khái niệm</b> (người đọc: học sinh gặp tiến hoá lần đầu)<br>bướm công nghiệp: không con nào đổi màu, tỷ lệ trong quần thể đổi · <a href="evals/giang-day-khai-niem/prompt.md">đề bài</a></td></tr>
+<tr><td width="50%" valign="top"><a href="evals/quy-trinh-to-chuc/prompt.md"><img src="docs/images/y-tuong/quy-trinh-light.png" alt="Duyệt chi tiền qua swimlane ba vai" width="380"></a><br><b>quy trình tổ chức</b> (người đọc: nhân viên mới nộp đề nghị chi lần đầu)<br>duyệt chi tiền: trưởng nhóm, kế toán, ngưỡng 2 triệu và hoá đơn đỏ · <a href="evals/quy-trinh-to-chuc/prompt.md">đề bài</a></td><td width="50%" valign="top"><a href="evals/y-tuong-kinh-doanh/prompt.md"><img src="docs/images/y-tuong/kinh-doanh-light.png" alt="Giảm giá hay giữ giá: nhánh nào có vòng tự chạy" width="380"></a><br><b>ý tưởng kinh doanh</b> (người đọc: chủ quán cà phê trước cuộc họp về giá)<br>đối thủ bán rẻ 10 nghìn: giữ giá vì vòng khách quen tự chạy · <a href="evals/y-tuong-kinh-doanh/prompt.md">đề bài</a></td></tr>
+</table>
+
+Bốn đề trên nằm trong `evals/`, kết quả và bài học trong `references/lessons-from-runs.md`.
+Đề `nguoi-moi-mat-khau-salt` đo thẳng việc người mới có hiểu hình không: giám khảo xem PNG, đóng vai phụ huynh chưa biết lập trình và trả lời ba câu hỏi chỉ từ hình.
+Chạy có đối chứng (có skill và không skill, báo `Δ`) theo `evals/README.md`.
+
+## Luật chịu lực
+
+**Vẽ HÌNH DẠNG của ý tưởng, không vẽ danh sách thành phần.**
+Một hàng hộp chữ nhật nối mũi tên chỉ nói "A gọi B" - điều một câu văn đã nói xong.
+Hình tốt làm cho thời gian thành độ dài, dữ liệu thành ô có giá trị thật, giới hạn thành một đường kẻ, sự cố thành một nét đỏ.
+
+Skill rút ra từ khoảng 600 hình Excalidraw thật của Hello Interview và bộ mẫu của chủ sở hữu:
+không đoán, mọi luật đều có nguồn ghi trong `references/sources.md`.
+
+## Quy trình sáu bước
+
+1. Hỏi người đọc là ai và đã biết gì (người mới, dev, chuyên gia), liệt kê thuật ngữ cần giải thích ngay trong hình, chọn chế độ cô đọng hay giải thích cho người mới. Rồi viết đúng một câu: "Nhìn hình này, người đọc THẤY ... mà đoạn văn không cho thấy." Không viết được câu đó thì không vẽ.
+2. Ghi danh sách sự thật: actor, bước, nhánh lỗi, số thật lấy nguyên từ nguồn. Với ý tưởng thô: khái niệm, quan hệ, chỗ căng thẳng và điều người viết muốn người đọc tin.
+3. Chọn loại hình theo cái cần thấy (sequence, swimlane, state, ER, byte cells, timeline, threshold...).
+4. Viết spec JSON - chép template từ `examples/`, không viết từ đầu.
+5. Render bằng `ve.py`.
+6. Mở cả hai PNG ra soi, sửa tới khi hình nói được câu của bước 1 với đúng người đọc đó. Tool xanh chưa có nghĩa là hình đọc được.
+
+Hình đúng dữ kiện vẫn có thể vô dụng nếu giả định người đọc đã biết Base64, heap hay JIT: vì vậy bước 1 hỏi trình độ trước tiên, và ghi ra những gì người đọc chắc chắn biết.
+Đã dùng một thứ mỗi ngày chưa chắc đã biết nó chạy thế nào bên trong: một dev Java gọi `Base64.decode` suốt ngày vẫn có thể không biết 4 ký tự đổi thành 3 byte, nên bước 2 liệt kê cả những điều hình coi như đương nhiên mà không viết ra.
+Với người mới, skill đi từ ví dụ đời thường sang cơ chế, ghi một câu bằng lời bên cạnh từng phần, và có sẵn loại hình "flow giải thích từng bước" (`30-explained-flow`): số bước, một dòng mô tả, một ví dụ nhỏ bên cạnh.
+Chủ đề bảo mật thì vẽ cơ chế và cách phòng thủ, dừng trước mọi thứ dùng được như hướng dẫn tấn công (chi tiết trong `SKILL.md`).
+
+Mỗi loại nội dung có chiến lược riêng (`references/strategies.md`): luồng nghiệp vụ, tương tác giữa hệ thống, sự cố, lỗ hổng, kiến trúc, cơ chế, mô hình dữ liệu, lựa chọn, khái niệm, tổng hợp kiến thức, ghi chú, vấn đề đời sống, ý tưởng thô.
+Chiến lược nói nên vẽ mấy hình, theo thứ tự nào, loại hình nào, và luật dẫn mắt nào bắt buộc; ghi `"strategy"` vào spec thì tool kiểm theo đúng loại đó.
+Sau khi tool xanh, skill đưa PNG cho một "mắt lạ" (subagent chỉ biết trình độ người đọc, không đọc bài gốc) hỏi bốn câu: mắt bắt đầu ở đâu, hình nói gì, chữ nào không hiểu, phần nào lạc lõng.
+Rồi đổi vai: người review hiểu mọi chữ trên hình, nên thay vì chỉ hỏi "bạn không hiểu gì", skill nhờ họ liệt kê những gì hình coi như người đọc đã biết; điều người đọc không biết mà hình không nói là một lỗ hổng, nặng hơn một từ lạ.
+
+## Cài đặt
+
+Yêu cầu: Python 3.11+, Node.js (để dựng bundle Excalidraw một lần), Playwright Chromium, và font nằm sẵn trong `assets/fonts/` (không tải gì từ mạng lúc render).
+
+```bash
+git clone https://github.com/nv-minh/drawing-excalidraw-figures.git
+cd drawing-excalidraw-figures
+npm install && npm run bundle
+python3 -m pip install -r requirements.txt && python3 -m playwright install chromium
+
+# tự kiểm môi trường: Python, bundle, Playwright, Chromium; thiếu gì thì in đúng lệnh cài
+python3 scripts/ve.py --check
+
+# chạy thử ngay một ví dụ có sẵn và mở ảnh vừa render
+python3 scripts/ve.py examples/03-byte-cells.json --out /tmp/fig --open
+```
+
+Thiếu Playwright thì `ve.py` in đúng một lệnh cài, không in traceback.
+Chưa cài Chromium của Playwright thì `ve.py` tự dùng Chrome hoặc Edge có sẵn trên máy (SVG giống hệt), chỉ khi không có trình duyệt nào mới bảo cài.
+Không có chế độ bỏ trình duyệt: hình, phép đo chữ và SVG đều do thư viện Excalidraw thật dựng trong trình duyệt.
+
+Để Claude Code dùng như skill, đặt cả thư mục vào thư mục skill của bạn:
+
+```bash
+mkdir -p ~/.claude/skills
+cp -R drawing-excalidraw-figures ~/.claude/skills/
+```
+
+Codex CLI đọc cùng chuẩn `SKILL.md`, chỉ khác thư mục cài.
+Một bản duy nhất phục vụ cả hai bằng symlink:
+
+```bash
+mkdir -p ~/.codex/skills
+ln -s ~/.claude/skills/drawing-excalidraw-figures ~/.codex/skills/drawing-excalidraw-figures
+```
+
+## Agent khác: Antigravity, Cursor, Gemini CLI, Copilot
+
+Skill về bản chất là một bản dẫn Markdown cộng một CLI Python, nên agent nào đọc được file và chạy được lệnh đều dùng được - Antigravity, Cursor, Windsurf, Gemini CLI, GitHub Copilot coding agent.
+Tool không có thư mục skill thì thêm vài dòng vào file rules của nó (`AGENTS.md`, `.cursor/rules`, `.windsurfrules`, `.github/copilot-instructions.md`):
+
+```text
+Khi được yêu cầu vẽ sơ đồ, đọc <đường-dẫn-đến-repo>/SKILL.md
+và làm theo đúng quy trình sáu bước trong đó.
+```
+
+Bước 6 (soi hai PNG) cần agent nhìn được ảnh; các model chính đều làm được.
+Model không đa phương tiện vẫn vẽ được, chỉ cần bạn tự mở PNG ra soi.
+
+`ve.py` tự tìm thư mục `engine/` đi lên từ vị trí của nó, nên đặt ở `.claude/skills/` của người dùng hay của một dự án lớn hơn đều chạy được.
+
+## Spec trong 30 giây
+
+```json
+{
+  "_": "Người đọc THẤY pool 10 connection không đủ cho 14 request, 4 request timeout ở giây 2 trước khi connection đầu tiên trả lại ở giây 3.",
+  "elements": [
+    {"t":"axis","x":60,"y":352,"length":510,"gap":170,"ticks":["0s","1s","2s","3s"],"label":"t"},
+    {"t":"span","x1":60,"x2":570,"y":28,"text":"10 request giữ connection 3s mỗi query · pool = 10","color":"muted"},
+    {"t":"cells","id":"q","x":60,"y":46,"cw":510,"ch":13,"labels":["","","","","","","","","",""],"fill":"warn","fillStyle":"hachure"}
+  ]
+}
+```
+
+Chạy `python3 scripts/ve.py spec.json` là ra bốn file.
+Cú pháp đầy đủ của mọi phần tử: `references/spec.md`.
+
+Vài tiện ích đi kèm:
+
+```bash
+python3 scripts/ve.py spec.json --open                       # render xong mở luôn hai PNG
+python3 scripts/ve.py a.json b.json --page bai.html \
+    --title "Base64 cho người mới" --caption "Hai hình đọc liền nhau"   # nhiều hình một trang, .pdf cũng được
+python3 scripts/ve.py spec.json --extract-labels en          # tách nhãn ra spec.en.labels.json để dịch
+python3 scripts/ve.py spec.json --lang en                    # render bản tiếng Anh (spec-en-light.png...), spec giữ nguyên
+python3 scripts/ve.py spec.json --source bai.md              # liệt kê số trong hình mà bài gốc không có
+```
+
+`"caption"` trong spec (câu của bước 1) được in dưới mỗi hình trên trang `--page` và được dịch cùng nhãn.
+
+## Ba mươi loại hình có template sẵn
+
+`examples/` chứa 30 template: request flow, anatomy, byte cells, timeline, threshold, before/after, two views, ẩn dụ vật lý, failure branch, decision tree, sequence (kể cả alt/opt/loop), state machine, ER table, hash ring, code evidence, layer lanes, progressive series, layer stack, curve, icon, swimlane, composite state, ER crow's foot, system two flows, vòng nhân quả, ma trận 2x2, phễu, concept map, flow giải thích từng bước.
+
+Mỗi template là một spec JSON chạy được, nhãn tiếng Việt.
+
+## Mười ba chiến lược, mỗi loại một hình mẫu
+
+Mỗi loại nội dung có một cách kể riêng: quy trình đi theo bước, sự cố đi theo thời gian, khái niệm cần một hình ảnh quen.
+Bước 1 của skill chọn chiến lược theo nội dung, chi tiết trong `references/strategies.md`.
+Mười ba hình dưới đây, mỗi hình một đề bài giả định (Java4Shell là sự cố thật) và một người đọc khác nhau.
+Mỗi hình qua ít nhất ba vòng phản biện: mỗi vòng một reviewer mới, chỉ được xem ảnh và trình độ người đọc, kể lại hình nói gì và chỉ ra chữ nào khó hiểu.
+Hình dừng khi reviewer kể lại đúng ý chính.
+Một dev Java trong team sau đó vẫn nói bộ hình Java4Shell "nhìn không hiểu, thiếu thông tin về JDK, Base64 và padding", dù mọi thuật ngữ trên hình đều có chú giải.
+Vì vậy reviewer giờ còn đổi vai và liệt kê những gì hình coi như người đọc đã biết; mẫu lỗ hổng thành bộ hai hình, hình 1 nêu trường hợp bình thường trước rồi trỏ sang hình 2.
+Bấm vào hình để đọc đề bài.
+Để biết skill có tổng quát không, bốn agent mới vẽ thêm 13 đề khác, mỗi đề một lần, không góp ý: 8/13 hình qua reviewer khó tính ngay lần đầu, phần còn lại cần thêm bước "mắt lạ" ở bước 6 (chi tiết trong `references/lessons-from-runs.md`).
+
+<table>
+<tr><td width="50%" valign="top"><a href="docs/images/chien-luoc/process-flow/de-bai.md"><img src="docs/images/chien-luoc/process-flow/process-flow-light.png" alt="quy trình: đổi trả hàng qua 4 vai, hoàn tiền không chờ lên kệ" width="380"></a><br><b>quy trình</b> (người đọc: nhân viên mới bán hàng online)<br>đổi trả hàng qua 4 vai, hoàn tiền không chờ lên kệ · <a href="docs/images/chien-luoc/process-flow/de-bai.md">đề bài</a></td><td width="50%" valign="top"><a href="docs/images/chien-luoc/interaction/de-bai.md"><img src="docs/images/chien-luoc/interaction/interaction-light.png" alt="tương tác: token đổi thẳng giữa backend và Google, có PKCE" width="380"></a><br><b>tương tác</b> (người đọc: web dev lần đầu làm đăng nhập Google)<br>token đổi thẳng giữa backend và Google, có PKCE · <a href="docs/images/chien-luoc/interaction/de-bai.md">đề bài</a></td></tr>
+<tr><td width="50%" valign="top"><a href="docs/images/chien-luoc/architecture/de-bai.md"><img src="docs/images/chien-luoc/architecture/architecture-light.png" alt="kiến trúc: 9 trên 10 lượt đọc dừng ở bản chép nhanh" width="380"></a><br><b>kiến trúc</b> (người đọc: sinh viên kinh tế năm 1)<br>9 trên 10 lượt đọc dừng ở bản chép nhanh · <a href="docs/images/chien-luoc/architecture/de-bai.md">đề bài</a></td><td width="50%" valign="top"><a href="docs/images/chien-luoc/data-model/de-bai.md"><img src="docs/images/chien-luoc/data-model/data-model-light.png" alt="mô hình dữ liệu: khoá chính nào cho bài hát lặp lại trong playlist" width="380"></a><br><b>mô hình dữ liệu</b> (người đọc: DBA PostgreSQL)<br>khoá chính nào cho bài hát lặp lại trong playlist · <a href="docs/images/chien-luoc/data-model/de-bai.md">đề bài</a></td></tr>
+<tr><td width="50%" valign="top"><a href="docs/images/chien-luoc/incident/de-bai.md"><img src="docs/images/chien-luoc/incident/incident-light.png" alt="sự cố: một dòng cấu hình làm đầy đĩa Postgres sau 8 giờ" width="380"></a><br><b>sự cố</b> (người đọc: backend dev không trực on-call)<br>một dòng cấu hình làm đầy đĩa Postgres sau 8 giờ · <a href="docs/images/chien-luoc/incident/de-bai.md">đề bài</a></td><td width="50%" valign="top"><a href="docs/images/chien-luoc/mechanism/de-bai.md"><img src="docs/images/chien-luoc/mechanism/mechanism-light.png" alt="cơ chế: TCP Reno: 3 dup ACK và timeout để lại hai vết khác nhau" width="380"></a><br><b>cơ chế</b> (người đọc: chuyên gia TCP)<br>TCP Reno: 3 dup ACK và timeout để lại hai vết khác nhau · <a href="docs/images/chien-luoc/mechanism/de-bai.md">đề bài</a></td></tr>
+<tr><td width="50%" valign="top"><a href="docs/images/chien-luoc/vulnerability/de-bai.md"><img src="docs/images/chien-luoc/vulnerability/vulnerability-light.png" alt="lỗ hổng: Java4Shell: ghi tràn 62 byte ra ngoài mảng" width="380"></a><br><b>lỗ hổng</b> (người đọc: dev Java ít kinh nghiệm bảo mật)<br>Java4Shell: ghi tràn 62 byte ra ngoài mảng · <a href="docs/images/chien-luoc/vulnerability/de-bai.md">đề bài</a> · <a href="docs/images/chien-luoc/vulnerability/vulnerability-2-vi-sao-light.png">hình 2: vì sao</a></td><td width="50%" valign="top"><a href="docs/images/chien-luoc/decision/de-bai.md"><img src="docs/images/chien-luoc/decision/decision-light.png" alt="quyết định: tiền thưởng đi qua ba câu hỏi theo thứ tự" width="380"></a><br><b>quyết định</b> (người đọc: kế toán chưa đầu tư bao giờ)<br>tiền thưởng đi qua ba câu hỏi theo thứ tự · <a href="docs/images/chien-luoc/decision/de-bai.md">đề bài</a></td></tr>
+<tr><td width="50%" valign="top"><a href="docs/images/chien-luoc/concept/de-bai.md"><img src="docs/images/chien-luoc/concept/concept-light.png" alt="khái niệm: lãi kép: phần lãi của lãi phình dần" width="380"></a><br><b>khái niệm</b> (người đọc: người mới đi làm, mở sổ tiết kiệm đầu tiên)<br>lãi kép: phần lãi của lãi phình dần · <a href="docs/images/chien-luoc/concept/de-bai.md">đề bài</a></td><td width="50%" valign="top"><a href="docs/images/chien-luoc/knowledge-summary/de-bai.md"><img src="docs/images/chien-luoc/knowledge-summary/knowledge-summary-light.png" alt="tổng hợp kiến thức: ba định luật Newton cùng trả lời: lực làm gì" width="380"></a><br><b>tổng hợp kiến thức</b> (người đọc: học sinh lớp 10 ôn thi)<br>ba định luật Newton cùng trả lời: lực làm gì · <a href="docs/images/chien-luoc/knowledge-summary/de-bai.md">đề bài</a></td></tr>
+<tr><td width="50%" valign="top"><a href="docs/images/chien-luoc/note/de-bai.md"><img src="docs/images/chien-luoc/note/note-light.png" alt="ghi chú: đêm ngủ muộn nhất là đêm mang điện thoại vào phòng" width="380"></a><br><b>ghi chú</b> (người đọc: chính người viết, đọc lại sau một tuần)<br>đêm ngủ muộn nhất là đêm mang điện thoại vào phòng · <a href="docs/images/chien-luoc/note/de-bai.md">đề bài</a></td><td width="50%" valign="top"><a href="docs/images/chien-luoc/life-problem/de-bai.md"><img src="docs/images/chien-luoc/life-problem/life-problem-light.png" alt="vấn đề đời sống: vòng thiếu tiền, bị lãi, càng thiếu, và chỗ chặn nó" width="380"></a><br><b>vấn đề đời sống</b> (người đọc: hai vợ chồng tự xem)<br>vòng thiếu tiền, bị lãi, càng thiếu, và chỗ chặn nó · <a href="docs/images/chien-luoc/life-problem/de-bai.md">đề bài</a></td></tr>
+<tr><td width="50%" valign="top"><a href="docs/images/chien-luoc/idea/de-bai.md"><img src="docs/images/chien-luoc/idea/idea-light.png" alt="ý tưởng: tủ đồ chung chỉ đáng làm cho đồ đắt mà ít dùng" width="380"></a><br><b>ý tưởng</b> (người đọc: ban quản trị toà nhà)<br>tủ đồ chung chỉ đáng làm cho đồ đắt mà ít dùng · <a href="docs/images/chien-luoc/idea/de-bai.md">đề bài</a></td></tr>
+</table>
+
+## Màu là nghĩa
+
+Mặc định nét `ink`, không tô nền.
+Tối đa ba màu nhấn một hình: `err` cho thứ hỏng, `node` cho kết quả đúng, `l4` cho thứ đang được bàn tới, `warn` cho vùng bị ảnh hưởng, `hot` cho đường đi của một request.
+Màu chỉ nhận tên token, công cụ từ chối mã hex - nhờ vậy hình không bao giờ lệch palette và tự đảo đúng ở dark mode.
+
+## Tool tự kiểm những gì
+
+Lỗi cứng (`✗`): hộp bị Excalidraw phình vì chữ không vừa, chữ tràn khung, chữ nhỏ hơn 8px trên màn hình, màu không phải token, lỗi spec (báo đích danh element: thứ tự, `t`, `id`, đầu dòng chữ).
+Nhắc nhẹ (`•`): mũi tên xuyên hộp, nhãn dài bằng mũi tên, đầu mũi tên trùng điểm xuất phát của mũi tên khác, hơn ba màu nhấn, hình toàn hộp nối mũi tên, hình cao quá một màn hình hoặc rộng quá cột.
+Nhiều nhắc nhẹ kèm luôn chỗ sửa: mũi tên xuyên hộp thì gợi ý `route`/`bend` cụ thể đã thử là thoát, chữ đè nhau thì gợi ý `y` mới, hình quá cao thì chỉ ra chỗ cắt đôi.
+Đường đọc cũng được kiểm: khung giải thích đứng rời không nối với phần nó giải thích, số thứ tự ① ② ③ nhảy cóc, hình nhiều phần mà không đánh số (với chiến lược có thứ tự), mũi tên không ghi quan hệ (với tổng hợp kiến thức, vấn đề đời sống, ý tưởng), và chuỗi trông như payload tấn công (lỗi cứng với chiến lược `vulnerability`).
+Chữ trong hình như `lỗi #1480` không bao giờ bị hiểu thành mã màu.
+Còn hình có nói đúng chuyện hay không thì chỉ mắt người kiểm tra được - đó là bước 6, và `evals/` đo nó qua nhiều lần chạy.
+
+## Bốn model vẽ cùng một bộ đề
+
+Skill đã được bốn model (Sonnet 5.5, Opus 5.5, Fable 5.2, GLM 5.3) vẽ cùng tám đề - sequence có nhánh, swimlane nghiệp vụ, state lồng nhau, ER crow's foot, system design hai luồng, dải ô byte, ngưỡng và thời gian, trục thời gian.
+Xem đủ 32 hình ở [trang so sánh](https://drawing-excalidraw-figures.vercel.app/#so-sanh), kèm số vòng render và kích thước từng hình.
+
+## Cấu trúc repo
+
+```
+SKILL.md            bản dẫn đầy đủ của skill - agent đọc file này
+scripts/ve.py       renderer: spec JSON -> 4 file
+engine/             engine render thật (Excalidraw + Playwright Chromium)
+.cache/             bundle Excalidraw dựng cục bộ bằng `npm install && npm run bundle` (`scripts/excalidraw-bundle.mjs`)
+assets/             icons.json 188 icon + font Nunito, Patrick Hand, IBM Plex Mono
+references/         luật loại hình, cú pháp spec, ngôn ngữ hình, checklist soi hình
+examples/           30 template spec JSON
+evals/              bộ đề đánh giá
+tests/              unit cho theme/renderer + golden render cả 30 ví dụ
+docs/               landing page + bộ so sánh bốn model
+```
+
+## Tests
+
+Chuẩn bị: `npm install && npm run bundle` và `pip install -r requirements.txt pytest` (riêng golden render cần `playwright install chromium`).
+`python3 -m pytest` chạy 147 phép thử: unit cho hệ màu (`engine/theme.py`), cổng token và biên dịch spec (`scripts/ve.py`), lỗi spec chỉ đích danh element, gợi ý chỗ sửa, độ tương phản dark mode, phát hiện nhãn chưa dịch, flow, tách nhãn để dịch, trang nhiều hình, dựng icon (`scripts/build_icons.py`), và một golden render chạy `ve.py` thật trên cả 30 ví dụ rồi soát màu ngoài token, hex lit thô, cảnh `.excalidraw` hợp lệ.
+Muốn bỏ bước render (~80 giây): `python3 -m pytest -m "not slow"`.
+GitHub Actions chạy đủ cả bộ ở `.github/workflows/tests.yml` (tự dựng bundle bằng Node trước khi chạy pytest).
+
+## Nguồn và giấy phép
+
+- Thư viện [Excalidraw](https://excalidraw.com) và `@excalidraw/mermaid-to-excalidraw`: MIT.
+- Icon trong `assets/`: xem `assets/ICONS-LICENSE.txt`.
+- Nguồn các luật hình học và phong cách: `references/sources.md`.
+- Bản chất mọi luật trong skill đều ghi kèm phép đo thật đã tiến hành trên corpus, không phải suy đoán.

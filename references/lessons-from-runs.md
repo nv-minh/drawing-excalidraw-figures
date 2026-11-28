@@ -243,3 +243,23 @@ So Part B also catches a fact that is wrong, when one figure of a set disagrees 
 **Not yet run with fresh reviewers**, because the review model reached its five-hour usage limit: a second round on the deck, the two-figure set, and Part B on the other six gallery figures.
 By the author's own check, the weakest of the three in `references/review.md`: `architecture`, `concept`, `incident`, `mechanism` and `knowledge-summary` already state their premises; `interaction` did not.
 It had `state lệch → 400` and the `code_verifier` steps without a word on why either exists, after five rounds of the old prompt; two lines were added at its foot.
+
+### Autonomous engine, gallery, and three-eval loop (2026-11-27)
+
+Running a full blind fresh-eyes audit across the shipped gallery (`docs/images/chien-luoc/`), all 30 templates (`examples/`), and three freshly drawn eval cases (`nguoi-moi-mat-khau-salt`, `oom-killer-137`, `kafka-lag-partition`) closed the two open gaps above and surfaced several systemic engine and visual rules:
+
+- **Previously open gaps, now closed:**
+  - `--source` no longer flags ruler index numbers (`cells` `~idx~`), strictly intermediate axis/plot ticks (`~tick~`), 0-based `plot` bar endpoint `N-1` when count `N` is in source (`p0..p11` for 12 partitions), or strictly intermediate integers of a contiguous `cells` range (`40..49`), while still checking endpoints.
+  - Note/panel pointer arrows are now checked (Lint 2f) when their tip, barb, or shaft hits or brushes another arrow's arrowhead (`< 24–28` units to tip/midpoint or `< 12` to shaft).
+- **Additional engine & lint upgrades proven on real figures:**
+  - **FreeType 1× DPR monospace expansion:** On Linux at 1× DPR (`scale ≈ 0.85`), IBM Plex Mono glyphs hint ~5% wider than logical `0.60em` metrics; auto-widths in `m_code` (`1.24× + 36`) and mono `m_card` (`1.24× + 34`) plus preloading `'IBM Plex Mono'` before screenshots eliminated right-border clipping across code panels and `flow` example cards.
+  - **`m_stack` asymmetric clearance:** Keeping the front box's `(x, y, w, h)` anchor while applying `padR`/`padT` in edge clipping keeps `left`/`bottom` arrows dead-level with neighbours while clearing offset back boxes on `right`/`top`.
+  - **`m_sequence` compact `step` & frame note clamping:** Tracking `y_bot` across multi-line notes, fragments, and self-loops prevents tight `step` (34–40) collisions; clamping `over` note padding inside fragments keeps notes 8 units clear inside `alt`/`opt`/`loop` borders.
+  - **New lints:** `fromAt`/`toAt` without `fromSide`/`toSide`; parallel-side `hv`/`vh` border-sliding (suggests `vhv`/`hvh`); centred arrow labels overlapping their own arrowhead (caught 5 real clipped arrowheads in `examples/`); arrowhead wing grazing (probing `±8.5` units off the shaft); WCAG `< 3.0:1` dark/light contrast for free text over solid filled shapes; untouched Vietnamese diacritics in non-`vi` `--lang` label files.
+- **Visual and premise lessons from the 3-eval blind loop (`mat-khau-salt`, `oom-killer-137`, `kafka-lag-partition`):**
+  - **Table cell marks:** Override `fill` and/or `textColor`, never border `color`, so neighbouring cells keep uniform `ink` grid lines without clashing rough strokes.
+  - **Dark-mode legibility inside accented boxes & spans:** Even when `l4`/`node` passes 3:1 numerically, multi-line body prose in `l4` on dark `fill-soft` reads dim; use `textColor: "ink"` (or `card` with colored title + `ink` body) and `textColor: "ink"` on colored `span` brackets.
+  - **Stop plot threshold lines at the plot's right edge** (`x + w`) and keep `weight: 2` on short arrows (weight 3+ scales Excalidraw arrowheads up out of proportion).
+  - **Causal direction on diagnostic flows:** A verification command (`docker inspect ... OOMKilled`) branches *down* into its outcomes (`true → OOM` vs `false → manual kill -9`), not two causes pointing into a command box.
+  - **Newcomer jargon discipline (`mat-khau-salt`):** Even a gloss itself must stay jargon-free for a parent persona (writing `thuật toán` inside the gloss for `$2b$12$` failed `04-terms-explained` until rewritten as `loại máy xay ($2b$ = bcrypt)`).
+

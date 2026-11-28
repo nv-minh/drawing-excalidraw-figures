@@ -64,6 +64,8 @@ Usage rules:
 - `hachure` for countable things and for "waste" (padding, waiting regions). `solid` for regions, states, bands.
 - Red is always reserved for failure. The Everoot source uses red for "requirement 1" in one frame and "failure" in another, so the reader can no longer trust the color.
 - Causal signs are not colors. In a causal loop or concept map, `+` and `-` go as text on the arrow (`+` same direction, `-` opposite), and every arrow stays `ink`. Color goes only on the one loop or path the idea is about (`l4`), and `err` only on a loop that ends in harm. Coloring every `-` red would tell the reader that every slowing effect is a failure, which is rarely what the writer meant.
+- Free text placed over a tinted background band (`fill-l2`, `fill-warn`, etc.) and multi-line prose inside accented boxes or spans should stay in `ink` (`textColor: "ink"`): accent-colored text looks dim on dark fills even when it clears 3:1 on plain paper.
+- In a `table`, highlight cells with `fill` and/or `textColor` rather than overriding border `color`, so neighbouring cells share clean uniform `ink` borders instead of clashing colored strokes.
 
 ## Layout
 
@@ -86,7 +88,8 @@ Usage rules:
 - **A number on the edge** when it is the reason: `5ms`, `2GB`, `×1000`.
 - A long bypass (direct upload to S3, SSE back to the client) is a curve going around above or below, not cutting across the figure.
 - Arrows do not pass through boxes or over text. If one does, move the box, do not force a bend.
-- A note pointing at something uses `note` with a thin dashed `muted` line, so it is not mistaken for data flow.
+- A note pointing at something uses `note` with a thin dashed `muted` line, so it is not mistaken for data flow. Land pointer arrows on the middle of a target arrow's shaft (never within ~28 units of its arrowhead) and stop horizontal plot threshold lines at the plot's right edge so they never collide with neighbouring arrows.
+- Keep `weight: 2` on standard arrows; `weight: 3` or `4` scales Excalidraw's arrowhead up proportionally, which looks oversized on short arrows.
 
 ## Guiding the eye
 
