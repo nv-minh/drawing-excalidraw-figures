@@ -445,3 +445,216 @@ class TestChoHoCuoi:
         chu = {'type': 'text', 'id': 't1', 'x': 90, 'y': 8, 'width': 40, 'height': 22, 'text': '1,234', 'fontSize': 16}
         _, nhac = ve.soat([o, chu], {}, [], [])
         assert any('crosses the border' in n or 'straddles' in n for n in nhac)
+
+
+# ── sửa lỗi macro, kiểm tương phản nền tối, đầu mũi tên, dịch nhãn ──
+class TestCaiTienHeThong:
+    def test_sequence_step_hep_khong_de_khung_alt(self):
+        spec = [{'t': 'sequence', 'x': 0, 'y': 0, 'gap': 200, 'step': 34,
+                 'actors': [{'id': 'a', 'label': 'A'}, {'id': 'b', 'label': 'B'}],
+                 'messages': [
+                     {'from': 'a', 'to': 'b', 'text': 'msg 1'},
+                     {'alt': 'ok'},
+                     {'from': 'b', 'to': 'a', 'text': 'msg 2'},
+                     {'else': 'err'},
+                     {'from': 'b', 'to': 'a', 'text': 'msg 3'},
+                     {'end': True}]}]
+        els = ve.bung(spec)
+        arrows = [e for e in els if e['t'] == 'arrow']
+        frame = next(e for e in els if e['t'] == 'box' and e.get('under'))
+        sep = next(e for e in els if e['t'] == 'line' and e.get('dashed') and '~life~' not in str(e.get('id', '')))
+        y_m1 = arrows[0]['points'][0][1]
+        y_m2 = arrows[1]['points'][0][1]
+        y_m3 = arrows[2]['points'][0][1]
+        assert frame['y'] >= y_m1 + 10
+        assert sep['points'][0][1] >= y_m2 + 10
+        assert frame['y'] + frame['h'] >= y_m3 + 12
+
+    def test_sequence_bao_loi_actor_khong_ton_tai(self):
+        spec = [{'t': 'sequence', 'x': 0, 'y': 0, 'actors': [{'id': 'a', 'label': 'A'}],
+                 'messages': [{'from': 'a', 'to': 'ghost', 'text': 'hi'}]}]
+        with pytest.raises(ve.Loi, match="to='ghost' matches no actor"):
+            ve.dung(spec)
+
+    def test_stack_neo_om_het_lop_sau(self):
+        _, _, hinh, lint, _ = ve.dung([
+            {'t': 'box', 'id': 'lb', 'x': 0, 'y': 100, 'w': 60, 'h': 60, 'text': 'LB'},
+            {'t': 'stack', 'id': 's', 'x': 100, 'y': 100, 'w': 120, 'h': 60, 'n': 4, 'text': 'web'},
+            {'t': 'box', 'id': 'b', 'x': 300, 'y': 100, 'w': 100, 'h': 60, 'text': 'db'},
+            {'t': 'arrow', 'from': 'lb', 'to': 's'},
+            {'t': 'arrow', 'from': 's', 'to': 'b'}])
+        # n=4 -> offset = 3 * 8 = 24: front box stays (100, 100, 120, 60) so lb->s stays level (y=130),
+        # while padR=24 pushes s->b past the back boxes (x >= 244).
+        assert hinh['s']['padR'] == 24 and hinh['s']['padT'] == 24
+        assert lint[0][2][0][1] == lint[0][2][-1][1] == 130
+        assert lint[1][2][0][0] >= 244 and lint[1][2][0][1] == 130
+
+    def test_badge_ha_mau_chu_khi_nen_toi_thap_tuong_phan(self):
+        els = ve.bung([{'t': 'badge', 'x': 0, 'y': 0, 'n': 1, 'color': 'l4'}])
+        num = next(e for e in els if e.get('ghost'))
+        assert num['color'] == 'ink'
+
+    def test_cells_grid_table_ho_tro_textColor(self):
+        els = ve.bung([
+            {'t': 'cells', 'id': 'c', 'x': 0, 'y': 0, 'cw': 40, 'ch': 30, 'labels': ['A', '='],
+             'marks': {'1': {'color': 'muted', 'textColor': 'muted'}}},
+            {'t': 'table', 'id': 'tb', 'x': 0, 'y': 60, 'cols': [60], 'rows': [['v']],
+             'marks': {'0,0': {'color': 'err', 'textColor': 'ink'}}},
+            {'t': 'grid', 'id': 'g', 'x': 0, 'y': 120, 'cw': 40, 'ch': 30, 'rows': [['X']],
+             'marks': {'0,0': {'color': 'l4', 'textColor': 'ink', 'dashed': True}}}])
+        c1 = next(e for e in els if e.get('id') == 'c.1')
+        assert c1['textColor'] == 'muted'
+        g0 = next(e for e in els if e.get('id') == 'g.0.0')
+        assert g0['textColor'] == 'ink' and g0['dashed'] is True
+        tb0 = next(e for e in els if e.get('id') == 'tb.0.0')
+        assert tb0['textColor'] == 'ink'
+
+    def test_group_dim_giu_code_fg_va_ha_textColor(self):
+        els = ve.bung([{'t': 'group', 'dim': True, 'elements': [
+            {'t': 'code', 'id': 'cd', 'x': 0, 'y': 0, 'text': 'x = 1'},
+            {'t': 'box', 'id': 'b', 'x': 0, 'y': 100, 'w': 100, 'h': 40, 'text': 'hi', 'textColor': 'l4'}]}])
+        code_txt = next(e for e in els if e.get('t') == 'text' and e.get('text') == 'x = 1')
+        assert code_txt['color'] == 'code-fg' and code_txt['opacity'] == 65
+        box = next(e for e in els if e.get('id') == 'b')
+        assert box['textColor'] == 'muted'
+
+    def test_note_chuyen_tiep_route_va_fromAt(self):
+        els = ve.bung([
+            {'t': 'box', 'id': 'a', 'x': 0, 'y': 0, 'w': 100, 'h': 50},
+            {'t': 'note', 'x': 200, 'y': 100, 'text': 'chú thích', 'to': 'a', 'route': 'hv', 'toSide': 'right', 'toAt': 0.2}])
+        ar = next(e for e in els if e['t'] == 'arrow')
+        assert ar['route'] == 'hv' and ar['toSide'] == 'right' and ar['toAt'] == 0.2 and ar.get('note_ptr') is True
+
+    def test_payload_bo_qua_duong_gach_ngang(self):
+        cung, nhac = _doc([{'t': 'text', 'x': 0, 'y': 0, 'text': '--------------------'}], 'vulnerability')
+        assert not cung and not any('attack input' in n for n in nhac)
+
+    def test_so_voi_nguon_bo_qua_chi_so_o_va_vach_giua_nhung_giu_hai_dau(self):
+        conv = [
+            {'type': 'text', 'id': 'c~idx~15', 'text': '15'},
+            {'type': 'text', 'id': 'ax~tick~0', 'text': '10'},
+            {'type': 'text', 'id': 'ax~tick~1', 'text': '25'},
+            {'type': 'text', 'id': 'ax~tick~2', 'text': '40'},
+            {'type': 'text', 'id': 'ax~tick~3', 'text': '99'},
+        ]
+        nhac = ve.so_voi_nguon(conv, 'runs from 10 to 50', 'bai.md')
+        # 15 (cell index) and 25, 40 (intermediate axis ticks) are skipped; 99 (endpoint) is still flagged
+        assert len(nhac) == 1 and ': 99.' in nhac[0] and '15' not in nhac[0] and '25' not in nhac[0]
+
+    def test_fromAt_khong_co_fromSide_duoc_nhac(self):
+        _, _, hinh, lint, goc = ve.dung(HOP[:2] + [{'t': 'arrow', 'from': 'a', 'to': 'm', 'fromAt': 0.2}])
+        _, nhac = ve.soat([], hinh, lint, goc)
+        assert any('fromAt without fromSide' in n for n in nhac)
+
+    def test_nhan_mui_ten_cham_dau_mui_ten(self):
+        ar = {'type': 'arrow', 'id': 'ar1', 'x': 0, 'y': 0, 'width': 68, 'height': 0,
+              'endArrowhead': 'arrow', 'startArrowhead': None}
+        lb = {'type': 'text', 'id': 't1', 'containerId': 'ar1', 'x': 15, 'y': -10, 'width': 38, 'height': 20, 'text': 'chưa'}
+        _, nhac = ve.soat([ar, lb], {}, [], [])
+        assert any('overlaps its own arrowhead' in n for n in nhac)
+
+    def test_canh_dau_mui_ten_dam_vao_hop(self):
+        hinh = {'b': {'t': 'box', 'id': 'b', 'x': 190, 'y': 200, 'w': 50, 'h': 100}}
+        # Grazing arrow ends at (189, 232) from (160, 96): tip is 1 unit left of box, right wing stabs inside x=190
+        lint = [(None, None, [(160, 96), (189, 232)], 1, {'t': 'arrow'})]
+        _, nhac = ve.soat([], hinh, lint, [])
+        assert any('arrowhead wing' in n and "'b'" in n for n in nhac)
+
+    def test_mui_ten_chi_cham_dau_mui_ten_khac(self):
+        # Both tip landing on arrowhead and shaft shooting across arrowhead are caught
+        for ptr_pts in ([(300, 100), (205, 100)], [(300, 96), (160, 102)]):
+            lint = [
+                (None, None, [(0, 100), (200, 100)], 1, {'t': 'arrow'}),
+                (None, None, ptr_pts, 1, {'t': 'arrow', 'dashed': True, 'weight': 1, 'color': 'muted'}),
+            ]
+            _, nhac = ve.soat([], {}, lint, [])
+            assert any("another arrow's arrowhead" in n for n in nhac)
+
+    def test_chu_trong_hop_khong_bao_gia_vuot_vien(self):
+        # Text inside box with 99% area inside and < 3px protrusion on Patrick Hand span should NOT trigger
+        box = {'type': 'rectangle', 'id': 'c1', 'x': 0, 'y': 0, 'width': 200, 'height': 60, 'strokeColor': '#000',
+               'backgroundColor': 'transparent'}
+        txt = {'type': 'text', 'id': 't1', 'x': 10, 'y': 10, 'width': 195, 'height': 36, 'text': 'hello world',
+               'fontSize': 16, 'fontFamily': 1, 'textAlign': 'left'}
+        _, nhac = ve.soat([box, txt], {}, [], [])
+        assert not any('crosses the border' in n for n in nhac)
+
+    def test_tuong_phan_chu_tu_do_tren_nen_dac(self):
+        bg = {'type': 'rectangle', 'id': 'data', 'x': 0, 'y': 0, 'width': 300, 'height': 200,
+              'strokeColor': 'transparent', 'backgroundColor': ve.T.FILL_LIGHT['fill-l2'], 'fillStyle': 'solid'}
+        err_txt = {'type': 'text', 'id': 't1', 'x': 20, 'y': 40, 'width': 120, 'height': 22,
+                   'strokeColor': ve.T.LIGHT['err'], 'text': 'dừng 40 phút', 'fontSize': 16}
+        ink_txt = {'type': 'text', 'id': 't2', 'x': 20, 'y': 100, 'width': 120, 'height': 22,
+                   'strokeColor': ve.T.LIGHT['ink'], 'text': 'dữ liệu', 'fontSize': 16}
+        _, nhac = ve.soat([bg, err_txt, ink_txt], {}, [], [])
+        assert any("dừng 40 phút" in n and "dark mode" in n for n in nhac)
+        assert not any("dữ liệu" in n and "contrast" in n for n in nhac)
+
+    def test_mask_rects_to_paths_them_dem_doc_cho_lo_nhan(self):
+        svg = ('<mask id="m1"><rect x="0" y="0" width="200" height="100" fill="var(--pre-fg)"></rect>'
+               '<rect x="50" y="40" width="60" height="20" fill="var(--pre-bg)" opacity="1"></rect></mask>')
+        out = ve.mask_rects_to_paths(svg)
+        assert '<rect' not in out
+        assert 'M0 0h200v100h-200Z' in out
+        assert 'M50 38h60v24h-60Z' in out
+
+    def test_chua_dich_bat_nhan_tieng_viet_bo_quen(self):
+        bang = {
+            'SHA-256': 'SHA-256',
+            'Bình thường': 'Normal',
+            'Bản này viết riêng cho CPU': 'Bản này viết riêng cho CPU',
+        }
+        assert ve._chua_dich(bang, 'en') == ['Bản này viết riêng cho CPU']
+        assert ve._chua_dich(bang, 'vi') == []
+
+    def test_sequence_note_trong_alt_nam_gon_trong_khung(self):
+        spec = [{'t': 'sequence', 'x': 0, 'y': 0, 'gap': 200,
+                 'actors': [{'id': 'a', 'label': 'A'}, {'id': 'b', 'label': 'B'}],
+                 'messages': [
+                     {'alt': 'ok'},
+                     {'note': 'chi tiết', 'over': ['a', 'b']},
+                     {'end': True}]}]
+        els = ve.bung(spec)
+        frame = next(e for e in els if e['t'] == 'box' and e.get('under'))
+        note = next(e for e in els if e['t'] == 'box' and e.get('text') == 'chi tiết')
+        assert note['x'] >= frame['x'] + 6
+        assert note['x'] + note['w'] <= frame['x'] + frame['w'] - 6
+
+    def test_route_cung_chieu_hv_vh_bi_nhac(self):
+        _, _, hinh, lint, goc = ve.dung([
+            {'t': 'box', 'id': 'a', 'x': 100, 'y': 0, 'w': 120, 'h': 40},
+            {'t': 'box', 'id': 'b', 'x': 0, 'y': 100, 'w': 100, 'h': 40},
+            {'t': 'arrow', 'from': 'a', 'to': 'b', 'fromSide': 'bottom', 'toSide': 'top', 'route': 'vh'}])
+        _, nhac = ve.soat([], hinh, lint, goc)
+        assert any("use 'vhv'" in n for n in nhac)
+
+    def test_so_voi_nguon_bo_qua_day_o_lien_tiep_va_cot_0_den_n_tru_1(self):
+        conv = [
+            {'type': 'text', 'id': 't0', 'containerId': 'p0.0', 'text': '40'},
+            {'type': 'text', 'id': 't1', 'containerId': 'p0.1', 'text': '41'},
+            {'type': 'text', 'id': 't2', 'containerId': 'p0.2', 'text': '42'},
+            {'type': 'text', 'id': 't3', 'containerId': 'p0.3', 'text': '43'},
+        ] + [{'type': 'text', 'id': f'tp:b~tick~{i}', 'text': f'p{i}'} for i in range(12)]
+        assert ve.so_voi_nguon(conv, 'topic 12 partition, offset 40 to 43', 'bai.md') == []
+
+    def test_mui_ten_chi_cham_nganh_sau_dau_mui_ten(self):
+        # Pointer tip at (454, 519) brushing arrowhead barb of horizontal arrow ending at (492, 523)
+        lint = [
+            (None, None, [(285, 523), (492, 523)], 1, {'t': 'arrow'}),
+            (None, None, [(550, 494), (454, 494), (454, 519)], 1, {'t': 'arrow', 'dashed': True, 'weight': 1, 'color': 'muted'}),
+        ]
+        _, nhac = ve.soat([], {}, lint, [])
+        assert any("another arrow's arrowhead" in n for n in nhac)
+
+    def test_card_mono_du_rong_cho_freetype(self):
+        els = ve.m_card({'t': 'card', 'x': 0, 'y': 0, 'mono': True, 'text': 'writes bytes 48-111'})
+        box = next(e for e in els if e['t'] == 'box')
+        # 19 mono chars at 15px render ~179px at 1x DPR; box needs >= 179 + 28 padding so right border stays clear
+        assert box['w'] >= 210
+
+    def test_span_va_plot_ho_tro_textColor(self):
+        sp = ve.m_span({'t': 'span', 'x1': 0, 'x2': 100, 'y': 20, 'color': 'l4', 'textColor': 'ink', 'text': 'chưa đọc'})
+        assert next(e for e in sp if e['t'] == 'text')['color'] == 'ink'
+        pl = ve.m_plot({'t': 'plot', 'x': 0, 'y': 100, 'w': 100, 'h': 80,
+                        'bars': [{'label': 'p0', 'value': 10, 'text': '10', 'color': 'l4', 'textColor': 'ink'}]})
+        assert next(e for e in pl if e['t'] == 'text' and e['text'] == '10')['color'] == 'ink'
